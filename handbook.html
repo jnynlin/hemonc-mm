@@ -99,7 +99,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <details class="sec"><summary><h2><span class="n">1</span>進入清單</h2></summary>
 <ol>
   <li>Teams → 團隊「monthly-meeting」→ 右上 <b>⋯ → 在 SharePoint 中開啟</b>；或直接開站台網址。</li>
-  <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（主要工作清單）、<b>對照表</b>（只有你和主席看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
+  <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（主要工作清單）、<b>對照表</b>（只有你和主任看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
   <li>開「案例」。上方檢視切換：<b>所有項目</b>／<b>整理中</b>／<b>待討論</b>。每天工作用「整理中」。</li>
 </ol>
 <figure>
@@ -203,7 +203,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <tr><td>五個為什麼</td><td>推理鏈</td><td>見 05 節範例。</td></tr>
 <tr><td>學習重點</td><td>一到三句</td><td>給下一位住院醫師看的：「FN 病人血壓邊緣值時，qSOFA≥2 就啟動 sepsis bundle，不等 lactate。」</td></tr>
 <tr><td>參考指引文獻</td><td>可選</td><td>NCCN／ASCO／院內 SOP 名稱＋年份即可。</td></tr>
-<tr><td>狀態 <span class="req">＊</span></td><td>流程閘門</td><td><span class="pill draft">整理中</span> → <span class="pill ready">待討論</span> → <span class="pill done">已定案</span>（主席定案後才改）</td></tr>
+<tr><td>狀態 <span class="req">＊</span></td><td>流程閘門</td><td><span class="pill draft">整理中</span> → <span class="pill ready">待討論</span> → <span class="pill done">已定案</span>（主任定案後才改）</td></tr>
 </table></div>
 <figure>
 <svg viewBox="0 0 760 250" role="img" aria-label="新增表單示意，含驗證錯誤">
@@ -273,7 +273,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <ol>
   <li>初評寫完，把該案的 SharePoint 連結（點標題 → 右上「複製連結」）用 Teams 私訊給該案主治，附一句：「請看初評，回我 同意／不同意＋理由，兩天內。」</li>
   <li>主治是站台成員，可以直接改「主治醫師回覆」「主治認為主要根因」「主治醫師說明」三欄；多數主治會口頭回你，<b>你代填時在「主治醫師說明」開頭寫「（代填）」</b>。</li>
-  <li>兩天沒回 → 維持「未徵詢」送會，會議上由主席現場問。不要為了等回覆延後整批。</li>
+  <li>兩天沒回 → 維持「未徵詢」送會，會議上由主任現場問。不要為了等回覆延後整批。</li>
 </ol>
 <div class="note ok">「不同意初評」不是壞事。初評與主治意見並排，是會議最有討論價值的案例；投影頁會自動把這些排在前面。</div>
 </details>
@@ -297,7 +297,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <path d="M212 56 L286 56" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M280 51 L288 56 L280 61" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
   <path d="M472 56 L546 56" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M540 51 L548 56 L540 61" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
   <text x="249" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">你改（五點檢核）</text>
-  <text x="509" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">主席寫入正式紀錄後你改</text>
+  <text x="509" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">會中定案時自動改</text>
   <text x="120" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">可隨時編輯</text>
   <text x="380" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">會前凍結內容，只補主治回覆</text>
   <text x="640" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">不再改；有誤到正式紀錄寫「修正附註」</text>
@@ -330,14 +330,14 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <tr><td>存檔時出現紅字「詳細診斷請寫得具體一些」</td><td>補到至少 12 字：型態、分期或風險分群、分子標記。</td></tr>
 <tr><td>收案時顯示「已收過」</td><td>同一病人同一月份已在清單裡，系統會略過，避免重複建檔。</td></tr>
 <tr><td>收案頁顯示沒有權限</td><td>請主任把你加入「M&amp;M 對照表」群組，重新整理頁面後再試。</td></tr>
-<tr><td>「根因分類」少了想選的項目</td><td>不要自己加。先選最接近的，在五個為什麼寫明，會議提案新增；主席同意後由主席加。</td></tr>
+<tr><td>「根因分類」少了想選的項目</td><td>不要自己加。先選最接近的，在五個為什麼寫明，會議提案新增；主任同意後由主任加。</td></tr>
 <tr><td>病人超長住院後死亡（兩份名單都有）</td><td>分開兩例：超長住院一例、Mortality 一例，各自討論。</td></tr>
 <tr><td>同一次住院連續兩個月都在超長住院名單</td><td>每月各算一例，各自收案、各自討論。</td></tr>
 <tr><td>收案時出現「Word 格式和以往不同」</td><td>表格欄位順序或寫法變了，系統不會寫入。請對照上個月的 Word 調整後再收。</td></tr>
 <tr><td>待討論清單出現「上月延續」</td><td>上個月沒討論完的案例，會排在同組最前面，照常討論即可。</td></tr>
 <tr><td>主治要求改初評</td><td>不改。初評是你的判斷，主治意見填主治欄位；並排才有討論。</td></tr>
-<tr><td>要查某案是哪位病人</td><td>開「對照表」清單，用案例代碼搜尋。看不到這個清單＝你不在「M&M 對照表」群組，找主席加。</td></tr>
-<tr><td>不小心把病歷號貼進「案例」了</td><td>立刻改掉該欄 → 該項目 ⋯ → 版本歷程記錄 → 刪除含病歷號的舊版本 → 通知主席。</td></tr>
+<tr><td>要查某案是哪位病人</td><td>開「對照表」清單，用案例代碼搜尋。看不到這個清單＝你不在「M&M 對照表」群組，找主任加。</td></tr>
+<tr><td>不小心把病歷號貼進「案例」了</td><td>立刻改掉該欄 → 該項目 ⋯ → 版本歷程記錄 → 刪除含病歷號的舊版本 → 通知主任。</td></tr>
 <tr><td>臨床經過裡的日期怎麼寫</td><td>相對日「入院第 5 天」或「2026/10 中旬」；收案時系統已把完整日期改成年月，自己補寫時也照這個方式。</td></tr>
 </table></div>
 </details>
@@ -353,16 +353,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 </ul>
 </details>
 
-<details class="sec"><summary><h2><span class="n">11</span>研究醫師交接</h2></summary>
-<p>換研究醫師時，由主任處理：</p>
-<ol>
-  <li>開啟「人員和群組」頁 <code>https://mailcmuhorgtw.sharepoint.com/sites/monthly-meeting/_layouts/15/groups.aspx</code> → 點「M&amp;M 對照表」→ 移除前一位、「新增」新的研究醫師。新研究醫師也要是站台成員（從 Teams 團隊「新增成員」即可）。不要在「權限」頁（user.aspx）修改群組的權限等級。</li>
-  <li>新研究醫師照 <a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html">書籤安裝頁</a> 安裝「M&amp;M」。</li>
-  <li>「案例」清單切到「整理中」檢視，確認前一位手上未完成的案例由誰接手。</li>
-  <li>提醒新研究醫師：討論會 Word 的表格格式維持原樣（左欄：床號、病歷號、姓名、年齡性別、主治；右欄：日期與診斷），格式變了收案會被擋下。</li>
-</ol>
-</details>
 
-<footer>血液腫瘤科 M&amp;M 案例庫 · 研究醫師手冊 v1.6 · 2026 年 11 月</footer>
+<footer>血液腫瘤科 M&amp;M 案例庫 · 研究醫師手冊 v1.7 · 2026 年 11 月</footer>
 </div>
 </body></html>

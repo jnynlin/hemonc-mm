@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M&M 主任維護</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#fbfbf9;--fg:#1f2428;--muted:#5d6670;--line:#d9ddd6;--accent:#1c5cab;--accent-soft:#e3ecf8;--bad:#b4322e;--soft:#eef0ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;--accent-soft:#1d2a3c;--bad:#ef8a86;--soft:#1e2328;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;--accent-soft:#1d2a3c;--bad:#ef8a86;--soft:#1e2328;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,"Noto Sans TC","Microsoft JhengHei",sans-serif;padding:0 16px 48px}
+.wrap{max-width:780px;margin:0 auto} header{padding:28px 0 14px;border-bottom:2px solid var(--fg)} h1{font-size:24px;margin:0} header p{margin:4px 0 0;color:var(--muted)}
+section{padding:18px 0;border-bottom:1px solid var(--line)} h2{font-size:18px;margin:0 0 6px} h2 small{font-weight:400;color:var(--muted);font-size:14px;margin-left:8px}
+ol,ul{padding-left:1.4em;margin:6px 0} li{margin:5px 0} .muted{color:var(--muted);font-size:14px} .warn{color:var(--bad)}
+a{color:var(--accent)} code{font-family:ui-monospace,Consolas,monospace;font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:3px;word-break:break-all}
+table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top} th{color:var(--muted);font-weight:500;font-size:13px}
+</style>
+<script src="theme.js"></script>
+</head>
+<body><div class="wrap">
+<header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
+
+<section><h2>更新程式 <small>收到新版時</small></h2>
+<ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
+<li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
+<li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
+<p class="muted">全站只留一份 mm_app.js；「文件」裡不要再放一份，否則可能讀到舊版。大家的書籤不需要重裝。</p></section>
+
+<section><h2>加人、換人</h2>
+<table>
+<tr><th>對象</th><th>做法</th></tr>
+<tr><td>一般同仁（主治）</td><td>Teams 團隊「⋯」→「新增成員」。加入團隊就等於站台成員，可看案例、填主治回覆。</td></tr>
+<tr><td>研究醫師</td><td>同上加入團隊，另外到「人員和群組」頁 <code>https://mailcmuhorgtw.sharepoint.com/sites/monthly-meeting/_layouts/15/groups.aspx</code> → 點「M&amp;M 對照表」→「新增」。</td></tr>
+<tr><td>離開的人</td><td>從 Teams 團隊移除；若是研究醫師，也從「M&amp;M 對照表」移除。</td></tr>
+</table>
+<p class="muted warn">不要在「權限」頁（user.aspx）修改群組的權限等級；加減人一律在 groups.aspx 或 Teams。</p></section>
+
+<section><h2>研究醫師交接</h2>
+<ol><li>「M&amp;M 對照表」群組：移除前一位，加入新的研究醫師（見上方）。</li>
+<li>請新研究醫師照 <a href="bookmarks.html">使用說明</a> 安裝書籤，並把 <a href="handbook.html">研究醫師手冊</a> 給他。</li>
+<li>「案例」清單切到「整理中」檢視，確認前一位未完成的案例由誰接手。</li>
+<li>提醒：討論會 Word 的表格格式維持原樣（左欄：床號、病歷號、姓名、年齡性別、主治；右欄：日期與診斷），格式變了收案會被擋下。</li></ol></section>
+
+<section><h2>會議中</h2>
+<ul><li>只有主任能在開會頁「定案」；其他人看到的是唯讀畫面。</li>
+<li>定案無法撤銷。內容需要更正時，到「正式紀錄」該筆的「修正附註」補充說明。</li>
+<li>超長住院與 M&amp;M 分開開會時，開會頁上方切換「超長住院」或「M&amp;M」再開始投影。</li></ul></section>
+
+<section><h2>已定的規則</h2>
+<ul><li>同一次住院連續兩個月都在超長住院名單：每月各算一例。</li>
+<li>超長住院後死亡：超長住院與 Mortality 分開兩例。</li>
+<li>「對照表」不設保留期限。</li>
+<li>根因「臨床決策」層為主要根因時，須另勾一項其他層級的促成因素才能定案。</li></ul></section>
+
+<section><h2>維護腳本 <small>院內保管，不放網路</small></h2>
+<p>位置：主任電腦的「MM_SharePoint」資料夾（NAS 另有備份）。用法：站台任一頁按 F12 → Console → 貼上整個檔案 → Enter，都可以重跑。</p>
+<table>
+<tr><th>檔案</th><th>用途</th></tr>
+<tr><td><code>create_lists.js</code></td><td>建立或補齊清單、欄位、檢視、權限、根因分類與欄位說明。</td></tr>
+<tr><td><code>setup_home.js</code></td><td>站台首頁與左側選單。</td></tr>
+<tr><td><code>import_items.js</code></td><td>備用：把 xlsx 匯入清單（書籤不能用時）。</td></tr>
+</table>
+<p class="muted">主控台出現 browser.pipe.aria.microsoft.com 之類的紅字是 SharePoint 自己的訊息，可忽略。</p></section>
+
+<section><h2>書籤不能用時的備用工具</h2>
+<ul><li><a href="mm_convert.html">案例轉換</a>：Word 轉成兩個 xlsx，再用 import_items.js 匯入。</li>
+<li><a href="mm_dashboard.html">離線儀表板</a>：從 SharePoint 匯出 CSV 後載入、投影（不能定案）。</li></ul></section>
+</div></body></html>

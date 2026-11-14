@@ -245,7 +245,7 @@ function decideBlock(c){ const i=c.initial,a=c.attending; const att=a.status==='
   const next=a.status==='同意初評'?'主治同意初評。若現場無異議，可照初評定案（三方一致）。':a.status==='不同意初評'?'初評與主治意見不同。請雙方簡述理由，再以投票或主席裁定決定。':'尚未徵詢主治。請先聽取主治意見，再決定是否投票。';
   return `<div class="card" style="margin-top:12px">${rows.map(([k,v])=>`<div class="kv"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}${a.comment?`<div class="kv wide"><div class="k">主治醫師說明</div><div class="v">${esc(a.comment)}</div></div>`:''}</div>
   <h3 style="margin-top:22px">本案需決定</h3>${SP?'':'<ol class="todo"><li>共識主要根因（可與初評不同）</li><li>可預防性：不可／可能／很可能／明確</li><li>決策方式：三方一致／主席裁定／投票</li></ol>'}<p class="small">${next}</p>${SP?decideForm(c):''}`; }
-function decideForm(c){ if(!SP.canDecide) return '<p class="small muted">定案由主席執行，此畫面僅供檢視。</p>';
+function decideForm(c){ if(!SP.canDecide) return '<p class="small muted">定案由主任執行，此畫面僅供檢視。</p>';
   const i=c.initial, grp=groupsOf(); const opt=(sel)=>grp.map(g=>`<optgroup label="${esc(g)}">${state.factors.filter(f=>f.group===g).map(f=>`<option ${f.name===sel?'selected':''}>${esc(f.name)}</option>`).join('')}</optgroup>`).join('');
   const mode=c.attending.status==='同意初評'?'三方一致':'投票';
   return `<form class="decide" id="decide" autocomplete="off">
@@ -283,16 +283,16 @@ document.addEventListener('keydown',e=>{ if(state.view!=='present') return; if(/
 function renderAbout(){ $('#v-about').innerHTML=`<section><div class="sec-head"><h2>每月怎麼跑</h2><span class="note">在 SharePoint 站台按書籤「M&amp;M」使用。</span></div>
   <div class="flow">
     <div><div class="ph">① 會前兩週　研究醫師</div><ol><li>按「M&amp;M」→「收案」，把討論會 Word 檔拖進去，確認後寫入。</li><li>在「案例」清單逐案補寫住院經過、初評（主要根因、促成因素、可預防性）與五個為什麼，並徵詢主治。</li><li>完成後把狀態改成「待討論」。</li></ol></div>
-    <div><div class="ph">② 會前　主席</div><ol><li>按「M&amp;M」→「開會」。</li><li>在「待討論案例」確認本月案例，依主治意見分成三組。</li></ol></div>
+    <div><div class="ph">② 會前　主任</div><ol><li>按「M&amp;M」→「開會」。</li><li>在「待討論案例」確認本月案例，依主治意見分成三組。</li></ol></div>
     <div><div class="ph">③ 會議中　筆電接投影</div><ol><li>按「投影模式」，用 ← → 換案；上方「全螢幕」供投影使用。</li><li>在右側選定共識主要根因、可預防性與決策方式，按「定案」。正式紀錄與案例狀態會自動更新。</li><li>意見分歧時先投票，再把票數填入後定案。</li></ol></div>
     <div><div class="ph">④ 會後</div><ol><li>正式紀錄已在會中完成，無需另行整理。</li><li>需要時新增「改善行動」（負責人、到期日）。</li><li>在「紀錄與分析」查看趨勢；按「重新讀取」取得最新內容。</li></ol></div>
   </div>
   <h3 style="margin-top:26px">資料與隱私</h3>
   <p class="small">${SP?'畫面上的資料直接讀自科內 SharePoint 清單，關閉後不會留在這台電腦。「案例」只含姓＋OO 與年齡；病歷號、全名等可識別資料另存在權限限定的「對照表」。':'匯入的資料只存在這台電腦的瀏覽器裡，可在「載入」頁按「清除已載入資料」移除。仍屬科內資料，請勿在公用電腦使用。'}</p>
   <h3 style="margin-top:18px">說明文件</h3>
-  <p class="small"><a href="https://jnynlin.github.io/hemonc-mm/handbook.html" target="_blank" rel="noopener">研究醫師手冊</a>　·　<a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html" target="_blank" rel="noopener">書籤安裝</a></p></section>`; }
+  <p class="small"><a href="https://jnynlin.github.io/hemonc-mm/handbook.html" target="_blank" rel="noopener">研究醫師手冊</a>　·　<a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html" target="_blank" rel="noopener">使用說明</a></p></section>`; }
 
-if(SP){ spApply(SP.data); const lb=document.querySelector('#nav button[data-view="load"]'); if(lb) lb.remove(); const ab=document.querySelector('#nav button[data-view="about"]'); if(ab){ const a=document.createElement('a'); a.textContent='手冊'; a.href='https://jnynlin.github.io/hemonc-mm/handbook.html'; a.target='_blank'; a.rel='noopener'; a.className='navlink'; ab.replaceWith(a); } const h=document.querySelector('.top-in > div'); if(h) h.remove(); setView('prep'); }
+if(SP){ spApply(SP.data); const lb=document.querySelector('#nav button[data-view="load"]'); if(lb) lb.remove(); const ab=document.querySelector('#nav button[data-view="about"]'); if(ab){ const a=document.createElement('a'); a.textContent='說明'; a.href='https://jnynlin.github.io/hemonc-mm/bookmarks.html'; a.target='_blank'; a.rel='noopener'; a.className='navlink'; ab.replaceWith(a); } const h=document.querySelector('.top-in > div'); if(h) h.remove(); setView('prep'); }
 else { restore(); (function(){ const h=location.hash.slice(1); setView(VIEWS.includes(h)&&h!=='present'?h:(state.records.length?'records':'load')); })(); }
 </script>
 
