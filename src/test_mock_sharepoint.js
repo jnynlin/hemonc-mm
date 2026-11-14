@@ -26,8 +26,13 @@
     if (path === 'contextinfo') return J({ d: { GetContextWebInformation: { FormDigestValue: 'D' } } });
     if (path.startsWith('SP.UI.ApplicationPages.ClientPeoplePickerWebServiceInterface.clientPeoplePickerSearchUser')) { const qs = JSON.parse(opt.body).queryParams.QueryString; const hits = (MOCK.users || []).filter(u => u.DisplayText.includes(qs)).map(u => ({ Key: u.Key, DisplayText: u.DisplayText })); return J({ d: { ClientPeoplePickerSearchUser: JSON.stringify(hits) } }); }
     if (path === 'web/ensureuser') { const k = JSON.parse(opt.body).logonName; const u = (MOCK.users || []).find(x => x.Key === k); return u ? J({ d: { Id: u.Id, Title: u.DisplayText } }) : J({ 'odata.error': { message: { value: 'user not found' } } }, 404); }
+    if (/^web\/lists\/getbytitle\('投票'\)/.test(path) && MOCK.voteTitleBroken) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404);
     let mt = path.match(/^web\/lists\/getbytitle\('(.+?)'\)/);
     if (mt) { const t = mt[1].replace(/''/g, "'"); if (!L[t] || (t === '對照表' && !MOCK.perms['對照表'])) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404); return J({ Id: ids[t], ListItemEntityTypeFullName: 'SP.Data.' + ids[t], RootFolder: { ServerRelativeUrl: '/sites/x/Lists/' + (t === '投票' ? 'mmvote' : t) } }); }
+    let gl = path.match(/^web\/GetList\(@u\)\?.*@u='([^']*)'/);
+    if (gl) { const u = gl[1]; const tt = /\/Lists\/mmvote$/.test(u) ? '投票' : null; if (!tt) return J({ 'odata.error': { message: { value: 'not found' } } }, 404); return J({ Id: ids[tt], ListItemEntityTypeFullName: 'SP.Data.' + ids[tt], RootFolder: { ServerRelativeUrl: '/sites/x/Lists/mmvote' } }); }
+    // 模擬多語系：依名稱「投票」找不到
+    if (/^web\/lists\/getbytitle\('投票'\)/.test(path) && MOCK.voteTitleBroken) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404);
     mt = path.match(/^web\/lists\(guid'(g\d)'\)\/(.*)$/); if (!mt) return J({ error: 'unknown ' + path }, 400);
     const t = names[mt[1]], rest = mt[2], F = L[t];
     if (rest.startsWith('fields')) return J({ value: F });

@@ -1,10 +1,10 @@
-/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.13 2026-11-14
+/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.14 2026-11-14
    由書籤載入：書籤從本站「文件」庫讀 mm_app.js 後執行。資料只在瀏覽器 ↔ 本站 SharePoint 之間，不經其他伺服器。
    本檔由 build_app.py 產生：轉換核心取自 mm_convert.html、儀表板取自 mm_dashboard.html，請勿手改。 */
 (() => {
   'use strict';
   if (window.__MM_APP) { window.__MM_APP.show(); return; }
-  const VERSION = 'v1.13 2026-11-14';
+  const VERSION = 'v1.14 2026-11-14';
   const base = location.origin + ((location.pathname.match(/^\/(sites|teams)\/[^/]+/) || [''])[0]);
 
   /* ================= SharePoint REST ================= */
@@ -29,7 +29,9 @@
   const LI = {};
   async function listInfo(title) {
     if (LI[title]) return LI[title];
-    const l = await rq(`web/lists/getbytitle('${q(title)}')?$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder`);
+    const BYURL = { '投票': '/Lists/mmvote' }; // 用網址找：多語系站台改名後，依名稱可能找不到
+    const sel = '$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder';
+    const l = BYURL[title] ? await rq(`web/GetList(@u)?${sel}&@u='${encodeURIComponent(base.replace(location.origin, '') + BYURL[title])}'`) : await rq(`web/lists/getbytitle('${q(title)}')?${sel}`);
     const fs = (await rq(`web/lists(guid'${l.Id}')/fields?$filter=Hidden eq false`)).value;
     const ours = fs.filter(f => f.InternalName === 'Title' || /^mm/.test(f.InternalName));
     const f = {}; for (const x of ours) f[x.Title] = x; const tf = ours.find(x => x.InternalName === 'Title'); if (tf) f['標題'] = tf;

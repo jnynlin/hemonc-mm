@@ -29,7 +29,9 @@
   const LI = {};
   async function listInfo(title) {
     if (LI[title]) return LI[title];
-    const l = await rq(`web/lists/getbytitle('${q(title)}')?$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder`);
+    const BYURL = { '投票': '/Lists/mmvote' }; // 用網址找：多語系站台改名後，依名稱可能找不到
+    const sel = '$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder';
+    const l = BYURL[title] ? await rq(`web/GetList(@u)?${sel}&@u='${encodeURIComponent(base.replace(location.origin, '') + BYURL[title])}'`) : await rq(`web/lists/getbytitle('${q(title)}')?${sel}`);
     const fs = (await rq(`web/lists(guid'${l.Id}')/fields?$filter=Hidden eq false`)).value;
     const ours = fs.filter(f => f.InternalName === 'Title' || /^mm/.test(f.InternalName));
     const f = {}; for (const x of ours) f[x.Title] = x; const tf = ours.find(x => x.InternalName === 'Title'); if (tf) f['標題'] = tf;
