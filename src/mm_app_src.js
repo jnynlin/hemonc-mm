@@ -39,6 +39,8 @@
     try { const li = await listInfo(title); const p = await rq(`web/lists(guid'${li.id}')/EffectiveBasePermissions`); return (Number(p.Low) & 2) !== 0; }
     catch (_) { return false; }
   }
+  function selExp(li) { const sel = ['Id'], exp = []; for (const f of li.ours) { if (/^Lookup/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); } return `$select=${sel.join(',')}${exp.length ? '&$expand=' + exp.join(',') : ''}`; }
+  async function readOne(title, id) { const li = await listInfo(title); return rq(`web/lists(guid'${li.id}')/items(${id})?${selExp(li)}`); }
   async function readAll(title) {
     const li = await listInfo(title); const sel = ['Id'], exp = [];
     for (const f of li.ours) { if (/^Lookup/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); }
@@ -186,13 +188,15 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     function render() {
       const res = $('#res'), d = R.items, n = d.filter(x => x.ok).length, dup = d.filter(x => x.dup).length;
       const unG = d.filter(x => x.ok && !x.draft.dxGroup).length;
-      res.innerHTML = `${R.groups.map(g => g.leak.length
+      res.innerHTML = `${R.groups.map(g => g.bad
+          ? `<p class="bad">${esc(g.name)}：Word 格式和以往不同（${esc(g.bad)}），這個檔不會寫入。請對照上個月的 Word，確認表格欄位順序與寫法後再收。</p>`
+          : g.leak.length
           ? `<p class="bad">${esc(g.name)}：內容裡還有疑似病歷號的長串數字（${esc(g.leak.join('、'))}），這個檔不會寫入，請告訴主任。</p>`
           : `<h3>${esc(g.ctype)} ${g.n} 例，可識別資料已隱去${g.dup ? `　<span class="warn">其中 ${g.dup} 例之前已收過，會略過</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
         ${unG ? `<p class="note warn">${unG} 例無法自動判斷診斷群，寫入後請在清單補選。</p>` : ''}
         <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每一例會同時寫入「案例」與「對照表」；任一邊沒寫成功，該例會整筆取消。</span></div>
         <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
-        ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
+        ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}${x.noDate ? '<br><span class="warn">找不到日期，不寫入</span>' : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
 `;
       const cnt = () => { $('#wn').textContent = res.querySelectorAll('input[data-i]:checked').length; };
@@ -248,7 +252,18 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const obj = (cols, row) => { const o = {}; cols.forEach((c, j) => o[c] = row[j]); return o; };
     for (const sp of specs) {
       const r = await MM.convert(await sp.file.arrayBuffer(), sp.ym);
-      const g = { name: sp.file.name, ctype: r.ctype, leak: r.leak, n: r.drafts.length, dup: 0 }; groups.push(g);
+      const g = { name: sp.file.name, ctype: r.ctype, leak: r.leak, n: r.drafts.length, dup: 0, bad: '' }; groups.push(g);
+      { // Word 格式檢查：異常比例偏高就整個檔不寫入
+        const n = r.drafts.length, pct = k => n ? k / n : 1, miss = [];
+        if (!n) g.bad = '讀不到任何案例';
+        else {
+          const noAge = r.drafts.filter(d => d.age == null).length, noDx = r.drafts.filter(d => !d.dxDetail).length, noYm = r.drafts.filter(d => !d.ym || d.ym === '0000-00').length;
+          const noLos = r.kind === 'mortality' ? 0 : r.drafts.filter(d => d.los == null).length;
+          if (pct(noAge) > 0.3) miss.push(`${noAge} 例沒有年齡`); if (pct(noDx) > 0.3) miss.push(`${noDx} 例沒有診斷`);
+          if (pct(noYm) > 0.3) miss.push(`${noYm} 例沒有日期`); if (pct(noLos) > 0.3) miss.push(`${noLos} 例沒有住院日數`);
+          if (miss.length) g.bad = miss.join('、');
+        }
+      }
       r.drafts.forEach((d, i) => {
         const prefix = d.code.replace(/-\d{4}-\d{2}-\d+$/, ''), stem = `${pre}${prefix}-${d.ym}-`, chart = String(r.keyRows[i][1] || '').trim();
         let dup = (byChart[chart] || []).find(t => t.startsWith(stem) && /^\d+$/.test(t.slice(stem.length))) || null;
@@ -261,7 +276,8 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
         } else g.dup++;
         const caseRow = obj(MM.LIST_COLS, r.caseRows[i]), keyRow = obj(MM.KEY_COLS, r.keyRows[i]);
         caseRow['標題'] = code; keyRow['標題'] = code;
-        items.push({ g, code, dup, ok: !dup && !r.leak.length, draft: d, caseRow, keyRow });
+        const noDate = !d.ym || d.ym === '0000-00';
+        items.push({ g, code: noDate ? '（無日期）' : code, dup, noDate, ok: !dup && !noDate && !r.leak.length && !g.bad, draft: d, caseRow, keyRow });
       });
     }
     return { demo, groups, items };
@@ -279,8 +295,9 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     return { drafts, records: rs.map(it => toDisplay(rl, it)), factors: fs.map(it => toDisplay(fl, it)), actions: as.map(it => toDisplay(al, it)) };
   }
   async function decide(code, p) {
-    const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'), raw = caseRaw[code];
-    if (!raw) throw new Error('找不到案例 ' + code);
+    const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'); if (!caseRaw[code]) throw new Error('找不到案例 ' + code);
+    const raw = await readOne('案例', caseRaw[code].Id); caseRaw[code] = raw; caseDisp[code] = toDisplay(cl, raw); // 定案前重讀最新內容
+    if (caseDisp[code]['狀態'] === '已定案') throw new Error(code + ' 已經定案過。');
     const ex = await rq(`web/lists(guid'${rl.id}')/items?$select=Id&$filter=Title eq '${q(code)}'`);
     if (ex.value.length) throw new Error(code + ' 已經定案過。如需修正，請到「正式紀錄」該筆的「修正附註」補充。');
     const body = { __metadata: { type: rl.type } };
@@ -312,7 +329,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
       const w = frame.contentWindow, doc = frame.contentDocument;
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
-      w.MM_SP = { data, canDecide: can, decide, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
+      w.MM_SP = { data, canDecide: can, decide, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
       const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
       rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });

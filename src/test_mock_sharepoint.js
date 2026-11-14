@@ -7,7 +7,7 @@
     '案例': [...caseF(), T('狀態', 'mmStatus', 'Choice', { Choices: ['整理中', '待討論', '已定案'] })],
     '正式紀錄': [...caseF(), T('共識主要根因', 'mmConsMainFactor', 'Lookup'), T('共識促成因素', 'mmConsFactors', 'LookupMulti'), T('共識可預防性', 'mmConsPrev', 'Choice', { Choices: PREV }), T('決策方式', 'mmDecisionMode', 'Choice', { Choices: ['三方一致', '主席裁定', '投票'] }), T('長官意見', 'mmChiefComment', 'Note'), T('會議結論', 'mmConclusion', 'Note'), T('會議日期', 'mmMeetingDate', 'DateTime'), T('出席人數', 'mmAttendees', 'Number'), T('票數', 'mmVotes', 'Number'), T('投票分布', 'mmVoteDist', 'Note'), T('初評一致', 'mmConcordant', 'Choice', { Choices: ['是', '否'] })],
     '根因分類': [T('標題', 'Title', 'Text'), T('層級', 'mmLevel', 'Choice', { Choices: ['病人因素', '工作任務與流程', '超長住院因素'] }), T('排序', 'mmSortOrder', 'Number')],
-    '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] })],
+    '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('到期日', 'mmDueDate', 'DateTime'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] }), T('備註', 'mmRemarks', 'Note')],
     '對照表': [T('標題', 'Title', 'Text'), T('病歷號', 'mmChartNo', 'Text'), T('姓名', 'mmPatientName', 'Text'), T('床號', 'mmBed', 'Text'), T('主治醫師', 'mmAttending', 'Text'), T('原主治', 'mmPrevAttending', 'Text'), T('住院日期', 'mmAdmissionDate', 'Text'), T('死亡日期', 'mmDeathDate', 'Text'), T('住院日數原文', 'mmLOSRaw', 'Text')],
   };
   const ids = {}, names = {}; Object.keys(L).forEach((t, i) => { ids[t] = 'g' + i; names['g' + i] = t; });
@@ -29,8 +29,8 @@
     const t = names[mt[1]], rest = mt[2], F = L[t];
     if (rest.startsWith('fields')) return J({ value: F });
     if (rest === 'EffectiveBasePermissions') return J({ Low: '4294967295', High: '2147483647' });
-    let im = rest.match(/^items\((\d+)\)$/);
-    if (im) { const id = +im[1], i = DB[t].findIndex(x => x.Id === id); if (xm === 'DELETE') { DB[t].splice(i, 1); return new Response(null, { status: 204 }); } if (xm === 'MERGE') { const b = JSON.parse(opt.body); delete b.__metadata; Object.assign(DB[t][i], b); return new Response(null, { status: 204 }); } }
+    let im = rest.match(/^items\((\d+)\)(?:\?.*)?$/);
+    if (im) { const id = +im[1], i = DB[t].findIndex(x => x.Id === id); if (m === 'GET') return i < 0 ? J({ 'odata.error': { message: { value: 'Item does not exist' } } }, 404) : J({ ...DB[t][i] }); if (xm === 'DELETE') { DB[t].splice(i, 1); return new Response(null, { status: 204 }); } if (xm === 'MERGE') { const b = JSON.parse(opt.body); delete b.__metadata; Object.assign(DB[t][i], b); return new Response(null, { status: 204 }); } }
     if (rest.startsWith('items') && m === 'GET') {
       let rows = DB[t]; const f = rest.match(/\$filter=([^&]*)/);
       if (f) { let a; if ((a = f[1].match(/startswith\(Title,'(.*)'\)/))) rows = rows.filter(r => (r.Title || '').startsWith(a[1])); if ((a = f[1].match(/Title eq '(.*)'/))) rows = rows.filter(r => r.Title === a[1].replace(/''/g, "'")); }
