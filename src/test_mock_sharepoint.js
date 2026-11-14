@@ -12,7 +12,7 @@
   };
   const ids = {}, names = {}; Object.keys(L).forEach((t, i) => { ids[t] = 'g' + i; names['g' + i] = t; });
   const DB = { '案例': [], '正式紀錄': [], '根因分類': [], '改善行動': [], '對照表': [] }; let seq = 1;
-  [['病人因素', '疾病嚴重度／多重共病'], ['工作任務與流程', '檢驗檢查結果延遲或未追蹤'], ['超長住院因素', '等待檢查／處置'], ['超長住院因素', '感染併發症']].forEach(([g, n], i) => DB['根因分類'].push({ Id: seq++, Title: n, mmLevel: g, mmSortOrder: i }));
+  [['病人因素', '疾病嚴重度／多重共病'], ['工作任務與流程', '檢驗檢查結果延遲或未追蹤'], ['超長住院因素', '等待檢查／處置'], ['超長住院因素', '感染併發症'], ['臨床決策', '診斷假設未及時修正（定錨／過早結案）'], ['臨床決策', '值班負荷與疲勞']].forEach(([g, n], i) => DB['根因分類'].push({ Id: seq++, Title: n, mmLevel: g, mmSortOrder: i }));
   // 先放一筆「已收過」：讓 10 月第 3 例的病歷號被視為重複
   window.MOCK = { DB, L, log: [], perms: { '對照表': true } };
   const fac = id => { const f = DB['根因分類'].find(x => x.Id === id); return f ? { Id: f.Id, Title: f.Title } : null; };

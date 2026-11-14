@@ -62,7 +62,7 @@ svg{display:block;width:100%;height:auto;max-width:100%} svg text{font-family:va
 .decide .lbl{color:var(--fg2);font-size:.9rem} .decide .seg{display:flex;flex-wrap:wrap;gap:6px 16px} .decide .seg label{flex-direction:row;align-items:center;gap:5px;color:var(--fg);font-size:1rem}
 .decide .vote{display:flex;flex-wrap:wrap;gap:8px 12px} .decide .vote label{width:6em} .decide .vote label.w{flex:1;min-width:10em;width:auto}
 .decide details summary{cursor:pointer;color:var(--fg2);font-size:.9rem} .decide .fac{max-height:240px;overflow:auto;padding:6px 0;font-size:.9rem} .decide .fac .g{color:var(--muted);font-size:.8rem;margin-top:6px} .decide .ck{flex-direction:row!important;align-items:center;gap:6px!important;color:var(--fg)!important}
-.decide .go{display:flex;align-items:center;gap:12px;flex-wrap:wrap} .pres .flash{background:var(--accent-soft);padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:1rem;max-width:40em}
+.decide .jc{background:var(--accent-soft);border-left:3px solid var(--accent);padding:8px 12px;border-radius:4px;font-size:.92rem;line-height:1.6;color:var(--fg)} .decide .go{display:flex;align-items:center;gap:12px;flex-wrap:wrap} .pres .flash{background:var(--accent-soft);padding:8px 12px;border-radius:6px;margin-bottom:10px;font-size:1rem;max-width:40em}
 .flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px 32px} .flow>div{border-top:2px solid var(--rule);padding-top:10px;min-width:0} .flow .ph{font-weight:600;margin-bottom:6px} .flow ol{margin:0;padding-left:1.3em;font-size:.9rem;line-height:1.6} .flow li{margin:3px 0} .flow a,.small a{color:var(--accent)} code{font-family:var(--mono,ui-monospace,monospace);font-size:.9em;background:var(--accent-soft);padding:0 4px;border-radius:3px}
 .banner{background:var(--accent-soft);padding:10px 14px;border-radius:6px;font-size:.9rem}
 body.present .top{display:none} body.present main{max-width:1400px;padding-block:28px}
@@ -181,7 +181,7 @@ function renderLoad(){ const el=$('#v-load'); const L=state.loaded; const st=k=>
     <div class="loads">
       <label class="f"><span class="t"><span class="step">1</span>案例 <span class="tag req">會前必要</span></span><span class="d">本月要討論的案例與初評、主治意見。給「待討論案例」與「投影模式」用。</span><span class="when">來源：SharePoint 清單「案例」（也可直接用轉換器產出的 案例_匯入_*.xlsx 先看）</span><span class="pick"><button type="button" class="btn" data-pick="drafts">選擇檔案</button><span class="fn">或把檔案拖到這一格</span></span><input type="file" id="f-drafts" accept=".csv,.xlsx,.txt" hidden>${st('drafts')}</label>
       <label class="f"><span class="t"><span class="step">2</span>正式紀錄 <span class="tag req">分析必要</span></span><span class="d">歷月已定案的共識根因、可預防性、決策方式。給「紀錄與分析」的所有圖表用；第一個月還沒有紀錄可先略過。</span><span class="when">來源：SharePoint 清單「正式紀錄」</span><span class="pick"><button type="button" class="btn" data-pick="records">選擇檔案</button><span class="fn">或把檔案拖到這一格</span></span><input type="file" id="f-records" accept=".csv,.xlsx,.txt" hidden>${st('records')}</label>
-      <label class="f"><span class="t"><span class="step">3</span>根因分類 <span class="tag">選用</span></span><span class="d">27 項因素各屬哪一層（病人／個人／流程／團隊／環境／組織／超長住院）。載入後根因圖會依層分組並顯示層級交叉表；不載入也能畫圖，只是不分層。</span><span class="when">來源：SharePoint 清單「根因分類」（內容固定，匯出一次留著重複用）</span><span class="pick"><button type="button" class="btn" data-pick="factors">選擇檔案</button><span class="fn">或把檔案拖到這一格</span></span><input type="file" id="f-factors" accept=".csv,.xlsx,.txt" hidden>${st('factors')}</label>
+      <label class="f"><span class="t"><span class="step">3</span>根因分類 <span class="tag">選用</span></span><span class="d">27 項因素各屬哪一層（病人／臨床決策／流程／團隊／環境／組織／超長住院）。載入後根因圖會依層分組並顯示層級交叉表；不載入也能畫圖，只是不分層。</span><span class="when">來源：SharePoint 清單「根因分類」（內容固定，匯出一次留著重複用）</span><span class="pick"><button type="button" class="btn" data-pick="factors">選擇檔案</button><span class="fn">或把檔案拖到這一格</span></span><input type="file" id="f-factors" accept=".csv,.xlsx,.txt" hidden>${st('factors')}</label>
       <label class="f"><span class="t"><span class="step">4</span>改善行動 <span class="tag">選用</span></span><span class="d">上月定案的改善行動與進度，會中回顧「做了沒」。</span><span class="when">來源：SharePoint 清單「改善行動」</span><span class="pick"><button type="button" class="btn" data-pick="actions">選擇檔案</button><span class="fn">或把檔案拖到這一格</span></span><input type="file" id="f-actions" accept=".csv,.xlsx,.txt" hidden>${st('actions')}</label>
     </div>
     <div class="row" style="margin-top:16px"><label class="row small">超長住院門檻（天） <input type="text" id="thr" value="${state.thr}" style="width:5em"></label><button class="btn" id="sample">載入範例資料</button><button class="btn" id="clear">清除已載入資料</button><span class="small" id="load-msg"></span></div>
@@ -241,6 +241,7 @@ function decideForm(c){ if(!SP.canDecide) return '<p class="small muted">你沒�
   return `<form class="decide" id="decide" autocomplete="off">
     <label>共識主要根因<select name="main" required><option value="">（選擇）</option>${opt(i.mainFactor)}</select></label>
     <details><summary>共識促成因素（已選 <b id="fc">${i.factors.length}</b>）</summary><div class="fac">${grp.map(g=>`<div class="g">${esc(g)}</div>`+state.factors.filter(f=>f.group===g).map(f=>`<label class="ck"><input type="checkbox" name="f" value="${esc(f.name)}" ${i.factors.includes(f.name)?'checked':''}>${esc(f.name)}</label>`).join('')).join('')}</div></details>
+    <div class="jc" id="jc" hidden><b>主要根因落在「臨床決策」層：</b>先問兩句——當時有什麼條件讓這個決定看起來合理？換一位同資歷的醫師，在同樣的時間、資訊和負荷下，會不會做同樣的決定？<br><span id="jcneed">請在「共識促成因素」至少勾一項<b>其他層級</b>的因素，才能定案。</span></div>
     <label>共識可預防性<select name="prev" required><option value="">（選擇）</option>${PREV.map(p=>`<option ${p===i.preventability?'selected':''}>${p}</option>`).join('')}</select></label>
     <div class="lbl">決策方式</div><div class="seg">${DMODE.map(d=>`<label><input type="radio" name="mode" value="${d}" ${d===mode?'checked':''} required>${d}</label>`).join('')}</div>
     <div class="vote"><label>出席<input type="number" name="att" min="0" inputmode="numeric"></label><label>票數<input type="number" name="votes" min="0" inputmode="numeric"></label><label class="w">投票分布<input type="text" name="dist" placeholder="例：同意 8、不同意 2"></label></div>
@@ -248,10 +249,15 @@ function decideForm(c){ if(!SP.canDecide) return '<p class="small muted">你沒�
     <label>長官意見<textarea name="chief" rows="2"></textarea></label>
     <div class="go"><button class="btn primary" type="submit">定案，寫入正式紀錄</button><span id="dmsg" class="small"></span></div>
   </form>`; }
-function bindDecide(c){ const f=$('#decide'); if(!f) return; const upd=()=>{ $('#fc').textContent=f.querySelectorAll('input[name=f]:checked').length; }; f.querySelectorAll('input[name=f]').forEach(x=>x.addEventListener('change',upd));
+const JC_LEVEL='臨床決策';
+function jcCheck(f){ const main=f.main.value, inJc=main&&facGroup(main)===JC_LEVEL, other=[...f.querySelectorAll('input[name=f]:checked')].some(x=>facGroup(x.value)!==JC_LEVEL); return {inJc, ok:!inJc||other}; }
+function bindDecide(c){ const f=$('#decide'); if(!f) return; const btn=f.querySelector('button[type=submit]');
+  const upd=()=>{ $('#fc').textContent=f.querySelectorAll('input[name=f]:checked').length; const j=jcCheck(f); $('#jc').hidden=!j.inJc; $('#jcneed').hidden=j.ok; btn.disabled=!j.ok; if(j.inJc&&!j.ok) f.querySelector('details').open=true; };
+  f.querySelectorAll('input[name=f]').forEach(x=>x.addEventListener('change',upd)); f.main.addEventListener('change',upd); upd();
   f.addEventListener('submit',async e=>{ e.preventDefault(); const fd=new FormData(f), btn=f.querySelector('button[type=submit]'), msg=$('#dmsg');
     const p={ main:fd.get('main'), factors:fd.getAll('f'), prev:fd.get('prev'), mode:fd.get('mode'), attendees:num(fd.get('att')), votes:num(fd.get('votes')), dist:fd.get('dist').trim(), conclusion:fd.get('concl').trim(), chief:fd.get('chief').trim() };
     if(!p.main||!p.prev||!p.mode){ msg.innerHTML='<span class="disagree">主要根因、可預防性、決策方式都要選。</span>'; return; }
+    if(!jcCheck(f).ok){ msg.innerHTML='<span class="disagree">主要根因在「臨床決策」層時，至少要再勾一項其他層級的促成因素。</span>'; return; }
     btn.disabled=true; msg.textContent='寫入中…';
     try{ const rec=mapRecord(await SP.decide(c.code,p)); state.records.push(rec); if(rec.ym) state.recYm=rec.ym; const d=state.drafts.find(x=>x.code===c.code); if(d) d.status='已定案'; state.flash=`${c.code} 已定案 ✓（已寫入正式紀錄）`; renderPresent(); }
     catch(err){ btn.disabled=false; msg.innerHTML=`<span class="disagree">寫入失敗：${esc(err.message)}</span>`; } }); }
