@@ -104,6 +104,9 @@
   /* ================= 轉換核心（mm_convert.html） ================= */
   __CORE__
 
+  /* ================= QR code（投票用） ================= */
+  __QR__
+
   /* ================= 外框 ================= */
   const host = document.createElement('div'); host.id = 'mm-app-host';
   host.style.cssText = 'position:fixed;inset:0;z-index:2147483000;';
@@ -358,14 +361,36 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     catch (e) { throw new Error('定案已寫入，但案例狀態沒有更新。請到「案例」清單把這一例改成「已定案」。（' + e.message + '）'); }
     return { ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
   }
+  /* ---------- 會中匿名投票：手機掃 QR 開「投票」清單的表單；每人以最後一票為準 ---------- */
+  let voteLi = null;
+  const vote = {
+    async start() {
+      const top = (await rq(`web/lists(guid'${voteLi.id}')/items?$select=Id&$orderby=Id desc&$top=1`)).value[0];
+      const url = voteLi.url + '/NewForm.aspx';
+      return { startId: top ? top.Id : 0, url, svg: QR.svg(url, 8) };
+    },
+    async tally(startId) {
+      const pf = voteLi.f['可預防性'].EntityPropertyName;
+      const rows = (await rq(`web/lists(guid'${voteLi.id}')/items?$top=5000&$select=Id,AuthorId,${pf}&$filter=Id gt ${startId}&$orderby=Id asc`)).value;
+      const last = {}; for (const r of rows) last[r.AuthorId] = r;
+      const dist = {}; for (const r of Object.values(last)) if (r[pf]) dist[r[pf]] = (dist[r[pf]] || 0) + 1;
+      return { n: Object.keys(last).length, dist, rows };
+    },
+    async stop(startId, code) {
+      const t = await this.tally(startId), cf = voteLi.f['案例代碼'].EntityPropertyName, sf = voteLi.f['場次'].EntityPropertyName;
+      for (const r of t.rows) { try { await mergeItem(voteLi, r.Id, { __metadata: { type: voteLi.type }, [cf]: code, [sf]: String(startId) }); } catch (_) {} }
+      return { n: t.n, dist: t.dist };
+    }
+  };
   async function meetInit() {
     meetReady = true; const P = $('#p-meet'); P.innerHTML = '<div class="load">讀取中…</div>';
     try {
       const [data, can] = await Promise.all([loadData(), canAdd('正式紀錄')]);
+      try { voteLi = await listInfo('投票'); } catch (_) { voteLi = null; }
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
       const w = frame.contentWindow, doc = frame.contentDocument;
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
-      w.MM_SP = { data, canDecide: can, decide, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
+      w.MM_SP = { data, canDecide: can, decide, vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
       const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
       rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });

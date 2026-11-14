@@ -32,7 +32,8 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;
 <li>上傳新版 mm_app.js（見上方）。</li>
 <li>按「M&amp;M」→「收案」，頁面會提示「有 N 例還沒有主治醫師」，按「依對照表補填」。對不到的會列出代碼，請研究醫師在清單手動選。</li>
 <li>重跑 <code>setup_home.js</code>：首頁多一個「我的案例」連結。</li>
-<li>Teams「案例」分頁：主治開啟後切到「我的案例」即可。</li></ol></section>
+<li>Teams「案例」分頁：主治開啟後切到「我的案例」即可。</li>
+<li>再重跑一次 <code>create_lists.js</code>（v13）會建立「投票」清單，供會中匿名投票。</li></ol></section>
 
 <section><h2>加人、換人</h2>
 <table>
@@ -52,7 +53,9 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;
 <section><h2>會議中</h2>
 <ul><li>只有主任能在開會頁「定案」；其他人看到的是唯讀畫面。</li>
 <li>定案無法撤銷。內容需要更正時，到「正式紀錄」該筆的「修正附註」補充說明。</li>
-<li>超長住院與 M&amp;M 分開開會時，開會頁上方切換「超長住院」或「M&amp;M」再開始投影。</li></ul></section>
+<li>超長住院與 M&amp;M 分開開會時，開會頁上方切換「超長住院」或「M&amp;M」再開始投影。</li>
+<li>需要投票時，在投影頁定案表單按「開始匿名投票」。螢幕出現 QR code，與會者用手機投「可預防性」，按「結束投票」後再按「套用到定案表單」，票數與分布會自動填入。最高票同票時，請主任選定。</li>
+<li>匿名的範圍：開會畫面只顯示票數。SharePoint 仍會記錄每張票的帳號，只有主任能在「投票」清單看到，請不要打開清單看個別投票。只有站台成員能投票。</li></ul></section>
 
 <section><h2>已定的規則</h2>
 <ul><li>同一次住院連續兩個月都在超長住院名單：每月各算一例。</li>
