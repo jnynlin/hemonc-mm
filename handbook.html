@@ -64,6 +64,9 @@ td:first-child{white-space:nowrap;font-weight:500}
 @media (max-width:640px){.two{grid-template-columns:1fr}}
 .cmp{border-top:1px solid var(--line);padding-top:8px}
 .cmp .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+details.sec{border-top:1px solid var(--line)} details.sec>summary{cursor:pointer;list-style:none} details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary h2{margin:12px 0;font-size:18px} details.sec>summary h2::after{content:"＋";margin-left:auto;color:var(--muted);font-weight:400} details.sec[open]>summary h2::after{content:"－"}
+details.sec[open]{padding-bottom:18px} h2.ref{font-size:15px;color:var(--muted);margin-top:40px;font-weight:500}
 footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 @media print{body{font-size:12.5px;padding:0}h2{break-after:avoid}figure,table,.note{break-inside:avoid}header{padding-top:0}}
 </style>
@@ -72,26 +75,28 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <header>
   <div class="eyebrow">血液腫瘤科 · 超長住院／Morbidity／Mortality 討論會</div>
   <h1>M&M 案例庫 研究醫師手冊</h1>
-  <p>每月把案例整理進 SharePoint「案例」清單、寫初評、徵詢主治、送進會議。照這份做，一次 12 例約 90 分鐘。</p>
+  <p>平常只要看「每月 5 步」和「三件事」。其他章節遇到問題再點開。</p>
 </header>
 
-<h2><span class="n">00</span>開始前請記住三件事</h2>
-<div class="rules">
-  <div class="rule"><b>「案例」只放姓＋OO 與年齡</b><span>可以：林OO、67 歲、男、2026-10、案例代碼。不可以：全名、病歷號、床號、出生日期、完整住院／死亡日期。全科成員都看得到這個清單。</span></div>
-  <div class="rule"><b>真實身分只在「對照表」清單</b><span>代碼 ↔ 病歷號／全名／床號／主治，放同站台的「對照表」清單，只有「M&M 對照表」群組（研究醫師、主席）看得到。不要另外存檔在筆電，也不要寄到信箱。</span></div>
-  <div class="rule"><b>六碼以上的數字別出現在案例</b><span>病歷號、身分證、電話都是連續數字。自己補寫內容時特別留意；收案時系統也會檢查一次。</span></div>
-</div>
-
-<h2><span class="n">01</span>每月時程</h2>
+<h2>每月 5 步</h2>
 <div class="timeline">
-  <div class="tl"><div class="w">月初 1–5 日</div><b>收案</b><span>整理上月超長住院（≥30 天）、死亡、重大併發症名單（Word），用書籤「M&amp;M」收案。</span></div>
-  <div class="tl"><div class="w">5–15 日</div><b>寫初評</b><span>每例填詳細診斷、臨床經過、主要根因、促成因素、可預防性、五個為什麼。</span></div>
-  <div class="tl"><div class="w">15–22 日</div><b>徵詢主治</b><span>把初評給該案主治看，填「主治醫師回覆」三選一與說明。</span></div>
-  <div class="tl"><div class="w">會前 2 日</div><b>送會</b><span>狀態改「待討論」，用「M&amp;M」→「開會」確認案例都已列出。</span></div>
-  <div class="tl"><div class="w">會後</div><b>歸檔</b><span>會中定案時，正式紀錄與案例狀態會自動更新；你負責新增改善行動、指定負責人。</span></div>
+  <div class="tl"><div class="w">月初</div><b>收案</b><span>SharePoint 站台按書籤「M&amp;M」→「收案」，拖入討論會 Word，按「寫入」。</span></div>
+  <div class="tl"><div class="w">5–15 日</div><b>寫初評</b><span>在「案例」清單逐案補住院經過、主要根因、促成因素、可預防性、五個為什麼。</span></div>
+  <div class="tl"><div class="w">15–22 日</div><b>徵詢主治</b><span>請該案主治看初評，填「主治醫師回覆」。</span></div>
+  <div class="tl"><div class="w">會前 2 日</div><b>送會</b><span>把狀態改成「待討論」。</span></div>
+  <div class="tl"><div class="w">會後</div><b>改善行動</b><span>定案會自動寫入；需要時在「改善行動」新增一筆。</span></div>
 </div>
 
-<h2><span class="n">02</span>進入清單</h2>
+<h2>三件事</h2>
+<div class="rules">
+  <div class="rule"><b>「案例」只放姓＋OO 與年齡</b><span>不可以有全名、病歷號、床號、出生日期、完整日期。全科都看得到這個清單。</span></div>
+  <div class="rule"><b>身分資料只在「對照表」</b><span>病歷號、全名、床號只存在「對照表」，只有你和主任看得到。不另外存檔，也不寄信。</span></div>
+  <div class="rule"><b>補寫時注意長串數字</b><span>病歷號、身分證、電話都是長串數字，自己補寫內容時別寫進去。</span></div>
+</div>
+
+<h2 class="ref">遇到問題再查</h2>
+
+<details class="sec"><summary><h2><span class="n">1</span>進入清單</h2></summary>
 <ol>
   <li>Teams → 團隊「monthly-meeting」→ 右上 <b>⋯ → 在 SharePoint 中開啟</b>；或直接開站台網址。</li>
   <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（主要工作清單）、<b>對照表</b>（只有你和主席看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
@@ -135,8 +140,9 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 </svg>
 <figcaption>圖 1　「案例」清單。常用功能都在上方工具列；「狀態」是你需要自己更新的欄位。</figcaption>
 </figure>
+</details>
 
-<h2><span class="n">03</span>收案：兩種進法</h2>
+<details class="sec"><summary><h2><span class="n">2</span>收案：兩種進法</h2></summary>
 <div class="two">
   <div class="cmp"><div class="lbl good">A 整批收案（建議）：書籤「M&amp;M」</div>
     <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷）。第一次先照 <a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html">書籤安裝頁</a> 把「M&amp;M」拖到 Edge 的我的最愛列。</p>
@@ -168,8 +174,9 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <li><b>刪錯可以救回</b>：刪除的資料先進站台「回收站」；每次修改都有版本紀錄（該例 →「⋯」→「版本歷程記錄」），可還原舊版本。</li>
   <li><b>已定案的案例不要再改</b>：正式紀錄保存會議當天的定案內容；需要更正時，請主任在「正式紀錄」該筆的「修正附註」補充。</li>
 </ul>
+</details>
 
-<h2><span class="n">04</span>填每一欄：規格與範例</h2>
+<details class="sec"><summary><h2><span class="n">3</span>填每一欄：規格與範例</h2></summary>
 <p>打開單筆（點標題），右側是表單。<span class="req">＊</span>＝必填。欄位順序就是思考順序：先事實，再判斷，再別人的意見。</p>
 <div class="tw"><table>
 <tr><th>欄位</th><th>填什麼</th><th>範例／規則</th></tr>
@@ -224,8 +231,9 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 </svg>
 <figcaption>圖 3　單筆表單。「詳細診斷」只寫 lymphoma 會被擋；這是刻意的，教學價值在細節。</figcaption>
 </figure>
+</details>
 
-<h2><span class="n">05</span>寫初評：根因、可預防性、五個為什麼</h2>
+<details class="sec"><summary><h2><span class="n">4</span>寫初評：根因、可預防性、五個為什麼</h2></summary>
 <h3>根因分類（London Protocol 六層級 ＋ 超長住院因素）</h3>
 <div class="tw"><table>
 <tr><th>層級</th><th>項目（選「主要根因」時從這 27 項挑一個）</th></tr>
@@ -259,16 +267,18 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 → 促成因素：夜間／假日資源不足；指引／流程不清
 → 改善行動：交班單加「FN 風險／升級條件」欄位（負責人：總醫師，到期：下月會前）</pre>
 <p>停在「人」（為什麼2）就會變成檢討個人；多問三層通常會到流程或制度，那才是能改的東西。</p>
+</details>
 
-<h2><span class="n">06</span>徵詢主治醫師</h2>
+<details class="sec"><summary><h2><span class="n">5</span>徵詢主治醫師</h2></summary>
 <ol>
   <li>初評寫完，把該案的 SharePoint 連結（點標題 → 右上「複製連結」）用 Teams 私訊給該案主治，附一句：「請看初評，回我 同意／不同意＋理由，兩天內。」</li>
   <li>主治是站台成員，可以直接改「主治醫師回覆」「主治認為主要根因」「主治醫師說明」三欄；多數主治會口頭回你，<b>你代填時在「主治醫師說明」開頭寫「（代填）」</b>。</li>
   <li>兩天沒回 → 維持「未徵詢」送會，會議上由主席現場問。不要為了等回覆延後整批。</li>
 </ol>
 <div class="note ok">「不同意初評」不是壞事。初評與主治意見並排，是會議最有討論價值的案例；投影頁會自動把這些排在前面。</div>
+</details>
 
-<h2><span class="n">07</span>送進會議：改「待討論」</h2>
+<details class="sec"><summary><h2><span class="n">6</span>送進會議：改「待討論」</h2></summary>
 <p>每例滿足下列五點才把狀態改成 <span class="pill ready">待討論</span>：</p>
 <ul class="check">
   <li>詳細診斷完整（至少 12 字，含型態、分期或風險分群、分子標記）</li>
@@ -294,24 +304,27 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 </svg>
 <figcaption>圖 4　狀態只往右走。退回「整理中」要在主治醫師說明寫原因。</figcaption>
 </figure>
+</details>
 
-<h2><span class="n">08</span>會前兩天：確認會議清單</h2>
+<details class="sec"><summary><h2><span class="n">7</span>會前兩天：確認會議清單</h2></summary>
 <ol>
   <li>站台按「M&amp;M」→「開會」。</li>
   <li>「待討論案例」應列出本月所有待討論案例，依主治意見分成三組：意見不同、尚未徵詢、主治同意。</li>
   <li>按「投影模式」試翻幾案：<kbd>→</kbd> 下一案、<kbd>←</kbd> 上一案、<kbd>Esc</kbd> 離開。接會議室螢幕時按 <kbd>Win</kbd>+<kbd>P</kbd> 選「延伸」或「複製」。</li>
   <li>有案例沒出現，通常是狀態還停在「整理中」。</li>
 </ol>
+</details>
 
-<h2><span class="n">09</span>會後 30 分鐘</h2>
+<details class="sec"><summary><h2><span class="n">8</span>會後</h2></summary>
 <ol>
   <li>會中按下「定案」後，正式紀錄與案例狀態（<span class="pill done">已定案</span>）都已自動更新，無需再改。</li>
   <li>有改善行動的案例：「改善行動」清單新增一筆：標題（動詞開頭：「交班單加 FN 風險欄」）、負責人、到期日、針對因素、關聯紀錄。</li>
   <li>「會議」清單新增一筆：會議日期、年月、出席人數、跨案例事項（例如「本月 4 例都卡在安置等待 → 提社工聯繫會議」）。</li>
   <li>下月收案時先看上月改善行動有沒有「完成」。</li>
 </ol>
+</details>
 
-<h2><span class="n">10</span>常見問題</h2>
+<details class="sec"><summary><h2><span class="n">9</span>常見問題</h2></summary>
 <div class="tw"><table>
 <tr><th>狀況</th><th>處理</th></tr>
 <tr><td>存檔時出現紅字「詳細診斷請寫得具體一些」</td><td>補到至少 12 字：型態、分期或風險分群、分子標記。</td></tr>
@@ -324,8 +337,9 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <tr><td>不小心把病歷號貼進「案例」了</td><td>立刻改掉該欄 → 該項目 ⋯ → 版本歷程記錄 → 刪除含病歷號的舊版本 → 通知主席。</td></tr>
 <tr><td>臨床經過裡的日期怎麼寫</td><td>相對日「入院第 5 天」或「2026/10 中旬」；收案時系統已把完整日期改成年月，自己補寫時也照這個方式。</td></tr>
 </table></div>
+</details>
 
-<h2><span class="n">11</span>送會前一分鐘檢核</h2>
+<details class="sec"><summary><h2><span class="n">10</span>送會前一分鐘檢核</h2></summary>
 <ul class="check">
   <li>本月案例全部在「待討論」檢視出現，數量與收案名單一致</li>
   <li>每例詳細診斷≥12 字、臨床經過無全名／病歷號／完整日期</li>
@@ -334,7 +348,8 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <li>用「M&amp;M」→「開會」確認案例都已列出，投影模式翻過一遍</li>
   <li>電腦上沒有留下含病歷號的檔案</li>
 </ul>
+</details>
 
-<footer>血液腫瘤科 M&amp;M 案例庫 · 研究醫師手冊 v1.4 · 2026 年 11 月</footer>
+<footer>血液腫瘤科 M&amp;M 案例庫 · 研究醫師手冊 v1.5 · 2026 年 11 月</footer>
 </div>
 </body></html>
