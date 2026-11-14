@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M&M 案例轉換</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#fbfbf9;--fg:#1f2428;--muted:#5d6670;--line:#d9ddd6;--soft:#eef0ea;--accent:#1c5cab;--accent-soft:#e3ecf8;--ok:#2e7d4f;--ok-soft:#e2f1e7;--bad:#b4322e;--bad-soft:#f9e3e1;--warn:#a86a00;--warn-soft:#fbefd4;
+ --sans:system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--soft:#1e2328;--accent:#7fb0ee;--accent-soft:#1d2a3c;--ok:#6fcf97;--ok-soft:#173224;--bad:#ef8a86;--bad-soft:#3d1c1b;--warn:#e6b35a;--warn-soft:#3a2d12;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 var(--sans);padding:0 16px 48px}
+.wrap{max-width:900px;margin:0 auto}
+header{padding:28px 0 16px;border-bottom:2px solid var(--fg)}
+h1{font-size:24px;margin:0 0 4px}
+header p{margin:0;color:var(--muted)}
+h2{font-size:17px;margin:28px 0 8px}
+.drop{border:2px dashed var(--line);padding:36px 20px;text-align:center;margin:18px 0;cursor:pointer}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop b{display:block;font-size:17px}
+.drop span{color:var(--muted);font-size:14px}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:end;margin:12px 0}
+label{font-size:13px;color:var(--muted);display:block}
+input[type=text]{font:inherit;padding:6px 10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);width:140px}
+button{font:inherit;padding:8px 16px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer}
+button.sec{background:transparent;color:var(--accent)}
+button:disabled{opacity:.45;cursor:default}
+.msg{padding:10px 14px;margin:12px 0;border-left:3px solid var(--accent);background:var(--accent-soft)}
+.msg.ok{border-color:var(--ok);background:var(--ok-soft)}
+.msg.bad{border-color:var(--bad);background:var(--bad-soft)}
+.msg.warn{border-color:var(--warn);background:var(--warn-soft)}
+.tiles{display:flex;gap:28px;flex-wrap:wrap;margin:10px 0}
+.tile b{display:block;font-size:26px;line-height:1.1}
+.tile span{font-size:13px;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--muted);font-size:12px;white-space:nowrap}
+td.mono{font-family:var(--mono);white-space:nowrap}
+.dl{display:flex;gap:12px;flex-wrap:wrap;margin:14px 0}
+.note{font-size:13px;color:var(--muted);max-width:70ch}
+details{margin:14px 0}summary{cursor:pointer;color:var(--accent)}
+footer{margin-top:40px;padding-top:12px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>M&M 案例轉換</h1>
+  <p>把研究醫師整理的討論會 Word 檔轉成 SharePoint「案例」與「對照表」匯入檔。全部在你的瀏覽器裡完成，檔案不會上傳到任何地方。</p>
+</header>
+
+<div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖入 Word 檔">
+  <b>把 .docx 拖到這裡，或點一下選檔</b>
+  <span>超長住院／Morbidity／Mortality 討論會清單（兩欄表格格式）</span>
+  <input type="file" id="file" accept=".docx" hidden>
+</div>
+
+<div class="row">
+  <div><label for="ym">討論年月（超長住院必填；Mortality 以死亡月為準）</label><input type="text" id="ym" placeholder="2026-10" inputmode="numeric"></div>
+  <div><button id="run" disabled>轉換</button></div>
+  <div class="note" id="fname"></div>
+</div>
+
+<div id="out" hidden>
+  <div class="msg" id="summary"></div>
+  <div class="tiles" id="tiles"></div>
+  <div class="dl">
+    <button id="dl-case">下載 案例_匯入.xlsx</button>
+    <button id="dl-key" class="sec">下載 對照表_匯入.xlsx（含病歷號）</button>
+  </div>
+  <p class="note">兩個檔都用 SharePoint 清單的「以格線編輯」貼上：Excel 選第 2 列到最後一列 → 複製 → 點格線最底空白列的「標題」格 → 貼上。對照表只貼進「對照表」清單，貼完請刪除本機檔案。</p>
+  <h2>案例預覽（已去識別，將進入「案例」清單）</h2>
+  <div class="tw"><table id="prev"></table></div>
+  <details><summary>顯示對照表（含病歷號、姓名；只貼進限權限的「對照表」清單）</summary><div class="tw"><table id="keyprev"></table></div></details>
+</div>
+
+<footer>血液腫瘤科 M&M 案例庫 · 轉換器 v1（與 mm_import.py 同邏輯） · 僅支援 Edge／Chrome 103 以上 · 不收集任何資料</footer>
+</div>
+
+<script>
+/*CORE-START*/
+const MM = (() => {
+const LIST_COLS = ['標題','年月','案例類型','年齡層','性別','診斷群','治療階段','詳細診斷','治療內容','臨床經過','住院天數','可避免天數','死亡預期性','Morbidity等級',
+  '初評主要根因','初評促成因素','初評可預防性','主治醫師回覆','主治認為主要根因','主治認為可預防性','主治醫師說明','五個為什麼','學習重點','參考指引文獻','狀態','病人簡稱','年齡'];
+const KEY_COLS = ['標題','病歷號','姓名','床號','主治醫師','原主治','住院日期','死亡日期','住院日數原文'];
+const DX_RULES = [
+  [/\bAML\b|acute myelo|acute promyelocytic|\bAPL\b|\bALL\b|acute lymphoblastic|plasma cell leukemia/i, '急性白血病'],
+  [/\bCML\b|\bCLL\b|\bCMML\b|chronic (myeloid|lymphocytic|myelomonocytic)/i, '慢性白血病'],
+  [/lymphoma|\bDLBCL\b|hodgkin|\bMEITL\b/i, '淋巴瘤'],
+  [/myeloma|plasmacytoma/i, '骨髓瘤'],
+  [/\bMDS\b|myelodysplastic|myeloproliferative|myelofibrosis|\bMPN\b/i, 'MDS／MPN'],
+  [/\blung\b|\bNSCLC\b|\bSCLC\b|thymoma/i, '肺癌'],
+  [/breast/i, '乳癌'],
+  [/esophag|\bESCC\b|\bEGJ\b/i, '食道癌'],
+  [/\bgastric\b|stomach/i, '胃癌'],
+  [/\bcolon|rectal|rectum|cecum|colorectal|sigmoid/i, '大腸直腸癌'],
+  [/hepatocellular|\bHCC\b|cholangio|pancrea|biliary|gallbladder/i, '肝膽胰癌'],
+  [/\bgum\b|\boral\b|tongue|buccal|nasopharyn|oropharyn|hypopharyn|laryn|head and neck|\bHNSCC\b|neck squamous/i, '頭頸癌'],
+  [/prostate|bladder|urothelial|renal cell|\bRCC\b|kidney/i, '泌尿道／攝護腺癌'],
+  [/ovar|cervical|endometri|uterine/i, '婦科癌'],
+  [/sarcoma/i, '肉瘤'],
+  [/melanoma/i, '其他固態瘤'],
+];
+
+// ---- zip 讀取（只支援 stored／deflate；用瀏覽器內建 DecompressionStream）----
+async function zipRead(buf, wantName) {
+  const dv = new DataView(buf), u8 = new Uint8Array(buf);
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 65557); i--) { if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+  if (eocd < 0) throw new Error('不是有效的 .docx（找不到 zip 目錄）');
+  const n = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true);
+  const td = new TextDecoder();
+  for (let k = 0; k < n; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) throw new Error('zip 目錄損壞');
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = td.decode(u8.subarray(p + 46, p + 46 + nlen));
+    if (name === wantName) {
+      const lnlen = dv.getUint16(off + 26, true), lelen = dv.getUint16(off + 28, true);
+      const start = off + 30 + lnlen + lelen, data = u8.slice(start, start + csize);
+      if (method === 0) return td.decode(data);
+      if (method !== 8) throw new Error('不支援的壓縮方式 ' + method);
+      const ds = new DecompressionStream('deflate-raw');
+      const out = await new Response(new Blob([data]).stream().pipeThrough(ds)).arrayBuffer();
+      return td.decode(out);
+    }
+    p += 46 + nlen + elen + clen;
+  }
+  throw new Error('docx 裡沒有 ' + wantName);
+}
+
+// ---- zip 寫入（stored，不壓縮；xlsx 很小）----
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipWrite(files) { // files: [[name, string]]
+  const te = new TextEncoder(), parts = [], cd = []; let off = 0;
+  const le16 = v => [v & 255, (v >> 8) & 255], le32 = v => [v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255];
+  for (const [name, content] of files) {
+    const nm = te.encode(name), data = te.encode(content), crc = crc32(data);
+    const hdr = new Uint8Array([...le32(0x04034b50), ...le16(20), ...le16(0x0800), ...le16(0), ...le16(0), ...le16(0x21), ...le32(crc), ...le32(data.length), ...le32(data.length), ...le16(nm.length), ...le16(0)]);
+    parts.push(hdr, nm, data);
+    cd.push(new Uint8Array([...le32(0x02014b50), ...le16(20), ...le16(20), ...le16(0x0800), ...le16(0), ...le16(0), ...le16(0x21), ...le32(crc), ...le32(data.length), ...le32(data.length), ...le16(nm.length), ...le16(0), ...le16(0), ...le16(0), ...le16(0), ...le32(0), ...le32(off)]), nm);
+    off += hdr.length + nm.length + data.length;
+  }
+  const cdLen = cd.reduce((a, b) => a + b.length, 0);
+  const eocd = new Uint8Array([...le32(0x06054b50), ...le16(0), ...le16(0), ...le16(files.length), ...le16(files.length), ...le32(cdLen), ...le32(off), ...le16(0)]);
+  return new Blob([...parts, ...cd, eocd], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+const xesc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+function colName(i) { let r = ''; for (;;) { r = String.fromCharCode(65 + i % 26) + r; i = Math.floor(i / 26) - 1; if (i < 0) return r; } }
+function writeXlsx(header, rows) {
+  const cell = (ri, ci, v) => { const ref = colName(ci) + ri; if (typeof v === 'number') return `<c r="${ref}"><v>${v}</v></c>`; if (v == null || v === '') return ''; return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xesc(v)}</t></is></c>`; };
+  const data = [header, ...rows].map((r, i) => `<row r="${i + 1}">` + r.map((v, ci) => cell(i + 1, ci, v)).join('') + '</row>').join('');
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${data}</sheetData></worksheet>`;
+  return zipWrite([
+    ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>'],
+    ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+    ['xl/workbook.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="案例" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+    ['xl/_rels/workbook.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>'],
+    ['xl/worksheets/sheet1.xml', sheet],
+  ]);
+}
+
+// ---- Word XML：第一個表格 → 列 → 兩欄 → 段落文字 ----
+const unx = s => s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d)).replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&amp;/g, '&');
+function paraTexts(xml) { // 段落 → 文字（空段落略過）
+  const out = []; const re = /<w:p(?:\s[^>]*[^\/])?>([\s\S]*?)<\/w:p>/g; let m;
+  while ((m = re.exec(xml))) { const t = [...m[1].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map(x => unx(x[1])).join('').trim(); if (t) out.push(t); }
+  return out;
+}
+function firstTable(xml) {
+  const s = xml.indexOf('<w:tbl>'); if (s < 0) throw new Error('文件裡沒有表格');
+  let depth = 0, i = s; const re = /<w:tbl>|<\/w:tbl>/g; re.lastIndex = s; let m;
+  while ((m = re.exec(xml))) { depth += m[0] === '<w:tbl>' ? 1 : -1; if (depth === 0) return xml.slice(s, m.index + 8); }
+  throw new Error('表格未閉合');
+}
+function tableRows(tbl) { return [...tbl.matchAll(/<w:tr(?:\s[^>]*)?>([\s\S]*?)<\/w:tr>/g)].map(r => [...r[1].matchAll(/<w:tc(?:\s[^>]*)?>([\s\S]*?)<\/w:tc>/g)].map(c => paraTexts(c[1]))); }
+
+// ---- 與 mm_import.py 相同的解析邏輯 ----
+function parseLeft(lines) {
+  let joined = lines.join(' / ').replace(/y\/o/g, 'yo');
+  const prev = [...joined.matchAll(/[（(]\s*原\s*([一-鿿]{2,4})\s*[）)]/g)].map(m => m[1]);
+  joined = joined.replace(/[（(]\s*原[^）)]*[）)]/g, ' / ').replace(/VS\.?/g, ' / ');
+  const toks = joined.split(/\s*\/\s*/).map(t => t.trim()).filter(Boolean);
+  const flat = [];
+  for (const t of toks) { const m = t.match(/^([一-鿿]{2,4})\s*(\d{6,})$/) || t.match(/^(\d{6,})\s*([一-鿿]{2,4})$/); if (m) flat.push(m[1], m[2]); else flat.push(t); }
+  const bed = flat.find(t => /^[A-Z]\d{1,2}-\d{1,3}$/.test(t)) || '';
+  const chart = flat.find(t => /^\d{6,}$/.test(t)) || '';
+  const agesex = flat.find(t => /^\d{1,3}\s*(yo)?\s*[MF]$/i.test(t)) || '';
+  const names = flat.filter(t => /^[一-鿿]{2,4}$/.test(t));
+  const m = agesex.match(/^(\d{1,3})\s*(?:yo)?\s*([MF])$/i);
+  return { bed, chart, name: names[0] || '', attending: names.slice(1).join('／'), prevAttending: prev.join('／'), age: m ? +m[1] : null, sex: m ? ({ M: '男', F: '女' })[m[2].toUpperCase()] : '' };
+}
+const ageBand = a => a == null ? '' : a < 40 ? '<40' : a < 50 ? '40–49' : a < 60 ? '50–59' : a < 70 ? '60–69' : a < 80 ? '70–79' : '≥80';
+function parseDate(s) {
+  s = s.trim(); let m = s.match(/^(\d{4})(\d{2})(\d{2})$/) || s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+  m = s.match(/^(1[01]\d)(\d{2})(\d{2})$/) || s.match(/^(1[01]\d)[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) return Date.UTC(+m[1] + 1911, +m[2] - 1, +m[3]);
+  return null;
+}
+const ymOf = ts => { const d = new Date(ts); return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0'); };
+function parseRight(lines, kind) {
+  const text = lines.join('\n'); const out = { admission: '', death: '', losRaw: '', los: null, ym: null }; let dx;
+  if (kind === 'mortality') {
+    const first = lines[0] || '';
+    const m = first.match(/^\s*([0-9./-]+?)\s*[－~～至]\s*([0-9./-]+)/) || first.match(/^\s*(\d{7,8})\s*-\s*(\d{7,8})/);
+    const parts = m ? [m[1], m[2]] : [first];
+    const d1 = parts.length >= 2 ? parseDate(parts[0]) : null, d2 = parts.length >= 2 ? parseDate(parts[1]) : null;
+    out.admission = parts[0] || ''; out.death = parts[1] || '';
+    if (d1 != null && d2 != null) out.los = Math.round((d2 - d1) / 86400000) + 1;
+    if (d2 != null) out.ym = ymOf(d2);
+    dx = (d1 != null || d2 != null) ? lines.slice(1).join('\n') : text;
+  } else {
+    const adm = text.match(/住院日期[:：]\s*([^\n]+)/), losM = text.match(/住院日數[:：]\s*([^\n]+)/);
+    out.admission = adm ? adm[1].trim() : ''; out.losRaw = losM ? losM[1].trim() : '';
+    const nums = (out.losRaw.split(/[(（]/)[0].match(/\d+/g) || []).map(Number);
+    out.los = nums.length ? nums.reduce((a, b) => a + b, 0) : null;
+    dx = text.includes('診斷') ? text.split('診斷').pop() : text;
+  }
+  out.dx = dx.replace(/^[:：]\s*/, '').trim();
+  return out;
+}
+function nameShort(n) { n = (n || '').trim(); if (!n) return ''; const two = ['歐陽','司徒','司馬','諸葛','上官','端木','夏侯','皇甫','尉遲','公孫','長孫','令狐','張簡','范姜']; return (two.includes(n.slice(0, 2)) ? n.slice(0, 2) : n.slice(0, 1)) + 'OO'; }
+function splitDx(t, limit = 250) {
+  const lines = t.split('\n').map(l => l.trim()).filter(Boolean); let head = '';
+  for (const l of lines) { const cand = head ? head + '；' + l : l; if ([...cand].length > limit) break; head = cand; }
+  if (!head && lines.length) head = [...lines[0]].slice(0, limit).join('');
+  return [head, t.trim()];
+}
+function deidentify(s) {
+  return s.replace(/\b(20\d{2})(0[1-9]|1[0-2])([0-3]\d)\b/g, '$1/$2')
+    .replace(/(20\d{2})[/\-.](\d{1,2})[/\-.](\d{1,2})/g, '$1/$2')
+    .replace(/\b(1[01]\d)[/\-.](\d{1,2})[/\-.](\d{1,2})\b/g, '$1/$2')
+    .replace(/\b(1[01]\d)(0[1-9]|1[0-2])([0-3]\d)\b/g, '$1/$2')
+    .replace(/\d{6,}/g, '[已移除]');
+}
+function dxGroup(dx) { let best = null; for (const [rx, g] of DX_RULES) { const m = dx.match(rx); if (m && (best === null || m.index < best[0])) best = [m.index, g]; } return best ? best[1] : ''; }
+
+async function convert(buf, defaultYm) {
+  const xml = await zipRead(buf, 'word/document.xml');
+  const firstP = (xml.match(/<w:p(?:\s[^>]*[^\/])?>([\s\S]*?)<\/w:p>/) || [, ''])[1];
+  const head = [...firstP.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map(x => unx(x[1])).join('');
+  const kind = /mortality|死亡/i.test(head) ? 'mortality' : /morbidity|併發/i.test(head) ? 'morbidity' : 'los';
+  const ctype = { mortality: 'Mortality', morbidity: 'Morbidity', los: '超長住院' }[kind], prefix = { mortality: 'MOR', morbidity: 'MOB', los: 'LOS' }[kind];
+  if (kind === 'los' && !defaultYm) throw new Error('超長住院清單需要指定討論年月（YYYY-MM）');
+  const rows = tableRows(firstTable(xml)); const key = [], drafts = [], counters = {};
+  for (const tcs of rows) {
+    if (tcs.length !== 2) continue;
+    const [left, right] = tcs;
+    if (!left.length || /床號|姓名/.test(left[0])) continue;
+    const L = parseLeft(left), R = parseRight(right, kind);
+    if (!(L.chart || L.age != null)) continue;
+    const ym = R.ym || defaultYm || '0000-00'; counters[ym] = (counters[ym] || 0) + 1;
+    const code = `${prefix}-${ym}-${String(counters[ym]).padStart(2, '0')}`;
+    key.push({ code, bed: L.bed, chart: L.chart, name: L.name, attending: L.attending, prevAttending: L.prevAttending, admission: R.admission, death: R.death, losRaw: R.losRaw });
+    const [dxDetail, course] = splitDx(deidentify(R.dx));
+    drafts.push({ code, ym, types: [ctype], ageBand: ageBand(L.age), age: L.age, nameShort: nameShort(L.name), sex: L.sex, dxGroup: dxGroup(course), dxDetail, course, los: R.los, deathExpected: kind === 'mortality' ? '' : '不適用', morbGrade: '不適用' });
+  }
+  const caseRows = drafts.map(d => [d.code, d.ym, d.types.join(';'), d.ageBand, d.sex, d.dxGroup, '', d.dxDetail, '', d.course, d.los ?? '', '', d.deathExpected, d.morbGrade, '', '', '', '未徵詢', '', '', '', '', '', '', '整理中', d.nameShort, d.age ?? '']);
+  const keyRows = key.map(k => [k.code, k.chart, k.name, k.bed, k.attending, k.prevAttending, k.admission, k.death, k.losRaw]);
+  const leak = drafts.filter(d => /\d{6,}/.test(JSON.stringify(d))).map(d => d.code);
+  return { kind, ctype, head, drafts, key, leak, caseRows, keyRows, caseXlsx: () => writeXlsx(LIST_COLS, caseRows), keyXlsx: () => writeXlsx(KEY_COLS, keyRows) };
+}
+return { convert, LIST_COLS, KEY_COLS };
+})();
+/*CORE-END*/
+
+// ---- UI ----
+(() => {
+  const $ = s => document.querySelector(s);
+  const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym'), run = $('#run'), fname = $('#fname');
+  let file = null, result = null, stem = '';
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  function pick(f) {
+    if (!f) return; if (!/\.docx$/i.test(f.name)) { fname.textContent = '請選 .docx 檔（Word 2007 以後格式）。'; return; }
+    file = f; stem = f.name.replace(/\.docx$/i, ''); fname.textContent = '已選：' + f.name;
+    const m = f.name.match(/(\d{4})年\s*(\d{1,2})月/); if (m && !ymIn.value) ymIn.value = m[1] + '-' + m[2].padStart(2, '0');
+    run.disabled = false; $('#out').hidden = true;
+  }
+  drop.addEventListener('click', () => fileIn.click());
+  drop.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileIn.click(); } });
+  fileIn.addEventListener('change', () => pick(fileIn.files[0]));
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => pick(e.dataTransfer.files[0]));
+  run.addEventListener('click', async () => {
+    if (!file) return; run.disabled = true; run.textContent = '轉換中…';
+    const sum = $('#summary'); $('#out').hidden = false; sum.className = 'msg'; sum.textContent = '讀取中…';
+    try {
+      const ym = ymIn.value.trim(); if (ym && !/^\d{4}-\d{2}$/.test(ym)) throw new Error('年月格式請用 YYYY-MM，例如 2026-10');
+      result = await MM.convert(await file.arrayBuffer(), ym || null);
+      const leakTxt = result.leak.length ? `去識別檢查：仍含 6 碼以上數字 → ${result.leak.join('、')}（請勿匯入，回報）` : '去識別檢查：通過';
+      sum.className = 'msg ' + (result.leak.length ? 'bad' : 'ok');
+      sum.textContent = `類型：${result.ctype}　${result.drafts.length} 例　${leakTxt}`;
+      const unG = result.drafts.filter(d => !d.dxGroup).length, noAge = result.drafts.filter(d => d.age == null).length;
+      $('#tiles').innerHTML = `<div class="tile"><b>${result.drafts.length}</b><span>案例</span></div><div class="tile"><b>${unG}</b><span>診斷群未歸類（匯入後手選）</span></div><div class="tile"><b>${noAge}</b><span>缺年齡</span></div>`;
+      $('#prev').innerHTML = '<tr><th>代碼</th><th>簡稱</th><th>年齡／性別</th><th>診斷群</th><th>天數</th><th>詳細診斷（前 60 字）</th></tr>' +
+        result.drafts.map(d => `<tr><td class="mono">${esc(d.code)}</td><td>${esc(d.nameShort)}</td><td>${esc(d.age ?? '')} ${esc(d.sex)}</td><td>${esc(d.dxGroup) || '<span style="color:var(--bad)">未歸類</span>'}</td><td>${esc(d.los ?? '')}</td><td>${esc([...d.dxDetail].slice(0, 60).join(''))}${[...d.dxDetail].length > 60 ? '…' : ''}</td></tr>`).join('');
+      $('#keyprev').innerHTML = '<tr>' + MM.KEY_COLS.map(c => `<th>${esc(c)}</th>`).join('') + '</tr>' + result.keyRows.map(r => '<tr>' + r.map(v => `<td>${esc(v)}</td>`).join('') + '</tr>').join('');
+      $('#dl-case').disabled = $('#dl-key').disabled = false;
+    } catch (e) { sum.className = 'msg bad'; sum.textContent = '轉換失敗：' + e.message; }
+    run.disabled = false; run.textContent = '轉換';
+  });
+  function save(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+  $('#dl-case').addEventListener('click', () => result && save(result.caseXlsx(), `案例_匯入_${stem}.xlsx`));
+  $('#dl-key').addEventListener('click', () => result && save(result.keyXlsx(), `對照表_匯入_${stem}.xlsx`));
+})();
+</script>
+</body>
+</html>

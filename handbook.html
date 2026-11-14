@@ -1,0 +1,376 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>M&M 案例庫 研究醫師手冊</title>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* 版面：單欄手冊，左側窄數字欄＝真實步驟順序；圖示為 SharePoint 畫面的線稿示意 */
+:root{
+  --bg:#fbfbf9; --fg:#1f2428; --muted:#5d6670; --line:#d9ddd6; --soft:#eef0ea;
+  --accent:#1c5cab; --accent-soft:#e3ecf8;
+  --ok:#2e7d4f; --ok-soft:#e2f1e7; --warn:#a86a00; --warn-soft:#fbefd4; --bad:#b4322e; --bad-soft:#f9e3e1;
+  --st-draft:#6b7280; --st-ready:#1c5cab; --st-done:#2e7d4f;
+  --sans:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15181b; --fg:#e6e8e3; --muted:#9aa3ab; --line:#333a40; --soft:#1e2328;
+  --accent:#7fb0ee; --accent-soft:#1d2a3c; --ok:#6fcf97; --ok-soft:#173224; --warn:#e6b35a; --warn-soft:#3a2d12; --bad:#ef8a86; --bad-soft:#3d1c1b;
+  --st-draft:#9aa3ab; --st-ready:#7fb0ee; --st-done:#6fcf97; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15181b; --fg:#e6e8e3; --muted:#9aa3ab; --line:#333a40; --soft:#1e2328;
+  --accent:#7fb0ee; --accent-soft:#1d2a3c; --ok:#6fcf97; --ok-soft:#173224; --warn:#e6b35a; --warn-soft:#3a2d12; --bad:#ef8a86; --bad-soft:#3d1c1b;
+  --st-draft:#9aa3ab; --st-ready:#7fb0ee; --st-done:#6fcf97; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.65;font-size:15px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:860px;margin:0 auto}
+header{padding:36px 0 20px;border-bottom:2px solid var(--fg)}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:30px;margin:4px 0 6px;line-height:1.25;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:60ch}
+h2{font-size:21px;margin:44px 0 10px;display:flex;gap:12px;align-items:baseline;text-wrap:balance}
+h2 .n{font-family:var(--mono);font-size:13px;color:var(--accent);min-width:2.2em}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:8px 0;max-width:70ch}
+ol,ul{padding-left:1.4em;max-width:70ch}li{margin:4px 0}
+code,kbd{font-family:var(--mono);font-size:.9em;background:var(--soft);padding:1px 5px;border-radius:3px}
+kbd{border:1px solid var(--line)}
+pre{font-family:var(--mono);font-size:13px;background:var(--soft);padding:12px 14px;overflow-x:auto;margin:10px 0;line-height:1.5}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
+.rule{border-top:3px solid var(--bad);padding-top:8px}
+.rule b{display:block;font-size:15px}
+.rule span{color:var(--muted);font-size:14px}
+.note{border-left:3px solid var(--accent);padding:6px 14px;background:var(--accent-soft);margin:14px 0;max-width:70ch}
+.note.warn{border-color:var(--warn);background:var(--warn-soft)}
+.note.ok{border-color:var(--ok);background:var(--ok-soft)}
+figure{margin:16px 0}
+figure svg{width:100%;height:auto;display:block;max-width:100%}
+figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;font-weight:500;line-height:1.6}
+.pill.draft{background:var(--soft);color:var(--st-draft)}.pill.ready{background:var(--accent-soft);color:var(--st-ready)}.pill.done{background:var(--ok-soft);color:var(--st-done)}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+.tw{overflow-x:auto}
+th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--muted);font-size:12px;letter-spacing:.06em;white-space:nowrap}
+td:first-child{white-space:nowrap;font-weight:500}
+.req{color:var(--bad);font-weight:700}
+.good{color:var(--ok)}.badtxt{color:var(--bad)}
+.timeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0;margin:16px 0;border-top:2px solid var(--line)}
+.tl{padding:10px 12px 0 0;border-top:3px solid var(--accent);margin-top:-2px}
+.tl .w{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.tl b{display:block;margin:2px 0}
+.tl span{font-size:13px;color:var(--muted)}
+.check{list-style:none;padding:0;max-width:70ch}
+.check li{padding-left:1.8em;position:relative}
+.check li::before{content:"";position:absolute;left:0;top:.45em;width:.95em;height:.95em;border:1.5px solid var(--fg);border-radius:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:640px){.two{grid-template-columns:1fr}}
+.cmp{border-top:1px solid var(--line);padding-top:8px}
+.cmp .lbl{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media print{body{font-size:12.5px;padding:0}h2{break-after:avoid}figure,table,.note{break-inside:avoid}header{padding-top:0}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">血液腫瘤科 · 超長住院／Morbidity／Mortality 討論會</div>
+  <h1>M&M 案例庫 研究醫師手冊</h1>
+  <p>每月把案例整理進 SharePoint「案例」清單、寫初評、徵詢主治、送進會議。照這份做，一次 12 例約 90 分鐘。</p>
+</header>
+
+<h2><span class="n">00</span>開始前的三條鐵律</h2>
+<div class="rules">
+  <div class="rule"><b>「案例」只放姓＋OO 與年齡</b><span>可以：林OO、67 歲、男、2026-10、案例代碼。不可以：全名、病歷號、床號、出生日期、完整住院／死亡日期。全科成員都看得到這個清單。</span></div>
+  <div class="rule"><b>真實身分只在「對照表」清單</b><span>代碼 ↔ 病歷號／全名／床號／主治，放同站台的「對照表」清單，只有「M&M 對照表」群組（研究醫師、主席）看得到。不另存 CSV 在筆電或信箱。</span></div>
+  <div class="rule"><b>六碼以上的數字別出現在案例</b><span>病歷號、身分證、電話都是連續數字。貼上前 <kbd>Ctrl+F</kbd> 掃一次；轉換程式也會替你擋，但最後一關是你。</span></div>
+</div>
+
+<h2><span class="n">01</span>每月時程</h2>
+<div class="timeline">
+  <div class="tl"><div class="w">月初 1–5 日</div><b>收案</b><span>從住院系統撈上月超長住院（≥30 天）、死亡、重大併發症名單，產生去識別匯入檔。</span></div>
+  <div class="tl"><div class="w">5–15 日</div><b>寫初評</b><span>每例填詳細診斷、臨床經過、主要根因、促成因素、可預防性、五個為什麼。</span></div>
+  <div class="tl"><div class="w">15–22 日</div><b>徵詢主治</b><span>把初評給該案主治看，填「主治醫師回覆」三選一與說明。</span></div>
+  <div class="tl"><div class="w">會前 2 日</div><b>送會</b><span>狀態改「待討論」，匯出 CSV 載入投影頁試跑一遍。</span></div>
+  <div class="tl"><div class="w">會後</div><b>歸檔</b><span>主席寫入「正式紀錄」；你把定案的案例狀態改「已定案」，改善行動指定負責人。</span></div>
+</div>
+
+<h2><span class="n">02</span>進入清單</h2>
+<ol>
+  <li>Teams → 團隊「monthly-meeting」→ 右上 <b>⋯ → 在 SharePoint 中開啟</b>；或直接開站台網址。</li>
+  <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（你的主戰場）、<b>對照表</b>（只有你和主席看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
+  <li>開「案例」。上方檢視切換：<b>所有項目</b>／<b>整理中</b>／<b>待討論</b>。每天工作用「整理中」。</li>
+</ol>
+<figure>
+<svg viewBox="0 0 760 300" role="img" aria-label="案例清單畫面示意">
+  <rect width="760" height="300" fill="var(--soft)"/>
+  <rect x="0" y="0" width="760" height="40" fill="var(--bg)" stroke="var(--line)"/>
+  <text x="18" y="26" font-size="15" font-weight="700" fill="var(--fg)">案例</text>
+  <rect x="70" y="10" width="74" height="22" rx="3" fill="var(--accent)"/><text x="82" y="25" font-size="12" fill="#fff">＋ 新增</text>
+  <text x="160" y="25" font-size="12" fill="var(--fg)">以格線編輯</text>
+  <text x="250" y="25" font-size="12" fill="var(--fg)">匯出 ▾</text>
+  <text x="520" y="25" font-size="12" fill="var(--muted)">所有項目</text>
+  <rect x="590" y="8" width="60" height="24" rx="3" fill="var(--accent-soft)"/><text x="600" y="25" font-size="12" font-weight="500" fill="var(--accent)">整理中</text>
+  <text x="664" y="25" font-size="12" fill="var(--muted)">待討論</text>
+  <g font-size="11" fill="var(--muted)"><text x="18" y="64">標題</text><text x="130" y="64">年月</text><text x="200" y="64">案例類型</text><text x="290" y="64">詳細診斷</text><text x="560" y="64">主治醫師回覆</text><text x="670" y="64">狀態</text></g>
+  <line x1="0" y1="72" x2="760" y2="72" stroke="var(--line)"/>
+  <g font-size="12" fill="var(--fg)">
+    <text x="18" y="98" font-family="var(--mono)">LOS-2026-10-01</text><text x="130" y="98">2026-10</text><text x="200" y="98">超長住院</text><text x="290" y="98">Adenocarcinoma of cecum, BRAF V600E…</text><text x="560" y="98">同意初評</text>
+    <rect x="664" y="84" width="54" height="20" rx="10" fill="var(--accent-soft)"/><text x="672" y="98" fill="var(--accent)">待討論</text>
+    <text x="18" y="130" font-family="var(--mono)">LOS-2026-10-02</text><text x="130" y="130">2026-10</text><text x="200" y="130">超長住院</text><text x="290" y="130">AML, FLT3-ITD+, induction, FN…</text><text x="560" y="130">不同意初評</text>
+    <rect x="664" y="116" width="54" height="20" rx="10" fill="var(--accent-soft)"/><text x="672" y="130" fill="var(--accent)">待討論</text>
+    <text x="18" y="162" font-family="var(--mono)">MOR-2026-10-04</text><text x="130" y="162">2026-10</text><text x="200" y="162">Mortality</text><text x="290" y="162">DLBCL, R-CHOP ×2, TLS…</text><text x="560" y="162">未徵詢</text>
+    <rect x="664" y="148" width="54" height="20" rx="10" fill="var(--bg)" stroke="var(--line)"/><text x="672" y="162" fill="var(--muted)">整理中</text>
+    <text x="18" y="194" font-family="var(--mono)">MOR-2026-10-05</text><text x="130" y="194">2026-10</text><text x="200" y="194">Mortality</text><text x="290" y="194">ESCC cT3N2, dCRT week 4…</text><text x="560" y="194">未徵詢</text>
+    <rect x="664" y="180" width="54" height="20" rx="10" fill="var(--bg)" stroke="var(--line)"/><text x="672" y="194" fill="var(--muted)">整理中</text>
+  </g>
+  <g font-size="11" fill="var(--accent)">
+    <path d="M100 48 L100 36" stroke="var(--accent)" fill="none" marker-end="url(#a)"/><text x="40" y="236">① 單筆新增走這裡</text>
+    <text x="150" y="258">② 批次貼上走「以格線編輯」</text>
+    <text x="420" y="236">③ 會前「匯出 → CSV」給投影頁</text>
+    <text x="520" y="258">④ 檢視切「整理中」只看未完成的</text>
+  </g>
+  <defs><marker id="a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--accent)"/></marker></defs>
+  <path d="M100 50 L100 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M96 46 L100 40 L104 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+  <path d="M195 50 L195 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M191 46 L195 40 L199 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+  <path d="M270 50 L270 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M266 46 L270 40 L274 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+  <path d="M620 50 L620 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M616 46 L620 40 L624 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+  <text x="100" y="284" font-size="11" fill="var(--muted)">標題欄＝案例代碼：LOS（超長住院）／MOR（Mortality）／MOB（Morbidity）-年-月-流水號</text>
+</svg>
+<figcaption>圖 1　「案例」清單。四個常用入口都在工具列；狀態是你唯一要手動推進的欄位。</figcaption>
+</figure>
+
+<h2><span class="n">03</span>收案：兩種進法</h2>
+<div class="two">
+  <div class="cmp"><div class="lbl good">A 批次（建議）</div>
+    <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷經過）。用轉換程式一次去識別、編碼、拆欄：</p>
+<pre>cd C:\Users\...\MM_工具
+python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2026-10</pre>
+    <p>產出到 <code>out\</code>：</p>
+    <ul>
+      <li><code>案例_匯入_….xlsx</code> → 貼進「案例」清單（下一節）；已含姓＋OO、年齡</li>
+      <li><code>對照表_匯入_….xlsx</code> → 貼進「對照表」清單（同樣用格線編輯）</li>
+      <li><code>對照表_….csv</code>／<code>drafts_….json</code> → 中間檔，貼完即可刪除</li>
+    </ul>
+    <p>程式會印「去識別檢查：通過」才算完成；印出代碼清單時順手看診斷群有沒有歸錯。</p>
+  </div>
+  <div class="cmp"><div class="lbl">B 單筆</div>
+    <p>臨時追加一例時，「案例」→ <b>＋ 新增</b>，右側滑出表單，從上往下填。必填欄位（<span class="req">＊</span>）沒填存不了；「詳細診斷」太短會跳紅字。</p>
+    <p>標題自己照規則編：上一個流水號＋1，例如本月已有 LOS-2026-10-12，新增就是 <code>LOS-2026-10-13</code>，並補一列到對照表。</p>
+  </div>
+</div>
+
+<h3>A 的第二步：貼進清單</h3>
+<ol>
+  <li>開 <code>案例_匯入_….xlsx</code>，選<b>第 2 列到最後一列</b>（不含標題列）→ <kbd>Ctrl+C</kbd>。</li>
+  <li>SharePoint「案例」→ 工具列 <b>以格線編輯</b> → 點最底下空白列的「標題」格 → <kbd>Ctrl+V</kbd>。</li>
+  <li>等它跑完（41 列約 20 秒），看最右邊「狀態」欄是不是都「整理中」、「主治醫師回覆」都「未徵詢」。對了就按 <b>結束格線</b>。</li>
+  <li>第一次做先貼 2 列試對位，再貼全部。</li>
+  <li>同樣方法把 <code>對照表_匯入_….xlsx</code> 貼進「對照表」清單（9 欄：標題＝案例代碼、病歷號、姓名、床號、主治醫師、原主治、住院日期、死亡日期、住院日數原文）。</li>
+</ol>
+<figure>
+<svg viewBox="0 0 760 210" role="img" aria-label="以格線編輯貼上示意">
+  <rect width="760" height="210" fill="var(--soft)"/>
+  <rect x="0" y="0" width="760" height="34" fill="var(--bg)" stroke="var(--line)"/>
+  <text x="18" y="22" font-size="13" font-weight="700" fill="var(--fg)">案例</text>
+  <rect x="64" y="7" width="84" height="20" rx="3" fill="var(--ok-soft)"/><text x="74" y="21" font-size="12" fill="var(--ok)">結束格線 ✓</text>
+  <text x="620" y="22" font-size="12" fill="var(--muted)">格線模式中</text>
+  <g font-size="11" fill="var(--muted)"><text x="18" y="56">標題</text><text x="140" y="56">年月</text><text x="210" y="56">案例類型</text><text x="300" y="56">年齡層</text><text x="360" y="56">性別</text><text x="410" y="56">診斷群</text><text x="500" y="56">治療階段</text><text x="580" y="56">詳細診斷</text><text x="700" y="56">…</text></g>
+  <line x1="0" y1="64" x2="760" y2="64" stroke="var(--line)"/>
+  <g font-size="12" fill="var(--fg)">
+    <text x="18" y="88" font-family="var(--mono)">LOS-2026-10-01</text><text x="140" y="88">2026-10</text><text x="210" y="88">超長住院</text><text x="300" y="88">60–69</text><text x="360" y="88">男</text><text x="410" y="88">大腸直腸癌</text><text x="500" y="88" fill="var(--muted)">（空）</text><text x="580" y="88">Adenocarcinoma of…</text>
+    <text x="18" y="114" font-family="var(--mono)">LOS-2026-10-02</text><text x="140" y="114">2026-10</text><text x="210" y="114">超長住院</text><text x="300" y="114">40–49</text><text x="360" y="114">女</text><text x="410" y="114">急性白血病</text><text x="500" y="114" fill="var(--muted)">（空）</text><text x="580" y="114">AML, FLT3-ITD+…</text>
+  </g>
+  <rect x="10" y="70" width="740" height="52" fill="none" stroke="var(--accent)" stroke-dasharray="4 3"/>
+  <rect x="10" y="126" width="740" height="24" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="18" y="142" font-size="12" fill="var(--accent)">▌點這一格再 Ctrl+V（游標在「標題」欄的空白列）</text>
+  <text x="18" y="178" font-size="11" fill="var(--muted)">Excel 欄序＝清單欄序（25 欄）；「治療階段」匯入時留空，由你依病程選。多值欄（促成因素）用「;」分隔。</text>
+  <text x="18" y="196" font-size="11" fill="var(--bad)">貼完若「年月」欄跑進「標題」，代表起點點錯格：Ctrl+Z 全部復原，重點一次。</text>
+</svg>
+<figcaption>圖 2　格線貼上。虛線＝剛貼上的列；實線＝貼上前要點的起始格。</figcaption>
+</figure>
+
+<h2><span class="n">04</span>填每一欄：規格與範例</h2>
+<p>打開單筆（點標題），右側是表單。<span class="req">＊</span>＝必填。欄位順序就是思考順序：先事實，再判斷，再別人的意見。</p>
+<div class="tw"><table>
+<tr><th>欄位</th><th>填什麼</th><th>範例／規則</th></tr>
+<tr><td>標題 <span class="req">＊</span></td><td>案例代碼</td><td><code>LOS-2026-10-03</code>、<code>MOR-2026-09-16</code>。永遠不改；對照表靠它找人。</td></tr>
+<tr><td>年月 <span class="req">＊</span></td><td>討論月份</td><td><code>2026-10</code>（Mortality 以死亡月為準）</td></tr>
+<tr><td>案例類型 <span class="req">＊</span></td><td>可複選</td><td>超長住院／Morbidity／Mortality。一位病人既超長住院又死亡 → 勾兩個，一筆就好。</td></tr>
+<tr><td>病人簡稱</td><td>姓＋OO</td><td>林OO；複姓取兩字（歐陽OO）。不寫全名。</td></tr>
+<tr><td>年齡／年齡層／性別</td><td>實際年齡＋區間</td><td>67、60–69、男。年齡是預後判讀的必要資訊；年齡層給統計圖用，兩個都填（匯入檔已自動帶入）。</td></tr>
+<tr><td>診斷群</td><td>單選 17 類</td><td>血液 6 類＋固態瘤 11 類。轉換程式會猜，請核對。</td></tr>
+<tr><td>治療階段</td><td>單選</td><td>血液：誘導／鞏固維持／移植／復發難治；固態瘤：新輔助／輔助／根治性同步放化療／第一線（轉移）／第二線以後；共通：診斷分期中／緩和支持性。</td></tr>
+<tr><td>詳細診斷 <span class="req">＊</span></td><td>一行，≤255 字，≥12 字</td><td><span class="good">好：</span>Acute myeloid leukemia, FLT3-ITD+, NPM1 wt, post induction (7+3 + midostaurin) D21, persistent blasts<br><span class="badtxt">不行：</span>malignancy of head and neck／lymphoma／AML（會被系統擋下）<br>公式：<b>組織型態 ＋ 分期或風險分群 ＋ 分子標記 ＋ 目前治療線</b></td></tr>
+<tr><td>治療內容</td><td>本次住院做了什麼</td><td>R-CHOP C3D1、G-CSF、broad-spectrum antibiotics for FN、ICU D12–D18</td></tr>
+<tr><td>臨床經過</td><td>去識別敘述，可多段</td><td>匯入時已放原文全段。檢查：日期只留「第 X 天」或「2026/10 中旬」；不出現同事姓名（寫「值班醫師」）。</td></tr>
+<tr><td>住院天數</td><td>整數</td><td>Mortality 算到死亡當日。</td></tr>
+<tr><td>可避免天數</td><td>你的估計</td><td>「等 PET 排程 6 天、等安養機構 9 天」→ 15。寫不出來留空，會議上補。</td></tr>
+<tr><td>死亡預期性</td><td>Mortality 必填</td><td>預期（疾病進展）／非預期。非預期才是會議重點；「不適用」只給非 Mortality 案。</td></tr>
+<tr><td>Morbidity等級</td><td>Clavien-Dindo</td><td>I 不需處置、II 藥物、IIIa 局麻處置、IIIb 全麻處置、IVa 單器官衰竭 ICU、IVb 多器官、V 死亡。</td></tr>
+<tr><td>初評主要根因 <span class="req">送會前</span></td><td>查閱，單選</td><td>從「根因分類」27 項選一個最主要的。選不出來＝還沒想清楚，先寫五個為什麼。</td></tr>
+<tr><td>初評促成因素</td><td>查閱，多選</td><td>0–4 項。不要全勾；每勾一項要能在臨床經過找到證據。</td></tr>
+<tr><td>初評可預防性</td><td>4 級</td><td>見 05 節定義。</td></tr>
+<tr><td>主治醫師回覆</td><td>三選一</td><td>未徵詢（預設）／同意初評／不同意初評</td></tr>
+<tr><td>主治認為主要根因／可預防性</td><td>只在「不同意」時填</td><td>主治的版本，原話照填，不改寫。</td></tr>
+<tr><td>主治醫師說明</td><td>自由文字</td><td>主治的理由。會議投影會並排顯示初評 vs 主治。</td></tr>
+<tr><td>五個為什麼</td><td>推理鏈</td><td>見 05 節範例。</td></tr>
+<tr><td>學習重點</td><td>一到三句</td><td>給下一位住院醫師看的：「FN 病人血壓邊緣值時，qSOFA≥2 就啟動 sepsis bundle，不等 lactate。」</td></tr>
+<tr><td>參考指引文獻</td><td>可選</td><td>NCCN／ASCO／院內 SOP 名稱＋年份即可。</td></tr>
+<tr><td>狀態 <span class="req">＊</span></td><td>流程閘門</td><td><span class="pill draft">整理中</span> → <span class="pill ready">待討論</span> → <span class="pill done">已定案</span>（主席定案後才改）</td></tr>
+</table></div>
+<figure>
+<svg viewBox="0 0 760 250" role="img" aria-label="新增表單示意，含驗證錯誤">
+  <rect width="760" height="250" fill="var(--soft)"/>
+  <rect x="380" y="0" width="380" height="250" fill="var(--bg)" stroke="var(--line)"/>
+  <text x="398" y="26" font-size="14" font-weight="700" fill="var(--fg)">新增項目</text>
+  <g font-size="11" fill="var(--muted)">
+    <text x="398" y="54">標題 *</text><rect x="398" y="60" width="340" height="22" fill="var(--soft)" stroke="var(--line)"/><text x="406" y="75" font-size="12" font-family="var(--mono)" fill="var(--fg)">MOB-2026-10-01</text>
+    <text x="398" y="102">案例類型 *</text><rect x="398" y="108" width="340" height="22" fill="var(--soft)" stroke="var(--line)"/><text x="406" y="123" font-size="12" fill="var(--fg)">☑ Morbidity　☐ 超長住院　☐ Mortality</text>
+    <text x="398" y="150">詳細診斷 *</text><rect x="398" y="156" width="340" height="22" fill="var(--soft)" stroke="var(--bad)" stroke-width="1.5"/><text x="406" y="171" font-size="12" fill="var(--fg)">lymphoma</text>
+    <text x="398" y="194" font-size="11" fill="var(--bad)">詳細診斷太籠統：請寫組織型態、分期／風險分群、分子標記與目前治療線（至少 12 字）。</text>
+  </g>
+  <rect x="398" y="212" width="60" height="24" rx="3" fill="var(--accent)"/><text x="414" y="228" font-size="12" fill="#fff">儲存</text>
+  <text x="470" y="228" font-size="12" fill="var(--muted)">取消</text>
+  <g font-size="12" fill="var(--fg)">
+    <text x="18" y="40" font-weight="700">左邊是清單，右邊滑出表單</text>
+    <text x="18" y="70" fill="var(--muted)">表單欄位順序＝</text>
+    <text x="18" y="92">① 事實（代碼、年月、類型、年齡層、診斷、經過、天數）</text>
+    <text x="18" y="114">② 你的判斷（主要根因、促成因素、可預防性、五個為什麼）</text>
+    <text x="18" y="136">③ 主治的意見（回覆、主治版根因、說明）</text>
+    <text x="18" y="158">④ 給後人的（學習重點、文獻）</text>
+    <text x="18" y="180">⑤ 狀態</text>
+    <text x="18" y="216" fill="var(--bad)">紅框＝清單驗證擋下，改到 ≥12 字且有型態／分期／標記才能存。</text>
+  </g>
+</svg>
+<figcaption>圖 3　單筆表單。「詳細診斷」只寫 lymphoma 會被擋；這是刻意的，教學價值在細節。</figcaption>
+</figure>
+
+<h2><span class="n">05</span>寫初評：根因、可預防性、五個為什麼</h2>
+<h3>根因分類（London Protocol 六層級 ＋ 超長住院因素）</h3>
+<div class="tw"><table>
+<tr><th>層級</th><th>項目（選「主要根因」時從這 27 項挑一個）</th></tr>
+<tr><td>病人因素</td><td>疾病嚴重度／多重共病 · 病情急速惡化 · 病人／家屬因素（拒絕、延遲就醫、溝通困難）</td></tr>
+<tr><td>個人因素</td><td>知識／經驗不足 · 臨床判斷失誤 · 疲勞／工作負荷</td></tr>
+<tr><td>工作任務與流程</td><td>指引／流程不清或未遵循 · 檢驗檢查結果延遲或未追蹤 · 用藥流程（處方／調劑／給藥） · 交班資訊不全</td></tr>
+<tr><td>團隊與溝通</td><td>團隊內溝通不良 · 跨科會診延遲 · 與病人／家屬溝通不足 · 監督／督導不足</td></tr>
+<tr><td>工作環境</td><td>人力不足 · 設備／病床不足 · 夜間／假日資源不足</td></tr>
+<tr><td>組織與管理</td><td>政策／制度 · 健保／給付限制 · 院際轉診機制</td></tr>
+<tr><td>超長住院因素</td><td>等待檢查／處置 · 感染併發症 · 化療／治療併發症 · 安置／家屬因素 · 轉院／安寧銜接等待 · 社會／經濟因素 · 病情本身需長期治療</td></tr>
+</table></div>
+<div class="note">「病人因素」是最容易選的，也最沒有教學價值。先問：<b>如果換一組團隊、換一天，結果會不會不同？</b> 會，就往下面六層找。病人因素留給真的無法改變的那種。</div>
+
+<h3>可預防性四級</h3>
+<div class="tw"><table>
+<tr><th>等級</th><th>定義</th><th>會議處理</th></tr>
+<tr><td>不可預防</td><td>疾病自然史；照現行最佳實務也會發生</td><td>快速帶過，確認分類即可</td></tr>
+<tr><td>可能可預防</td><td>有一個環節若不同「也許」改變結果，但證據弱</td><td>討論 3–5 分鐘</td></tr>
+<tr><td>很可能可預防</td><td>可指出具體的延遲、遺漏或錯誤，且與結果有合理因果</td><td>重點案例，需改善行動</td></tr>
+<tr><td>明確可預防</td><td>違反既有 SOP／指引，或明顯系統失靈</td><td>重點案例，需改善行動＋負責人＋到期日</td></tr>
+</table></div>
+
+<h3>五個為什麼：寫成一條鏈，不是五句感想</h3>
+<pre>結果：FN 病人入院第 3 天進 ICU（septic shock）
+為什麼1 D2 夜間 BP 95/60、HR 118 沒有啟動 sepsis bundle
+為什麼2 值班醫師判斷為「化療後體虛」，只給 fluid challenge
+為什麼3 交班單沒寫「ANC 100、高風險 FN」，值班不知道風險等級
+為什麼4 科內交班單沒有固定的 FN 風險欄位
+為什麼5 FN 處置 SOP 只規範抗生素，沒規範交班與升級條件
+→ 主要根因：交班資訊不全（工作任務與流程）
+→ 促成因素：夜間／假日資源不足；指引／流程不清
+→ 改善行動：交班單加「FN 風險／升級條件」欄位（負責人：總醫師，到期：下月會前）</pre>
+<p>停在「人」（為什麼2）就會變成檢討個人；多問三層通常會到流程或制度，那才是能改的東西。</p>
+
+<h2><span class="n">06</span>徵詢主治醫師</h2>
+<ol>
+  <li>初評寫完，把該案的 SharePoint 連結（點標題 → 右上「複製連結」）用 Teams 私訊給該案主治，附一句：「請看初評，回我 同意／不同意＋理由，兩天內。」</li>
+  <li>主治是站台成員，可以直接改「主治醫師回覆」「主治認為主要根因」「主治醫師說明」三欄；多數主治會口頭回你，<b>你代填時在「主治醫師說明」開頭寫「（代填）」</b>。</li>
+  <li>兩天沒回 → 維持「未徵詢」送會，會議上由主席現場問。不要為了等回覆延後整批。</li>
+</ol>
+<div class="note ok">「不同意初評」不是壞事。初評與主治意見並排，是會議最有討論價值的案例；投影頁會自動把這些排在前面。</div>
+
+<h2><span class="n">07</span>送進會議：改「待討論」</h2>
+<p>每例滿足下列五點才把狀態改成 <span class="pill ready">待討論</span>：</p>
+<ul class="check">
+  <li>詳細診斷合格（≥12 字、有型態＋分期＋標記＋治療線）</li>
+  <li>臨床經過裡沒有全名、病歷號、完整日期（姓＋OO、年齡可以）</li>
+  <li>初評主要根因已選、可預防性已選</li>
+  <li>Mortality 案：死亡預期性已選（預期／非預期）</li>
+  <li>主治醫師回覆已填（未徵詢也算填了，但要在說明寫「已聯繫未回」）</li>
+</ul>
+<p>改法：開單筆 → 狀態下拉 → 待討論 → 儲存。或在「整理中」檢視用格線一次改一整欄。</p>
+<figure>
+<svg viewBox="0 0 760 120" role="img" aria-label="狀態流程">
+  <rect width="760" height="120" fill="var(--bg)"/>
+  <rect x="30" y="34" width="180" height="44" rx="22" fill="var(--soft)" stroke="var(--line)"/><text x="120" y="61" text-anchor="middle" font-size="14" font-weight="500" fill="var(--st-draft)">整理中</text>
+  <rect x="290" y="34" width="180" height="44" rx="22" fill="var(--accent-soft)"/><text x="380" y="61" text-anchor="middle" font-size="14" font-weight="500" fill="var(--st-ready)">待討論</text>
+  <rect x="550" y="34" width="180" height="44" rx="22" fill="var(--ok-soft)"/><text x="640" y="61" text-anchor="middle" font-size="14" font-weight="500" fill="var(--st-done)">已定案</text>
+  <path d="M212 56 L286 56" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M280 51 L288 56 L280 61" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
+  <path d="M472 56 L546 56" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M540 51 L548 56 L540 61" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
+  <text x="249" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">你改（五點檢核）</text>
+  <text x="509" y="24" text-anchor="middle" font-size="11" fill="var(--muted)">主席寫入正式紀錄後你改</text>
+  <text x="120" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">可隨時編輯</text>
+  <text x="380" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">會前凍結內容，只補主治回覆</text>
+  <text x="640" y="102" text-anchor="middle" font-size="11" fill="var(--muted)">不再改；有誤到正式紀錄寫「修正附註」</text>
+</svg>
+<figcaption>圖 4　狀態只往右走。退回「整理中」要在主治醫師說明寫原因。</figcaption>
+</figure>
+
+<h2><span class="n">08</span>會前兩天：匯出與投影試跑</h2>
+<ol>
+  <li>「案例」清單 → 工具列 <b>匯出 → 匯出至 CSV</b>，存成 <code>案例.csv</code>。「正式紀錄」同樣匯出成 <code>正式紀錄.csv</code>（前幾個月的定案，給趨勢圖用）。</li>
+  <li>開 <code>MM_SharePoint\mm_dashboard.html</code>（雙擊即可，離線）→ 「載入」分頁 → 兩個 CSV 拖進去。</li>
+  <li>切「待討論案例」：應看到本月全部待討論案，不同意初評的排前面。</li>
+  <li>按「投影模式」→ <kbd>→</kbd> 翻下一案、<kbd>←</kbd> 上一案、<kbd>Esc</kbd> 離開。接會議室螢幕時用 <kbd>Win</kbd>+<kbd>P</kbd> 延伸或 Miracast 投到電視。</li>
+  <li>把兩個 CSV 一起放進會議資料夾，會議當天不用再連 SharePoint。</li>
+</ol>
+<figure>
+<svg viewBox="0 0 760 200" role="img" aria-label="匯出到投影流程">
+  <rect width="760" height="200" fill="var(--bg)"/>
+  <g font-size="12" fill="var(--fg)">
+    <rect x="20" y="40" width="200" height="110" fill="var(--soft)" stroke="var(--line)"/>
+    <text x="34" y="64" font-weight="700">SharePoint 案例</text><text x="34" y="88">工具列 → 匯出</text><text x="34" y="108">→ 匯出至 CSV</text><text x="34" y="136" font-family="var(--mono)" font-size="11">案例.csv</text>
+    <rect x="280" y="40" width="200" height="110" fill="var(--soft)" stroke="var(--line)"/>
+    <text x="294" y="64" font-weight="700">mm_dashboard.html</text><text x="294" y="88">載入 → 拖入 CSV</text><text x="294" y="108">待討論案例 ✓</text><text x="294" y="136" fill="var(--muted)" font-size="11">離線、單檔、不需安裝</text>
+    <rect x="540" y="40" width="200" height="110" fill="var(--accent-soft)"/>
+    <text x="554" y="64" font-weight="700" fill="var(--accent)">投影模式</text><text x="554" y="88">一案一頁：事實 → 初評 vs 主治</text><text x="554" y="108">← → 翻頁　Esc 離開</text><text x="554" y="136" fill="var(--muted)" font-size="11">定案後主席寫正式紀錄</text>
+  </g>
+  <path d="M222 95 L276 95" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M270 90 L278 95 L270 100" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
+  <path d="M482 95 L536 95" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M530 90 L538 95 L530 100" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
+  <text x="380" y="182" text-anchor="middle" font-size="11" fill="var(--muted)">CSV 已是去識別資料，但仍是院內病安資料：放院內電腦或加密隨身碟，不寄 Gmail、不放 LINE。</text>
+</svg>
+<figcaption>圖 5　會前三步。整個過程不需要資訊室。</figcaption>
+</figure>
+
+<h2><span class="n">09</span>會後 30 分鐘</h2>
+<ol>
+  <li>主席在「正式紀錄」新增定案後，你把對應案例的狀態改 <span class="pill done">已定案</span>。</li>
+  <li>有改善行動的案例：「改善行動」清單新增一筆：標題（動詞開頭：「交班單加 FN 風險欄」）、負責人、到期日、針對因素、關聯紀錄。</li>
+  <li>「會議」清單新增一筆：會議日期、年月、出席人數、跨案例事項（例如「本月 4 例都卡在安置等待 → 提社工聯繫會議」）。</li>
+  <li>下月收案時先看上月改善行動有沒有「完成」。</li>
+</ol>
+
+<h2><span class="n">10</span>常見問題</h2>
+<div class="tw"><table>
+<tr><th>狀況</th><th>處理</th></tr>
+<tr><td>存檔時紅字「詳細診斷太籠統」</td><td>照公式補到 ≥12 字：型態＋分期／風險＋標記＋治療線。</td></tr>
+<tr><td>格線貼上後欄位錯位</td><td><kbd>Ctrl+Z</kbd> 到底，確認起點是「標題」格、Excel 不含標題列，重貼。</td></tr>
+<tr><td>找不到「以格線編輯」</td><td>檢視切回「所有項目」；某些篩選檢視不提供格線。</td></tr>
+<tr><td>「根因分類」少了想選的項目</td><td>不要自己加。先選最接近的，在五個為什麼寫明，會議提案新增；主席同意後由主席加。</td></tr>
+<tr><td>病人同月既超長住院又死亡</td><td>一筆，案例類型勾兩個，代碼用 MOR。</td></tr>
+<tr><td>主治要求改初評</td><td>不改。初評是你的判斷，主治意見填主治欄位；並排才有討論。</td></tr>
+<tr><td>要查某案是哪位病人</td><td>開「對照表」清單，用案例代碼搜尋。看不到這個清單＝你不在「M&M 對照表」群組，找主席加。</td></tr>
+<tr><td>不小心把病歷號貼進「案例」了</td><td>立刻改掉該欄 → 該項目 ⋯ → 版本歷程記錄 → 刪除含病歷號的舊版本 → 通知主席。</td></tr>
+<tr><td>臨床經過裡的日期怎麼寫</td><td>相對日「入院第 5 天」或「2026/10 中旬」；轉換程式已把完整日期改成年月，自己補寫時照辦。</td></tr>
+</table></div>
+
+<h2><span class="n">11</span>送會前一分鐘檢核</h2>
+<ul class="check">
+  <li>本月案例全部在「待討論」檢視出現，數量與收案名單一致</li>
+  <li>每例詳細診斷≥12 字、臨床經過無全名／病歷號／完整日期</li>
+  <li>每例有主要根因＋可預防性；Mortality 有死亡預期性</li>
+  <li>主治醫師回覆三選一都填了（未徵詢者在說明註明）</li>
+  <li>CSV 已匯出、mm_dashboard 載入正常、投影模式翻過一遍</li>
+  <li>對照表已貼進 SharePoint「對照表」清單，本機 CSV 已刪</li>
+</ul>
+
+<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.1 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、mm_import.py、mm_dashboard.html</footer>
+</div>
+</body></html>

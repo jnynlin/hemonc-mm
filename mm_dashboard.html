@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>M&M 會議儀表板</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* 離線版：讀 SharePoint List 匯出的 CSV／Excel，不連任何資料庫。版面同案例庫：頂列導覽＋平面分區。 */
+:root{
+  --bg:#f9f9f7; --surface:#fcfcfb; --fg:#0b0b0b; --fg2:#52514e; --muted:#898781;
+  --rule:#e1e0d9; --axis:#c3c2b7; --accent:#1c5cab; --accent-soft:#e3edf9;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --good:#0ca30c; --critical:#d03b3b; --serious:#ec835a;
+  --seq1:#cde2fb; --seq2:#9ec5f4; --seq3:#5598e7; --seq4:#1c5cab;
+  --font:"Noto Sans TC",system-ui,-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0d0d0d; --surface:#1a1a19; --fg:#f0efec; --fg2:#c3c2b7; --rule:#2c2c2a; --axis:#383835; --accent:#6da7ec; --accent-soft:#17293f; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --seq1:#184f95; --seq2:#256abf; --seq3:#5598e7; --seq4:#b7d3f6; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#0d0d0d; --surface:#1a1a19; --fg:#f0efec; --fg2:#c3c2b7; --rule:#2c2c2a; --axis:#383835; --accent:#6da7ec; --accent-soft:#17293f; --s1:#3987e5; --s2:#d95926; --s3:#199e70; --seq1:#184f95; --seq2:#256abf; --seq3:#5598e7; --seq4:#b7d3f6; color-scheme:dark }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+h1,h2,h3,h4{margin:0;font-weight:700;text-wrap:balance;line-height:1.3} h1{font-size:1.15rem} h2{font-size:1.05rem} h3{font-size:.95rem} h4{font-size:.85rem;color:var(--fg2);font-weight:500}
+p{margin:0} button,select,input{font:inherit;color:inherit}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+.top-in{max-width:1100px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px}
+.dept{color:var(--fg2);font-size:.85rem}
+nav{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:6px 10px;cursor:pointer;color:var(--fg2)}
+nav button[aria-current="page"]{color:var(--fg);border-bottom-color:var(--accent);font-weight:500}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+main{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 60px}
+section{padding-block:22px;border-bottom:1px solid var(--rule)} section:last-child{border-bottom:0}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:14px} .note{color:var(--fg2);font-size:.85rem}
+.row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.btn{border:1px solid var(--axis);background:var(--surface);border-radius:6px;padding:6px 12px;cursor:pointer} .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff} .btn.sm{padding:3px 8px;font-size:.85rem}
+select,input[type=text]{border:1px solid var(--axis);border-radius:6px;background:var(--surface);padding:6px 8px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--fg2)} label.f input[type=file]{font-size:.85rem}
+.loads{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px}
+.loads .ok{color:var(--good);font-size:.8rem} .loads .no{color:var(--muted);font-size:.8rem}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 24px} .tile .v{font-size:2rem;font-weight:700;line-height:1.1} .tile .l{color:var(--fg2);font-size:.85rem} .tile .sub{color:var(--muted);font-size:.8rem}
+.tbl{overflow-x:auto} table{border-collapse:collapse;width:100%;font-size:.9rem} th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top} th{color:var(--fg2);font-weight:500;font-size:.8rem;white-space:nowrap} td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer} tr.click:hover td,tr.cur td{background:var(--accent-soft)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;border:1px solid var(--axis);color:var(--fg2);white-space:nowrap} .pill.t1{border-color:var(--s1);color:var(--s1)} .pill.t2{border-color:var(--s2);color:var(--s2)} .pill.t3{border-color:var(--s3);color:var(--s3)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.flag{color:var(--critical);font-weight:500} .flag::before{content:"▲ ";font-size:.7em} .agree{color:var(--good)} .disagree{color:var(--serious)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:28px 40px} .chart h3{margin-bottom:4px} .chart .cap{color:var(--fg2);font-size:.82rem;margin-bottom:8px}
+svg{display:block;width:100%;height:auto;max-width:100%} svg text{font-family:var(--font);fill:var(--fg2);font-size:12px} svg .grid line{stroke:var(--rule)} svg .axis{stroke:var(--axis)} svg .lbl{fill:var(--fg);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.82rem;color:var(--fg2);margin-bottom:8px} .empty{color:var(--muted);padding:18px 0} .small{font-size:.85rem;color:var(--fg2)} .muted{color:var(--muted)}
+.tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--axis);border-radius:6px;padding:6px 10px;font-size:.82rem;z-index:20;max-width:260px}
+.xtab td.cell{text-align:center;font-variant-numeric:tabular-nums}
+.card{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 32px} .card .kv{display:flex;flex-direction:column;gap:2px;min-width:0} .card .kv .k{font-size:.78rem;letter-spacing:.06em;color:var(--muted)} .card .kv .v{white-space:pre-wrap;word-break:break-word} .card .kv.wide{grid-column:1/-1}
+.proj{border-left:3px solid var(--accent);padding-left:14px}
+.banner{background:var(--accent-soft);padding:10px 14px;border-radius:6px;font-size:.9rem}
+body.present .top{display:none} body.present main{max-width:1400px;padding-block:28px}
+.pres{font-size:1.25rem;line-height:1.6} .pres h2{font-size:2rem;margin-bottom:6px} .pres .meta{color:var(--fg2);font-size:1rem;margin-bottom:18px} .pres .card{grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px 48px} .pres .pill{font-size:1rem;padding:3px 12px}
+.pres .cols{display:grid;grid-template-columns:2fr 1fr;gap:32px 56px;align-items:start} .pres .wait{font-size:1.6rem;color:var(--muted);padding:80px 0;text-align:center}
+.pres .ctl{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));opacity:.35;display:flex;gap:6px} .pres .ctl:hover{opacity:1}
+@media (max-width:900px){ .pres .cols{grid-template-columns:1fr} } @media (max-width:560px){ .dept{display:none} nav{margin-left:0} }
+</style>
+
+<div class="top"><div class="top-in">
+  <div><h1>M&amp;M 會議儀表板</h1><div class="dept">離線版：讀 SharePoint List 匯出檔（正式紀錄／案例／根因分類／改善行動）</div></div>
+  <nav id="nav"><button data-view="load">載入</button><button data-view="records">紀錄與分析</button><button data-view="prep">待討論案例</button><button data-view="about">說明</button></nav>
+</div></div>
+<main>
+  <div id="v-load" hidden></div><div id="v-records" hidden></div><div id="v-prep" hidden></div><div id="v-about" hidden></div><div id="v-present" hidden></div>
+</main>
+<div id="tip" class="tip" hidden></div>
+
+<script>
+'use strict';
+const VIEWS=['load','records','prep','about','present'];
+const TYPES=['超長住院','Morbidity','Mortality']; const TYPE_CLASS={'超長住院':'t1','Morbidity':'t2','Mortality':'t3'}; const TYPE_VAR={'超長住院':'--s1','Morbidity':'--s2','Mortality':'--s3'};
+const PREV=['不可預防','可能可預防','很可能可預防','明確可預防']; const DMODE=['三方一致','主席裁定','投票'];
+const state={view:'load',records:[],drafts:[],factors:[],actions:[],loaded:{},recYm:null,paretoRange:'12',paretoType:'全部',open:null,presIdx:0,thr:30};
+const $=(s,el=document)=>el.querySelector(s); const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nowYm=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');};
+const addMonths=(ym,n)=>{let [y,m]=ym.split('-').map(Number);m+=n;y+=Math.floor((m-1)/12);m=((m-1)%12+12)%12+1;return y+'-'+String(m).padStart(2,'0');};
+const ymLabel=ym=>ym?ym.replace('-',' 年 ')+' 月':''; const rangeYms=(e,n)=>{const a=[];for(let i=n-1;i>=0;i--)a.push(addMonths(e,-i));return a;};
+const hasType=(c,t)=>(c.types||[]).includes(t); const facGroup=n=>{const f=state.factors.find(x=>x.name===n);return f?f.group:'未分類';}; const groupsOf=()=>[...new Set(state.factors.map(f=>f.group))];
+
+/* ---------- 檔案解析 ---------- */
+function parseCSV(text){ if(text.charCodeAt(0)===0xFEFF) text=text.slice(1); const rows=[]; let row=[],cell='',q=false; for(let i=0;i<text.length;i++){ const ch=text[i]; if(q){ if(ch==='"'){ if(text[i+1]==='"'){cell+='"';i++;} else q=false; } else cell+=ch; } else { if(ch==='"') q=true; else if(ch===','){row.push(cell);cell='';} else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&text[i+1]==='\n') i++; row.push(cell); rows.push(row); row=[];cell=''; } else cell+=ch; } } if(cell!==''||row.length){row.push(cell);rows.push(row);} return rows.filter(r=>r.some(c=>c.trim()!=='')); }
+function rowsToObjects(rows){ const h=rows[0].map(x=>x.trim()); return rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=(r[i]??'').toString().trim());return o;}); }
+async function readFile(file){ const name=file.name.toLowerCase(); if(name.endsWith('.csv')||name.endsWith('.txt')) return rowsToObjects(parseCSV(await file.text()));
+  if(!window.XLSX) throw new Error('沒有網路載入 Excel 解析器，請改用「匯出至 CSV」'); const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; return rowsToObjects(XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:''}).map(r=>r.map(x=>String(x??'')))); }
+const col=(o,...names)=>{ for(const n of names){ for(const k of Object.keys(o)){ if(k.replace(/\s/g,'')===n) return o[k]; } } return ''; };
+const multi=s=>String(s||'').split(/;#|;|；|\n/).map(x=>x.trim()).filter(x=>x&&!/^\d+$/.test(x));
+const num=s=>{const n=parseFloat(String(s).replace(/[^\d.-]/g,''));return isNaN(n)?null:n;};
+const ymOf=(s)=>{ const m=String(s).match(/(\d{4})[-/.](\d{1,2})/); return m?`${m[1]}-${m[2].padStart(2,'0')}`:''; };
+function mapCase(o){ return { code:col(o,'標題','案例代碼','Title'), ym:ymOf(col(o,'年月')), types:multi(col(o,'案例類型')), ageBand:col(o,'年齡層'), age:col(o,'年齡'), nameShort:col(o,'病人簡稱'), sex:col(o,'性別'), dxGroup:col(o,'診斷群'), phase:col(o,'治療階段'),
+  dxDetail:col(o,'詳細診斷'), treatment:col(o,'治療內容'), course:col(o,'臨床經過'), los:num(col(o,'住院天數')), avoidableDays:num(col(o,'可避免天數')), deathExpected:col(o,'死亡預期性'), morbGrade:col(o,'Morbidity等級'),
+  initial:{mainFactor:col(o,'初評主要根因'),factors:multi(col(o,'初評促成因素')),preventability:col(o,'初評可預防性')},
+  attending:{status:col(o,'主治醫師回覆')||'未徵詢',mainFactor:col(o,'主治認為主要根因'),preventability:col(o,'主治認為可預防性'),comment:col(o,'主治醫師說明')},
+  whys:col(o,'五個為什麼','5Whys'), teachingPoints:col(o,'學習重點'), refs:col(o,'參考指引文獻','參考'), status:col(o,'狀態') }; }
+function mapRecord(o){ const r=mapCase(o); r.consensus={mainFactor:col(o,'共識主要根因'),factors:multi(col(o,'共識促成因素')),preventability:col(o,'共識可預防性'),notes:col(o,'會議結論'),voteCount:num(col(o,'票數'))||0,dist:col(o,'投票分布')};
+  r.decisionMode=col(o,'決策方式'); r.chiefComment=col(o,'長官意見'); r.meetingDate=col(o,'會議日期'); r.attendees=num(col(o,'出席人數'))||0; r.amendments=col(o,'修正附註');
+  const ag=col(o,'初評一致'); r.agreeMain = ag?/是|yes|true/i.test(ag):(r.initial.mainFactor===r.consensus.mainFactor); if(!r.ym) r.ym=ymOf(r.meetingDate); return r; }
+function mapFactor(o){ return {name:col(o,'標題','因素名稱','Title'),group:col(o,'層級','群組'),order:num(col(o,'排序'))||0}; }
+function mapAction(o){ return {title:col(o,'標題','行動','Title'),owner:col(o,'負責人'),due:col(o,'到期日'),status:col(o,'狀態'),factor:col(o,'針對因素'),cases:multi(col(o,'關聯紀錄','關聯案例')),note:col(o,'備註')}; }
+async function load(kind,file){ const objs=await readFile(file); if(kind==='records') state.records=objs.map(mapRecord).filter(r=>r.code); if(kind==='drafts') state.drafts=objs.map(mapCase).filter(r=>r.code); if(kind==='factors') state.factors=objs.map(mapFactor).filter(f=>f.name).sort((a,b)=>a.order-b.order); if(kind==='actions') state.actions=objs.map(mapAction).filter(a=>a.title);
+  state.loaded[kind]={name:file.name,n:objs.length,at:new Date().toLocaleString()}; if(kind==='records'){ const l=[...state.records].sort((a,b)=>b.ym.localeCompare(a.ym))[0]; state.recYm=l?l.ym:nowYm(); } persist(); }
+function persist(){ try{ localStorage.setItem('mm_dash',JSON.stringify({records:state.records,drafts:state.drafts,factors:state.factors,actions:state.actions,loaded:state.loaded,thr:state.thr})); }catch(e){} }
+function restore(){ try{ const s=JSON.parse(localStorage.getItem('mm_dash')||'null'); if(s){ Object.assign(state,s); const l=[...state.records].sort((a,b)=>b.ym.localeCompare(a.ym))[0]; state.recYm=l?l.ym:nowYm(); } }catch(e){} }
+
+/* ---------- 範例資料（示範用） ---------- */
+const SAMPLE_FACTORS=[['病人因素','疾病嚴重度／多重共病'],['病人因素','病情急速惡化'],['工作任務與流程','檢驗檢查結果延遲或未追蹤'],['工作任務與流程','用藥流程（處方／調劑／給藥）'],['工作任務與流程','交班資訊不全'],['團隊與溝通','跨科會診延遲'],['團隊與溝通','團隊內溝通不良'],['工作環境','人力不足'],['工作環境','夜間／假日資源不足'],['超長住院因素','等待檢查／處置'],['超長住院因素','感染併發症'],['超長住院因素','化療／治療併發症'],['超長住院因素','安置／家屬因素'],['超長住院因素','轉院／安寧銜接等待']];
+const SAMPLE_RECORDS=[
+ ['DEMO-04','2026-10','Mortality','≥80','男','淋巴瘤','緩和／支持性','範例：套細胞淋巴瘤，TP53 突變，第三線 BTK 抑制劑後惡化，ECOG 3，安寧共照。','停止抗癌治療，症狀控制。','住院第 3 天安寧共照介入，第 12 天往生。',12,'','預期（疾病進展）','不適用','疾病嚴重度／多重共病','','不可預防','同意初評','','','','','TP53 突變 MCL 預後極差，第二線後即應討論照護目標。','','疾病嚴重度／多重共病','','不可預防','三方一致','','預期死亡。','2026-10-20',11,0,'','是',''],
+ ['DEMO-05','2026-10','超長住院','40–49','女','急性白血病','鞏固／維持','範例：AML CBFB-MYH11，ELN 良好風險，HiDAC 鞏固第 2 週期。','HiDAC；發燒 cefepime → 依培養改 meropenem。','第 10 天發燒，第 12 天培養陽性但第 14 天才調整抗生素；第 20 天退燒；床位安排延至第 55 天。',55,7,'不適用','不適用','感染併發症','檢驗檢查結果延遲或未追蹤;人力不足','可能可預防','不同意初評','檢驗檢查結果延遲或未追蹤','','感染是結果，根因在報告沒人追。','','培養陽性到抗生素調整的時間差要定期稽核。','','檢驗檢查結果延遲或未追蹤','感染併發症;人力不足','可能可預防','投票','兩案連續出現報告追蹤問題。','共識認為根因在報告追蹤。','2026-10-20',11,10,'檢驗檢查結果延遲或未追蹤 7／感染併發症 3','否',''],
+ ['DEMO-06','2026-10','Morbidity','60–69','女','大腸直腸癌','第一線（轉移／晚期）','範例：右側大腸癌 pT3N1bM1a，RAS/BRAF 野生型，MSS，FOLFOX + cetuximab 第 6 週期。','未依腎功能調劑量。','第 2 天 eGFR 降至 45 交班未註明，第 3 天原劑量給藥，第 6 天 grade 3 血小板低下。',9,'','不適用','II','用藥流程（處方／調劑／給藥）','交班資訊不全','很可能可預防','同意初評','','','','','給藥前固定核對當日腎功能。','','用藥流程（處方／調劑／給藥）','交班資訊不全;檢驗檢查結果延遲或未追蹤','很可能可預防','主席裁定','核對流程補腎功能項目。','','2026-10-20',11,0,'','是',''],
+ ['DEMO-07','2026-09','超長住院','70–79','男','MDS／MPN','緩和／支持性','範例：MDS-IB2，IPSS-M 高風險，azacitidine 第 5 週期，輸血依賴。','azacitidine；輸血；轉安寧病房。','第 15 天起病情穩定但安置意見不一；第 40 天社工介入；第 74 天轉安寧病房。',74,20,'不適用','不適用','安置／家屬因素','轉院／安寧銜接等待;檢驗檢查結果延遲或未追蹤','可能可預防','同意初評','','','','','高風險 MDS 入院即啟動出院計畫。','','安置／家屬因素','轉院／安寧銜接等待','可能可預防','三方一致','','社工介入太晚。','2026-09-22',9,0,'','是',''],
+ ['DEMO-08','2026-09','Mortality','60–69','男','急性白血病','復發／難治','範例：復發 AML，IDH2 R140Q，第二線 azacitidine + venetoclax 第 2 週期。','第 5 天腹痛請外科會診。','第 5 天腹痛，CT 當晚完成但報告隔日下午才被看到（穿孔）；第 6 天手術；第 9 天敗血症死亡。',30,'','非預期','不適用','跨科會診延遲','檢驗檢查結果延遲或未追蹤;團隊內溝通不良','可能可預防','不同意初評','檢驗檢查結果延遲或未追蹤','很可能可預防','CT 當晚就有穿孔。','','中性球低下病人腹痛要當急症；影像危急值要通知。','','檢驗檢查結果延遲或未追蹤','跨科會診延遲;團隊內溝通不良','很可能可預防','投票','影像危急值通知要跟影像科談。','危急值未通知為根因。','2026-09-22',9,8,'檢驗檢查結果延遲或未追蹤 5／跨科會診延遲 3','否','2026-10-01 補充：已與影像科協調危急值流程。']];
+const REC_HEAD=['標題','年月','案例類型','年齡層','性別','診斷群','治療階段','詳細診斷','治療內容','臨床經過','住院天數','可避免天數','死亡預期性','Morbidity等級','初評主要根因','初評促成因素','初評可預防性','主治醫師回覆','主治認為主要根因','主治認為可預防性','主治醫師說明','五個為什麼','學習重點','參考指引文獻','共識主要根因','共識促成因素','共識可預防性','決策方式','長官意見','會議結論','會議日期','出席人數','票數','投票分布','初評一致','修正附註'];
+function loadSample(){ const toObj=(h,r)=>{const o={};h.forEach((k,i)=>o[k]=String(r[i]??''));return o;};
+  state.factors=SAMPLE_FACTORS.map(([g,n],i)=>({name:n,group:g,order:i})); state.records=SAMPLE_RECORDS.map(r=>mapRecord(toObj(REC_HEAD,r)));
+  state.drafts=[mapCase(toObj(REC_HEAD.slice(0,24).concat(['狀態']),['DEMO-01','2026-11','超長住院','60–69','男','淋巴瘤','鞏固／維持','範例：瀰漫性大 B 細胞淋巴瘤，non-GCB，Ann Arbor IV 期（骨髓侵犯），IPI 4，R-CHOP 第 4 週期後。','R-CHOP；發燒 cefepime；G-CSF。','第 1–5 天嗜中性白血球低下發燒；第 7 天起等待 PET-CT 排程，第 14 天檢查，第 18 天出院。',48,10,'不適用','不適用','等待檢查／處置','檢驗檢查結果延遲或未追蹤','可能可預防','同意初評','','','下次期中評估改門診排程。','','期中評估影像可在門診完成。','','待討論'])),
+   mapCase(toObj(REC_HEAD.slice(0,24).concat(['狀態']),['DEMO-02','2026-11','Mortality','70–79','女','急性白血病','誘導','範例：AML，NPM1 突變、FLT3-ITD 陽性，ELN 2022 中度風險，7+3 合併 midostaurin 誘導第 1 週期。','7+3 + midostaurin；第 9 天發燒改 piperacillin-tazobactam。','第 9 天發燒抽血培養；第 11 天（週六）培養陽性報告未被看到；第 13 天才調整抗生素並轉 ICU；第 15 天死亡。',22,'','非預期','不適用','檢驗檢查結果延遲或未追蹤','跨科會診延遲;夜間／假日資源不足','很可能可預防','不同意初評','夜間／假日資源不足','可能可預防','假日微生物室人力不足，報告本身就慢半天。','為什麼延遲？假日無主動通知。','培養陽性必須有主動通知路徑。','IDSA 發燒性嗜中性白血球低下指引','待討論']))];
+  state.actions=[mapAction({'標題':'範例：培養／檢驗異常結果 24 小時內追蹤回報','負責人':'研究醫師','到期日':'2026-12-31','狀態':'進行中','針對因素':'檢驗檢查結果延遲或未追蹤','關聯紀錄':'DEMO-05;DEMO-08'})];
+  state.loaded={records:{name:'範例資料',n:5,at:new Date().toLocaleString()},drafts:{name:'範例資料',n:2},factors:{name:'範例資料',n:14},actions:{name:'範例資料',n:1}}; state.recYm='2026-10'; persist(); }
+
+/* ---------- 導覽 ---------- */
+function setView(v){ state.view=v; document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.view===v?'page':'false')); VIEWS.forEach(k=>$('#v-'+k).hidden=k!==v); document.body.classList.toggle('present',v==='present'); if(location.hash.slice(1)!==v) history.replaceState(null,'','#'+v); renderAll(); }
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1); if(VIEWS.includes(h)) setView(h);});
+function renderAll(){ ({load:renderLoad,records:renderRecords,prep:renderPrep,about:renderAbout,present:renderPresent})[state.view](); }
+
+/* ---------- tooltip & charts ---------- */
+const tip=$('#tip'); function bindTips(root){ root.querySelectorAll('[data-tip]').forEach(el=>{ el.addEventListener('pointerenter',e=>{tip.textContent=el.dataset.tip;tip.hidden=false;moveTip(e);}); el.addEventListener('pointermove',moveTip); el.addEventListener('pointerleave',()=>tip.hidden=true); }); } function moveTip(e){ tip.style.left=Math.min(e.clientX+12,window.innerWidth-270)+'px'; tip.style.top=(e.clientY+14)+'px'; }
+const recIn=ym=>state.records.filter(r=>r.ym===ym); const cMain=r=>r.consensus.mainFactor; const cFactors=r=>[...new Set([cMain(r),...r.consensus.factors].filter(Boolean))]; const cPrev=r=>r.consensus.preventability;
+function factorCounts(recs,mode){ const m=new Map(); recs.forEach(r=>(mode==='main'?(cMain(r)?[cMain(r)]:[]):cFactors(r)).forEach(n=>m.set(n,(m.get(n)||0)+1))); return [...m.entries()].map(([name,n])=>({name,n,group:facGroup(name)})).sort((a,b)=>b.n-a.n||a.name.localeCompare(b.name,'zh-Hant')); }
+function recurring(endYm){ const yms=rangeYms(endYm,6); const m=new Map(); state.records.filter(r=>yms.includes(r.ym)).forEach(r=>cFactors(r).forEach(n=>{ if(!m.has(n)) m.set(n,new Set()); m.get(n).add(r.ym); })); return [...m.entries()].filter(([,s])=>s.size>=3).map(([name,s])=>({name,months:[...s].sort()})).sort((a,b)=>b.months.length-a.months.length); }
+function stackedMonthly(yms){ const W=640,H=230,L=36,R=12,T=14,B=34,iw=W-L-R,ih=H-T-B; const data=yms.map(ym=>({ym,v:TYPES.map(t=>recIn(ym).filter(c=>hasType(c,t)).length)})); const max=Math.max(1,...data.map(d=>d.v.reduce((a,b)=>a+b,0))); const step=max<=5?1:max<=10?2:max<=20?5:10; const top=Math.ceil(max/step)*step; const y=v=>T+ih-(v/top)*ih; const bw=Math.min(36,iw/yms.length*0.6); const xs=i=>L+iw*(i+0.5)/yms.length;
+  let g='<g class="grid">'; for(let v=0;v<=top;v+=step) g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`; g+='</g>'; let bars='';
+  data.forEach((d,i)=>{ let acc=0; const tot=d.v.reduce((a,b)=>a+b,0); d.v.forEach((n,k)=>{ if(!n) return; const y1=y(acc+n),h=y(acc)-y1-(acc?2:0); bars+=`<rect x="${xs(i)-bw/2}" y="${y1}" width="${bw}" height="${Math.max(0,h)}" rx="${acc+n===tot?4:0}" fill="var(${TYPE_VAR[TYPES[k]]})" data-tip="${esc(ymLabel(d.ym))} ${TYPES[k]}：${n} 件"/>`; acc+=n; }); if(tot) bars+=`<text class="lbl" x="${xs(i)}" y="${y(tot)-5}" text-anchor="middle">${tot}</text>`; bars+=`<text x="${xs(i)}" y="${H-B+16}" text-anchor="middle" ${d.ym===state.recYm?'font-weight="700" fill="var(--fg)"':''}>${d.ym.slice(2).replace('-','/')}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="每月定案案例數">${g}<line class="axis" x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}"/>${bars}</svg>`; }
+function paretoChart(rows){ if(!rows.length) return '<div class="empty">此範圍內尚無紀錄。</div>'; rows=rows.slice(0,10); const total=rows.reduce((a,r)=>a+r.n,0); const W=640,rowH=28,L=200,R=70,T=6,H=T+rows.length*rowH+8,iw=W-L-R,max=rows[0].n; let acc=0,s=''; rows.forEach((r,i)=>{ acc+=r.n; const w=Math.max(2,iw*r.n/max),y=T+i*rowH; s+=`<text x="${L-8}" y="${y+18}" text-anchor="end">${esc(r.name.length>13?r.name.slice(0,12)+'…':r.name)}</text><rect x="${L}" y="${y+6}" width="${w}" height="16" rx="4" fill="var(--s1)" data-tip="${esc(r.name)}（${esc(r.group)}）：${r.n} 件，累積 ${Math.round(acc/total*100)}%"/><text class="lbl" x="${L+w+6}" y="${y+18}">${r.n}</text><text x="${W-R+8}" y="${y+18}" fill="var(--muted)">${Math.round(acc/total*100)}%</text>`; }); return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="共識主要根因柏拉圖">${s}</svg>`; }
+function prevChart(recs){ const counts=PREV.map(p=>recs.filter(r=>cPrev(r)===p).length); const total=counts.reduce((a,b)=>a+b,0); if(!total) return '<div class="empty">尚無資料。</div>'; const W=640,H=64; let x=0,s='',lbl=''; const cols=['var(--seq1)','var(--seq2)','var(--seq3)','var(--seq4)']; counts.forEach((n,i)=>{ if(!n) return; const w=W*n/total; s+=`<rect x="${x}" y="8" width="${Math.max(0,w-2)}" height="22" rx="3" fill="${cols[i]}" data-tip="${PREV[i]}：${n} 件（${Math.round(n/total*100)}%）"/>`; if(w>70) lbl+=`<text x="${x+w/2}" y="48" text-anchor="middle">${PREV[i]} ${n}</text>`; x+=w; }); return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="可預防性分布">${s}${lbl}</svg>`; }
+function losChart(recs){ const thr=state.thr||30; const bins=[[thr,thr+14],[thr+15,thr+29],[thr+30,thr+59],[thr+60,Infinity]]; const labels=bins.map(([a,b])=>b===Infinity?`≥${a} 天`:`${a}–${b} 天`); const counts=bins.map(([a,b])=>recs.filter(c=>c.los>=a&&c.los<=b).length); if(!counts.some(Boolean)) return '<div class="empty">此範圍內無超長住院紀錄。</div>'; const W=640,H=170,L=30,T=12,B=30,ih=H-T-B,iw=W-L-10,max=Math.max(...counts); const y=v=>T+ih-(v/max)*ih; const bw=Math.min(70,iw/4*0.6); let s=''; counts.forEach((n,i)=>{ const cx=L+iw*(i+0.5)/4; s+=`<rect x="${cx-bw/2}" y="${y(n)}" width="${bw}" height="${y(0)-y(n)}" rx="4" fill="var(--s1)" data-tip="${labels[i]}：${n} 件"/><text class="lbl" x="${cx}" y="${y(n)-5}" text-anchor="middle">${n||''}</text><text x="${cx}" y="${H-B+16}" text-anchor="middle">${labels[i]}</text>`; }); return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="超長住院天數分布"><line class="axis" x1="${L}" x2="${W-10}" y1="${y(0)}" y2="${y(0)}"/>${s}</svg>`; }
+function crossTab(recs){ const groups=[...new Set([...groupsOf(),...recs.map(r=>facGroup(cMain(r)))])]; const rows=groups.map(g=>({g,v:TYPES.map(t=>recs.filter(r=>hasType(r,t)&&facGroup(cMain(r))===g).length)})).filter(r=>r.v.some(Boolean)); if(!rows.length) return '<div class="empty">尚無資料。</div>'; const max=Math.max(...rows.flatMap(r=>r.v)); const colr=n=>n===0?'transparent':n<=max*0.25?'var(--seq1)':n<=max*0.5?'var(--seq2)':n<=max*0.75?'var(--seq3)':'var(--seq4)'; const ink=n=>n>max*0.5?'#fff':'var(--fg)'; return `<div class="tbl"><table class="xtab"><thead><tr><th>共識主要根因層級</th>${TYPES.map(t=>`<th class="num">${t}</th>`).join('')}<th class="num">合計</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.g)}</td>${r.v.map(n=>`<td class="cell" style="background:${colr(n)};color:${ink(n)}">${n||''}</td>`).join('')}<td class="num">${r.v.reduce((a,b)=>a+b,0)}</td></tr>`).join('')}</tbody></table></div>`; }
+
+/* ---------- 共用片段 ---------- */
+const typePills=c=>(c.types||[]).map(t=>`<span class="pill ${TYPE_CLASS[t]||''}">${esc(t)}</span>`).join(' ');
+const kv=(k,v,wide)=>v?`<div class="kv${wide?' wide':''}"><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`:'';
+function teachingCard(c){ return `<div class="card">${kv('案例代碼',c.code)}${kv('年月',ymLabel(c.ym))}<div class="kv"><div class="k">類型</div><div class="v">${typePills(c)}</div></div>${kv('病人',[c.nameShort,c.age?c.age+' 歲':c.ageBand,c.sex].filter(Boolean).join('　'))}${kv('診斷群／治療階段',[c.dxGroup,c.phase].filter(Boolean).join('　'))}${kv('住院天數',c.los!=null?c.los+' 天'+(c.avoidableDays!=null?'（估可避免 '+c.avoidableDays+' 天）':''):'')}${kv('死亡預期性',c.deathExpected&&c.deathExpected!=='不適用'?c.deathExpected:'')}${kv('Morbidity 等級',c.morbGrade&&c.morbGrade!=='不適用'?'Clavien-Dindo '+c.morbGrade:'')}${kv('詳細診斷',c.dxDetail,true)}${kv('治療內容',c.treatment,true)}${kv('臨床經過',c.course,true)}${kv('5 Whys',c.whys,true)}${kv('學習重點',c.teachingPoints,true)}${kv('參考指引／文獻',c.refs,true)}</div>`; }
+const attCell=c=>{const st=c.attending.status; return st==='同意初評'?'<span class="agree">同意</span>':st==='不同意初評'?'<span class="disagree">不同意</span>':'<span class="muted">未徵詢</span>';};
+function opinionBlock(c){ const i=c.initial,a=c.attending; return `<div class="card" style="margin-top:12px"><div class="kv"><div class="k">初評主要根因</div><div class="v">${esc(i.mainFactor||'—')}</div></div><div class="kv"><div class="k">初評促成因素</div><div class="v">${i.factors.join('、')||'—'}</div></div><div class="kv"><div class="k">初評可預防性</div><div class="v">${esc(i.preventability||'未評')}</div></div><div class="kv"><div class="k">主治醫師</div><div class="v">${attCell(c)}${a.status==='不同意初評'?'：'+esc(a.mainFactor||'（根因同初評）')+'／'+esc(a.preventability||'同初評'):''}</div></div>${a.comment?`<div class="kv wide"><div class="k">主治醫師說明</div><div class="v">${esc(a.comment)}</div></div>`:''}</div>`; }
+
+/* ---------- 載入 ---------- */
+function renderLoad(){ const el=$('#v-load'); const L=state.loaded; const st=k=>L[k]?`<span class="ok">已載入 ${esc(L[k].name)}（${L[k].n} 列${L[k].at?'，'+esc(L[k].at):''}）</span>`:'<span class="no">尚未載入</span>';
+  el.innerHTML=`<section><div class="sec-head"><h2>載入 SharePoint 匯出檔</h2><span class="note">各清單右上「匯出 → 匯出至 CSV」（Excel 亦可，需網路載入解析器）。檔案只在這台電腦的瀏覽器處理，不會上傳。</span></div>
+    <div class="loads">
+      <label class="f">正式紀錄（分析用，必要） <input type="file" id="f-records" accept=".csv,.xlsx,.txt">${st('records')}</label>
+      <label class="f">案例（待討論清單與投影） <input type="file" id="f-drafts" accept=".csv,.xlsx,.txt">${st('drafts')}</label>
+      <label class="f">根因分類（層級交叉表） <input type="file" id="f-factors" accept=".csv,.xlsx,.txt">${st('factors')}</label>
+      <label class="f">改善行動 <input type="file" id="f-actions" accept=".csv,.xlsx,.txt">${st('actions')}</label>
+    </div>
+    <div class="row" style="margin-top:16px"><label class="row small">超長住院門檻（天） <input type="text" id="thr" value="${state.thr}" style="width:5em"></label><button class="btn" id="sample">載入範例資料</button><button class="btn" id="clear">清除已載入資料</button><span class="small" id="load-msg"></span></div>
+    </section>`;
+  for(const k of ['records','drafts','factors','actions']) $('#f-'+k).addEventListener('change',async e=>{ const f=e.target.files[0]; if(!f) return; try{ await load(k,f); $('#load-msg').textContent=''; }catch(err){ $('#load-msg').textContent='讀取失敗：'+err.message; } renderLoad(); });
+  $('#thr').addEventListener('change',e=>{ state.thr=Number(e.target.value)||30; persist(); });
+  $('#sample').addEventListener('click',()=>{ loadSample(); setView('records'); });
+  $('#clear').addEventListener('click',()=>{ state.records=[];state.drafts=[];state.factors=[];state.actions=[];state.loaded={}; try{localStorage.removeItem('mm_dash');}catch(e){} renderLoad(); }); }
+
+/* ---------- 紀錄與分析 ---------- */
+function renderRecords(){ const el=$('#v-records'); if(!state.records.length){ el.innerHTML='<section><div class="empty">尚未載入「正式紀錄」。到「載入」頁選檔，或按「載入範例資料」看看畫面。</div></section>'; return; }
+  const ym=state.recYm||nowYm(); const yms=[...new Set([...state.records.map(r=>r.ym).filter(Boolean),nowYm()])].sort().reverse(); const rangeN=state.paretoRange==='all'?null:Number(state.paretoRange); const rYms=rangeN?rangeYms(ym,rangeN):null;
+  const pool=state.records.filter(r=>(!rYms||rYms.includes(r.ym))&&(state.paretoType==='全部'||hasType(r,state.paretoType))); const cs=recIn(ym); const n=t=>cs.filter(c=>hasType(c,t)).length; const unexpected=cs.filter(c=>c.deathExpected==='非預期').length; const prev=cs.filter(c=>['很可能可預防','明確可預防'].includes(cPrev(c))).length; const agreeN=pool.filter(r=>r.agreeMain).length; const rec=recurring(ym); const open=state.open?state.records.find(r=>r.code===state.open):null;
+  el.innerHTML=`<section><div class="sec-head"><h2>正式紀錄</h2><label class="row small">月份 <select id="r-ym">${yms.map(y=>`<option value="${y}" ${y===ym?'selected':''}>${ymLabel(y)}</option>`).join('')}</select></label><span class="note">資料來源：${esc((state.loaded.records||{}).name||'')}</span></div>
+    <div class="tiles"><div class="tile"><div class="v" style="color:var(--s1)">${n('超長住院')}</div><div class="l">超長住院</div><div class="sub">門檻 &gt;${state.thr} 天</div></div><div class="tile"><div class="v" style="color:var(--s2)">${n('Morbidity')}</div><div class="l">Morbidity</div></div><div class="tile"><div class="v" style="color:var(--s3)">${n('Mortality')}</div><div class="l">Mortality</div><div class="sub">其中非預期 ${unexpected}</div></div><div class="tile"><div class="v">${prev}</div><div class="l">很可能／明確可預防</div></div><div class="tile"><div class="v">${pool.length?Math.round(100*agreeN/pool.length)+'%':'—'}</div><div class="l">初評＝共識</div><div class="sub">分析範圍 ${pool.length} 件</div></div><div class="tile"><div class="v" style="font-size:1.2rem;padding-top:8px">${DMODE.map(d=>d+' '+pool.filter(r=>r.decisionMode===d).length).join('　')}</div><div class="l">決策方式</div></div></div>
+    <div id="rec-detail" style="margin-top:18px"></div>
+    ${cs.length?`<div class="tbl" style="margin-top:14px"><table><thead><tr><th>代碼</th><th>類型</th><th>詳細診斷</th><th class="num">住院天數</th><th>共識主要根因</th><th>可預防性</th><th>決策</th><th>初評一致</th></tr></thead><tbody>${cs.map(r=>`<tr class="click ${r.code===state.open?'cur':''}" data-id="${esc(r.code)}"><td><b>${esc(r.code)}</b></td><td>${typePills(r)}</td><td class="small">${esc(r.dxDetail.slice(0,50))}…</td><td class="num">${r.los??''}</td><td>${esc(cMain(r))}</td><td>${esc(cPrev(r))}</td><td class="small">${esc(r.decisionMode)}</td><td>${r.agreeMain?'<span class="agree">一致</span>':'<span class="disagree">不一致</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">本月尚無紀錄。</div>'}</section>
+  <section><div class="sec-head"><h2>分析</h2><div class="row small">範圍 <select id="p-range"><option value="3" ${state.paretoRange==='3'?'selected':''}>近 3 個月</option><option value="6" ${state.paretoRange==='6'?'selected':''}>近 6 個月</option><option value="12" ${state.paretoRange==='12'?'selected':''}>近 12 個月</option><option value="all" ${state.paretoRange==='all'?'selected':''}>全部</option></select> 類型 <select id="p-type"><option>全部</option>${TYPES.map(t=>`<option ${state.paretoType===t?'selected':''}>${t}</option>`).join('')}</select></div></div>
+    <div class="charts"><div class="chart"><h3>每月定案案例數（近 12 個月）</h3><div class="legend">${TYPES.map(t=>`<span><span class="dot" style="background:var(${TYPE_VAR[t]})"></span>${t}</span>`).join('')}</div>${stackedMonthly(rangeYms(ym,12))}</div>
+      <div class="chart"><h3>共識主要根因柏拉圖</h3><div class="cap">右欄為累積百分比。</div>${paretoChart(factorCounts(pool,'main'))}</div>
+      <div class="chart"><h3>主要根因層級 × 案例類型</h3><div class="cap">${state.factors.length?'':'未載入根因分類，層級顯示為未分類。'}</div>${crossTab(pool)}</div>
+      <div class="chart"><h3>可預防性分布（共識）</h3>${prevChart(pool)}</div>
+      <div class="chart"><h3>超長住院天數分布</h3>${losChart(pool.filter(c=>hasType(c,'超長住院')&&c.los))}</div>
+      <div class="chart"><h3>反覆出現的因素</h3><div class="cap">近 6 個月出現於 ≥3 個不同月份。</div>${rec.length?`<div class="tbl"><table><thead><tr><th>因素</th><th class="num">月數</th><th>出現月份</th><th class="num">進行中行動</th></tr></thead><tbody>${rec.map(r=>`<tr><td class="flag">${esc(r.name)}</td><td class="num">${r.months.length}</td><td class="small">${r.months.map(x=>x.slice(2).replace('-','/')).join('、')}</td><td class="num">${state.actions.filter(a=>a.factor===r.name&&!['完成','取消'].includes(a.status)).length||'<span class="disagree">無</span>'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">近 6 個月沒有反覆出現的因素。</div>'}</div></div></section>`;
+  $('#r-ym').addEventListener('change',e=>{state.recYm=e.target.value;state.open=null;renderRecords();}); $('#p-range').addEventListener('change',e=>{state.paretoRange=e.target.value;renderRecords();}); $('#p-type').addEventListener('change',e=>{state.paretoType=e.target.value;renderRecords();});
+  el.querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>{state.open=state.open===tr.dataset.id?null:tr.dataset.id;renderRecords();}));
+  if(open){ const k=open.consensus; const acts=state.actions.filter(a=>a.cases.includes(open.code)); $('#rec-detail').innerHTML=`<div class="proj"><div class="eyebrow small">教學案例卡</div><h3>${esc(open.code)}　<span class="small">定案 ${esc(open.meetingDate)}，出席 ${open.attendees} 人${k.voteCount?'，'+k.voteCount+' 票':''}</span></h3>${teachingCard(open)}<div class="card" style="margin-top:12px"><div class="kv"><div class="k">共識主要根因</div><div class="v"><b>${esc(k.mainFactor)}</b> <span class="small">（${esc(facGroup(k.mainFactor))}）</span></div></div><div class="kv"><div class="k">共識促成因素</div><div class="v">${k.factors.join('、')||'—'}</div></div><div class="kv"><div class="k">共識可預防性</div><div class="v">${esc(k.preventability)}</div></div><div class="kv"><div class="k">初評</div><div class="v">${esc(open.initial.mainFactor||'—')}／${esc(open.initial.preventability||'未評')}　${open.agreeMain?'<span class="agree">一致</span>':'<span class="disagree">與共識不同</span>'}</div></div><div class="kv"><div class="k">主治醫師</div><div class="v">${attCell(open)}${open.attending.comment?'：'+esc(open.attending.comment):''}</div></div><div class="kv"><div class="k">決策方式</div><div class="v">${esc(open.decisionMode)}${k.dist?'　'+esc(k.dist):''}</div></div>${kv('長官意見',open.chiefComment,true)}${kv('會議結論',k.notes,true)}<div class="kv wide"><div class="k">改善行動</div><div class="v">${acts.length?acts.map(a=>`${esc(a.title)}（${esc(a.owner||'未指定')}，${esc(a.due||'無到期')}，${esc(a.status)}）`).join('<br>'):'—'}</div></div>${kv('修正附註',open.amendments,true)}</div><div class="row" style="margin-top:8px"><button class="btn sm" id="rd-close">收合</button></div></div>`; $('#rd-close').addEventListener('click',()=>{state.open=null;renderRecords();}); }
+  bindTips(el); }
+
+/* ---------- 待討論案例 ---------- */
+function queue(){ return state.drafts.filter(d=>d.status==='待討論'); }
+function renderPrep(){ const el=$('#v-prep'); const q=queue(); const all=state.drafts;
+  el.innerHTML=`<section><div class="sec-head"><h2>待討論案例</h2><span class="note">來自「案例」清單，狀態＝待討論者。共 ${q.length} 件（清單全部 ${all.length} 件）。</span><button class="btn primary sm" id="go-present" ${q.length?'':'disabled'}>投影模式</button></div>
+    ${q.length?`<div class="tbl"><table><thead><tr><th>代碼</th><th>類型</th><th>詳細診斷</th><th class="num">住院天數</th><th>初評主要根因</th><th>主治</th></tr></thead><tbody>${q.map((d,i)=>`<tr class="click" data-i="${i}"><td><b>${esc(d.code)}</b></td><td>${typePills(d)}</td><td class="small">${esc(d.dxDetail.slice(0,60))}…</td><td class="num">${d.los??''}</td><td>${esc(d.initial.mainFactor||'—')}<br><span class="muted small">${esc(d.initial.preventability)}</span></td><td class="small">${attCell(d)}</td></tr>`).join('')}</tbody></table></div><p class="small" style="margin-top:10px">主治同意初評者可在 SharePoint 批次定案（複製到正式紀錄）；其餘逐案投影討論，投票用 Microsoft Forms 或舉手。</p>`:'<div class="empty">沒有待討論案例。到「載入」頁載入「案例」清單匯出檔。</div>'}</section>`;
+  const gp=$('#go-present'); if(gp) gp.addEventListener('click',()=>{state.presIdx=0;setView('present');});
+  el.querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>{state.presIdx=Number(tr.dataset.i);setView('present');})); }
+
+/* ---------- 投影模式（本機翻頁） ---------- */
+function renderPresent(){ const el=$('#v-present'); const q=queue(); const ctl=`<div class="ctl"><button class="btn sm" id="pv">◀ 上一案</button><button class="btn sm" id="nx">下一案 ▶</button><button class="btn sm" id="ex">離開</button></div>`;
+  if(!q.length){ el.innerHTML=`<div class="pres"><div class="wait">沒有待討論案例</div>${ctl}</div>`; } else { state.presIdx=Math.max(0,Math.min(q.length-1,state.presIdx)); const c=q[state.presIdx];
+    el.innerHTML=`<div class="pres"><h2>${esc(c.code)}${c.nameShort?'　'+esc(c.nameShort):''}${c.age?'　'+esc(c.age)+' 歲':''}${c.sex?' '+esc(c.sex):''}　${typePills(c)}</h2><div class="meta">${esc(ymLabel(c.ym))}　第 ${state.presIdx+1}／${q.length} 案</div><div class="cols"><div>${teachingCard(c)}</div><div><h3>初評與主治意見</h3>${opinionBlock(c)}</div></div>${ctl}</div>`; }
+  $('#ex').addEventListener('click',()=>setView('prep')); $('#pv').addEventListener('click',()=>{state.presIdx--;renderPresent();}); $('#nx').addEventListener('click',()=>{state.presIdx++;renderPresent();}); }
+document.addEventListener('keydown',e=>{ if(state.view!=='present') return; if(e.key==='ArrowRight'||e.key==='PageDown'){state.presIdx++;renderPresent();} if(e.key==='ArrowLeft'||e.key==='PageUp'){state.presIdx--;renderPresent();} if(e.key==='Escape') setView('prep'); });
+
+/* ---------- 說明 ---------- */
+function renderAbout(){ $('#v-about').innerHTML=`<section><div class="sec-head"><h2>每月流程（SharePoint List 版）</h2></div><ol class="small" style="padding-left:1.3em;line-height:1.8">
+  <li>研究醫師：跑 mm_import.py 把 Word 清單轉成 案例_匯入.xlsx → 貼進 SharePoint「案例」清單（格線編輯）→ 補詳細診斷、治療內容、臨床經過、初評、主治意見 → 狀態改「待討論」。</li>
+  <li>會前：主席把「正式紀錄」「案例」「根因分類」「改善行動」各匯出 CSV → 開這個頁面載入 → 筆電接電視。</li>
+  <li>會議：「待討論案例」頁按投影模式，← → 翻案；主治同意初評者批次定案；有分歧者用 Forms 投票或舉手。</li>
+  <li>定案：主席在 SharePoint 把該案複製到「正式紀錄」清單，填共識根因、可預防性、決策方式、結論；需要時新增改善行動；案例狀態改「已定案」。</li>
+  <li>會後：重新匯出正式紀錄 → 載入 → 看分析圖；CSV 檔存院內磁碟作備份。</li></ol>
+  <p class="small" style="margin-top:12px">這個頁面不連任何伺服器；載入的資料存在這台電腦的瀏覽器裡（下次開啟仍在），按「清除已載入資料」可移除。資料本身已去識別，但仍屬科內資料，不要在公用電腦載入。</p></section>`; }
+
+restore(); (function(){ const h=location.hash.slice(1); setView(VIEWS.includes(h)&&h!=='present'?h:(state.records.length?'records':'load')); })();
+</script>
+
+</body>
+</html>
