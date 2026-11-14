@@ -1,10 +1,10 @@
-/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.16 2026-11-14
+/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.17 2026-11-14
    由書籤載入：書籤從本站「文件」庫讀 mm_app.js 後執行。資料只在瀏覽器 ↔ 本站 SharePoint 之間，不經其他伺服器。
    本檔由 build_app.py 產生：轉換核心取自 mm_convert.html、儀表板取自 mm_dashboard.html，請勿手改。 */
 (() => {
   'use strict';
   if (window.__MM_APP) { window.__MM_APP.show(); return; }
-  const VERSION = 'v1.16 2026-11-14';
+  const VERSION = 'v1.17 2026-11-14';
   const base = location.origin + ((location.pathname.match(/^\/(sites|teams)\/[^/]+/) || [''])[0]);
 
   /* ================= SharePoint REST ================= */
@@ -15,15 +15,29 @@
     if (!r.ok) throw new Error('連線逾時，請重新整理頁面後再按一次「M&M」（代碼 ' + r.status + '）');
     digest = (await r.json()).d.GetContextWebInformation.FormDigestValue; digestAt = Date.now(); return digest;
   }
+  const wait = ms => new Promise(r => setTimeout(r, ms));
   async function rq(path, { method = 'GET', body = null, headers = {} } = {}) {
-    const url = /^https?:/.test(path) ? path : base + '/_api/' + path;
-    const h = { Accept: method === 'GET' ? 'application/json;odata=nometadata' : 'application/json;odata=verbose', ...headers };
-    if (method !== 'GET') { h['X-RequestDigest'] = await getDigest(); if (body) h['Content-Type'] = 'application/json;odata=verbose'; }
-    const r = await fetch(url, { method, headers: h, body: body ? JSON.stringify(body) : null });
-    if (r.status === 204) return null;
-    const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (_) { j = { raw: t }; }
-    if (!r.ok) { const m = (j && ((j['odata.error'] && j['odata.error'].message.value) || (j.error && j.error.message && j.error.message.value))) || t.slice(0, 200); const e = new Error(m); e.status = r.status; throw e; }
-    return j && j.d !== undefined ? j.d : j;
+    const url = /^https?:/.test(path) || path.includes('/_api/') ? path : base + '/_api/' + path;
+    const xm = headers['X-HTTP-Method'] || '', idem = method === 'GET' || xm === 'DELETE' || xm === 'MERGE';
+    for (let attempt = 0; ; attempt++) {
+      const h = { Accept: method === 'GET' ? 'application/json;odata=nometadata' : 'application/json;odata=verbose', ...headers };
+      if (method !== 'GET') { h['X-RequestDigest'] = await getDigest(); if (body) h['Content-Type'] = 'application/json;odata=verbose'; }
+      let r;
+      try { r = await fetch(url, { method, headers: h, body: body ? JSON.stringify(body) : null }); }
+      catch (e) { if (idem && attempt < 3) { await wait(1000 * (attempt + 1)); continue; } throw new Error('網路連線中斷，請稍後再試'); }
+      // SharePoint 流量限制（429／503）一律等候後重試；讀取與刪除、修改遇到暫時性錯誤也重試
+      const retryable = r.status === 429 || r.status === 503 || (idem && [500, 502, 504].includes(r.status));
+      if (retryable && attempt < 6) { const ra = parseInt(r.headers.get('Retry-After') || '0', 10); await wait(Math.min(30000, (ra > 0 ? ra * 1000 : 1000 * 2 ** attempt))); continue; }
+      if (r.status === 204) return null;
+      const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (_) { j = { raw: t }; }
+      if (!r.ok) { const m = (j && ((j['odata.error'] && j['odata.error'].message.value) || (j.error && j.error.message && j.error.message.value))) || t.slice(0, 200); const e = new Error(m); e.status = r.status; throw e; }
+      return j && j.d !== undefined ? j.d : j;
+    }
+  }
+  async function getAll(path) { // 跟著 nextLink 讀完全部（清單超過 5000 筆時分頁）
+    let url = path, out = [];
+    while (url) { const j = await rq(url); out = out.concat(j.value || []); url = j['odata.nextLink'] || null; }
+    return out;
   }
   const q = s => encodeURIComponent(String(s).replace(/'/g, "''"));
   const LI = {};
@@ -151,7 +165,7 @@ async function zipRead(buf, wantName) {
     }
     p += 46 + nlen + elen + clen;
   }
-  throw new Error('docx 裡沒有 ' + wantName);
+  throw new Error('這個檔案不是 Word 文件（找不到文件內容）');
 }
 
 // ---- zip 寫入（stored，不壓縮；xlsx 很小）----
@@ -278,6 +292,7 @@ function dxGroup(dx) { let best = null; for (const [rx, g] of DX_RULES) { const 
 
 async function convert(buf, defaultYm) {
   const xml = await zipRead(buf, 'word/document.xml');
+  if (!xml) throw new Error('這個檔案不是 Word 文件（找不到文件內容）');
   const firstP = (xml.match(/<w:p(?:\s[^>]*[^\/])?>([\s\S]*?)<\/w:p>/) || [, ''])[1];
   const head = [...firstP.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map(x => unx(x[1])).join('');
   const kind = /mortality|死亡/i.test(head) ? 'mortality' : /morbidity|併發/i.test(head) ? 'morbidity' : 'los';
@@ -438,6 +453,10 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const ymFromName = f => { const m = f.name.match(/(\d{4})年\s*(\d{1,2})月/); return m ? m[1] + '-' + m[2].padStart(2, '0') : ''; };
     async function go() {
       const res = $('#res'); if (!files.length) return;
+      for (const f of files) { // 先確認是真的 Word 檔（.docx 是 zip，開頭為 PK）
+        const sig = new Uint8Array(await f.slice(0, 4).arrayBuffer());
+        if (f.size === 0 || sig[0] !== 0x50 || sig[1] !== 0x4B) { res.innerHTML = `<p class="bad">${esc(f.name)}：不是有效的 Word 檔。請用 Word 開啟後「另存新檔」成 .docx 再試。</p>`; return; }
+      }
       const needYm = files.some(f => !isMortF(f) && !ymFromName(f));
       $('#ymw').style.display = needYm ? '' : 'none';
       const shared = ymIn.value.trim();
@@ -481,18 +500,20 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     async function write(sel) {
       const log = $('#log'), btn = $('#write'); log.hidden = false; log.textContent = ''; btn.disabled = true;
       const say = s => { log.textContent += s + '\n'; log.scrollTop = log.scrollHeight; };
-      const cl = await listInfo('案例'), kl = await listInfo('對照表'); let ok = 0, fail = 0;
+      const cl = await listInfo('案例'), kl = await listInfo('對照表'); let ok = 0, fail = 0; const orphan = [];
       for (const x of sel) {
         let caseId = null;
         try {
           const c = toBody(cl, x.caseRow); const k = toBody(kl, x.keyRow);
           const cr = await addItem(cl, c.body); caseId = cr.Id;
           try { await addItem(kl, k.body); }
-          catch (e) { await delItem(cl, caseId).catch(() => {}); throw new Error('對照表沒寫成功，這一例已整筆取消：' + e.message); }
+          catch (e) { let undone = true; await delItem(cl, caseId).catch(() => { undone = false; }); if (!undone) orphan.push(x.code); throw new Error((undone ? '對照表沒寫成功，這一例已整筆取消：' : '對照表沒寫成功，而且案例沒能自動取消，請到「案例」清單刪除這一例：') + e.message); }
           ok++; say(`${x.code} 已寫入${c.warn.length ? '（未填：' + c.warn.join('；') + '）' : ''}`);
         } catch (e) { fail++; say(`${x.code} 未寫入：${e.message}`); }
       }
       say(`完成：新增 ${ok} 例${fail ? `，${fail} 例未寫入（原因見上方）` : ''}。`);
+      if (orphan.length) say(`請注意：${orphan.join('、')} 只寫入了案例、沒有對照表，請到「案例」清單刪除後重新收案。`);
+      if (fail) say('未寫入的例子可以直接再拖一次同一個 Word 檔：已寫入的會標「已收過」略過，只補寫未寫入的。');
       if (ok) say(`接下來請到「案例」清單逐案填寫初評、徵詢主治，完成後把狀態改成「待討論」。\n${cl.url}`);
       R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '拖曳 Word 檔到這裡，或點選檔案'; $('#ds').textContent = '已完成。如要收下一批，請再拖入檔案。';
       meetReady = false; // 開會頁下次重讀
@@ -501,8 +522,8 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const box = $('#testbox'); box.innerHTML = '<p class="note">刪除中…</p>'; let n = 0;
       try {
         for (const t of ['案例', '對照表']) {
-          const li = await listInfo(t); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title&$filter=startswith(Title,'TEST-')`);
-          for (const it of j.value) { await delItem(li, it.Id); if (t === '案例') n++; }
+          const li = await listInfo(t); const all = await getAll(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title`);
+          for (const it of all.filter(x => /^TEST-/.test(x.Title || ''))) { await delItem(li, it.Id); if (t === '案例') n++; }
         }
         box.innerHTML = `<p class="note">已刪除 ${n} 例測試資料。</p>`; meetReady = false;
       } catch (e) { box.innerHTML = `<p class="bad">刪除失敗：${esc(e.message)}</p>`; }
@@ -511,7 +532,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const box = $('#attbox'); box.innerHTML = '<p class="note">補填中…</p>';
       try {
         const cl = await listInfo('案例'), kl = await listInfo('對照表'), kf = kl.f['主治醫師'].EntityPropertyName, uf = cl.f['主治醫師'].EntityPropertyName;
-        const keys = {}; for (const k of (await rq(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${kf}`)).value) keys[k.Title] = k[kf];
+        const keys = {}; for (const k of await getAll(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${kf}`)) keys[k.Title] = k[kf];
         let ok = 0; const miss = [];
         for (const c of missing) { const r = await resolveUser(keys[c.Title]); if (r.id) { await mergeItem(cl, c.Id, { __metadata: { type: cl.type }, [uf + 'Id']: r.id }); ok++; } else miss.push(`${c.Title}（${r.why}）`); }
         box.innerHTML = `<p class="note">已補填 ${ok} 例主治醫師。${miss.length ? `<br><span class="warn">${miss.length} 例需手動選取：${esc(miss.join('、'))}</span>` : ''}</p>`; meetReady = false;
@@ -521,25 +542,25 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       try {
         const cl = await listInfo('案例'); if (!cl.f['主治醫師']) return;
         const uf = cl.f['主治醫師'].EntityPropertyName;
-        const missing = (await rq(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Id,Title,${uf}Id`)).value.filter(c => !c[uf + 'Id'] && !/^TEST-/.test(c.Title || ''));
+        const missing = (await getAll(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Id,Title,${uf}Id`)).filter(c => !c[uf + 'Id'] && !/^TEST-/.test(c.Title || ''));
         if (missing.length) { $('#attbox').innerHTML = `<p class="note warn">「案例」清單有 ${missing.length} 例還沒有主治醫師。 <button class="b" id="bf">依對照表補填</button></p>`; $('#bf').addEventListener('click', () => backfill(missing)); }
       } catch (_) {}
     })();
     (async () => { // 清單裡若有舊的測試資料（代碼 TEST- 開頭）才提示
       try {
-        const li = await listInfo('案例'); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id&$filter=startswith(Title,'TEST-')`);
-        if (j.value.length) { $('#testbox').innerHTML = `<p class="note warn">「案例」清單裡有 ${j.value.length} 例測試資料（代碼 TEST- 開頭）。 <button class="b" id="purge">刪除測試資料</button></p>`; $('#purge').addEventListener('click', purge); }
+        const li = await listInfo('案例'); const tv = (await getAll(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title`)).filter(x => /^TEST-/.test(x.Title || ''));
+        if (tv.length) { $('#testbox').innerHTML = `<p class="note warn">「案例」清單裡有 ${tv.length} 例測試資料（代碼 TEST- 開頭）。 <button class="b" id="purge">刪除測試資料</button></p>`; $('#purge').addEventListener('click', purge); }
       } catch (_) {}
     })();
   }
   // 轉換 → 依 SharePoint 既有資料重新編號、標出重複
   async function plan(specs, demo) {
     const cl = await listInfo('案例'), kl = await listInfo('對照表'), chartF = kl.f['病歷號'], E = t => cl.f[t].EntityPropertyName;
-    const cases = (await rq(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Title,${E('病人簡稱')},${E('年齡')},${E('詳細診斷')}`)).value;
+    const cases = await getAll(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Title,${E('病人簡稱')},${E('年齡')},${E('詳細診斷')}`);
     const titles = cases.map(x => x.Title || '');
     const fp = (stem, s, a, dx) => [stem.replace(/^TEST-/, ''), s || '', a ?? '', String(dx || '').slice(0, 40)].join('|');
     const byFp = {}; for (const c of cases) { const m = (c.Title || '').match(/^(.*-\d{4}-\d{2}-)\d+$/); if (m) byFp[fp(m[1], c[E('病人簡稱')], c[E('年齡')], c[E('詳細診斷')])] = c.Title; }
-    const keys = (await rq(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${chartF.EntityPropertyName}`)).value;
+    const keys = await getAll(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${chartF.EntityPropertyName}`);
     const byChart = {}; for (const k of keys) { const c = String(k[chartF.EntityPropertyName] || '').trim(); if (c) (byChart[c] = byChart[c] || []).push(k.Title || ''); }
     const pre = demo ? 'TEST-' : '', next = {}, groups = [], items = [];
     const obj = (cols, row) => { const o = {}; cols.forEach((c, j) => o[c] = row[j]); return o; };
@@ -592,7 +613,8 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'); if (!caseRaw[code]) throw new Error('找不到案例 ' + code);
     const raw = await readOne('案例', caseRaw[code].Id); caseRaw[code] = raw; caseDisp[code] = toDisplay(cl, raw); // 定案前重讀最新內容
     if (caseDisp[code]['狀態'] === '已定案') throw new Error(code + ' 已經定案過。');
-    const ex = await rq(`web/lists(guid'${rl.id}')/items?$select=Id&$filter=Title eq '${q(code)}'`);
+    const recTitles = () => getAll(`web/lists(guid'${rl.id}')/items?$top=5000&$select=Id,Title`);
+    const ex = { value: (await recTitles()).filter(x => x.Title === code) };
     if (ex.value.length) throw new Error(code + ' 已經定案過。如需修正，請到「正式紀錄」該筆的「修正附註」補充。');
     const body = { __metadata: { type: rl.type } };
     for (const f of rl.ours) { // 複製案例欄位
@@ -613,6 +635,10 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const today = ymd(new Date()); set('會議日期', today + 'T00:00:00Z');
     const initMain = caseDisp[code]['初評主要根因'] || ''; set('初評一致', initMain === p.main ? '是' : '否');
     const recItem = await addItem(rl, body);
+    { // 兩台電腦同時定案同一案：保留最早的一筆，較晚寫入的刪除並告知
+      const same = (await recTitles()).filter(x => x.Title === code).sort((a, b) => a.Id - b.Id);
+      if (same.length > 1 && recItem && same[0].Id !== recItem.Id) { await delItem(rl, recItem.Id).catch(() => {}); throw new Error(code + ' 剛剛已由另一台電腦定案，這次不重複寫入。請按「重新讀取」。'); }
+    }
     try { await mergeItem(cl, raw.Id, { __metadata: { type: cl.type }, [cl.f['狀態'].EntityPropertyName]: '已定案' }); }
     catch (e) { throw new Error('定案已寫入，但案例狀態沒有更新。請到「案例」清單把這一例改成「已定案」。（' + e.message + '）'); }
     let _action = null, _actionError = null;

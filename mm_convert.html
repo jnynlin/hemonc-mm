@@ -181,7 +181,7 @@ async function zipRead(buf, wantName) {
     }
     p += 46 + nlen + elen + clen;
   }
-  throw new Error('docx 裡沒有 ' + wantName);
+  throw new Error('這個檔案不是 Word 文件（找不到文件內容）');
 }
 
 // ---- zip 寫入（stored，不壓縮；xlsx 很小）----
@@ -308,6 +308,7 @@ function dxGroup(dx) { let best = null; for (const [rx, g] of DX_RULES) { const 
 
 async function convert(buf, defaultYm) {
   const xml = await zipRead(buf, 'word/document.xml');
+  if (!xml) throw new Error('這個檔案不是 Word 文件（找不到文件內容）');
   const firstP = (xml.match(/<w:p(?:\s[^>]*[^\/])?>([\s\S]*?)<\/w:p>/) || [, ''])[1];
   const head = [...firstP.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map(x => unx(x[1])).join('');
   const kind = /mortality|死亡/i.test(head) ? 'mortality' : /morbidity|併發/i.test(head) ? 'morbidity' : 'los';

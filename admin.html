@@ -22,7 +22,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
-<p>目前最新：<b>v1.16</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：改善行動改選「負責單位」（預設「會後指派」），不在會中點名個人。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
+<p>目前最新：<b>v1.17</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：壓力測試後的穩定性修正（流量限制自動重試、清單超過 5000 筆、兩台電腦同時定案、異常 Word 檔提示）。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
@@ -30,8 +30,9 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
 <p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
-<details><summary>展開全部（17 版）</summary>
+<details><summary>展開全部（18 版）</summary>
 <table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.17</b><br><span class="muted">2026-11-14</span></td><td>壓力測試修正：SharePoint 流量限制時自動等候重試；清單超過 5000 筆仍正確編號與查重複；兩台電腦同時定案只留一筆；寫入失敗不留半套並提示再拖一次補寫；非 Word 檔一放入就說明。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.16</b><br><span class="muted">2026-11-14</span></td><td>改善行動的「負責人」改為下拉選「負責單位」，預設「會後指派」；會議結論提示字精簡。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.15</b><br><span class="muted">2026-11-14</span></td><td>定案表單：拿掉「長官意見」；「會議結論」改一行並加提示；勾「需要改善行動」填行動、負責人、到期日，定案時自動建立改善行動，連到該筆正式紀錄與主要根因。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.14</b><br><span class="muted">2026-11-14</span></td><td>「投票」清單改用網址尋找；多語系站台依名稱找不到時，投票按鈕不會出現。</td><td class="nw">—</td></tr>

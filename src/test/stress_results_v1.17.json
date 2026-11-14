@@ -1,0 +1,22 @@
+{
+ "faults_redrop": {
+  "first": "完成：新增 44 例，9 例未寫入（原因見上方）。",
+  "afterFirst": {
+   "cases": 44,
+   "keys": 44,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "secondWn": "9",
+  "second": "完成：新增 9 例。",
+  "final": {
+   "cases": 53,
+   "keys": 53,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.9
+ }
+}
