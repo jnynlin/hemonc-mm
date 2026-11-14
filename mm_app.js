@@ -1,10 +1,10 @@
-/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.5 2026-11-14
+/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.6 2026-11-14
    由書籤載入：書籤從本站「文件」庫讀 mm_app.js 後執行。資料只在瀏覽器 ↔ 本站 SharePoint 之間，不經其他伺服器。
    本檔由 build_app.py 產生：轉換核心取自 mm_convert.html、儀表板取自 mm_dashboard.html，請勿手改。 */
 (() => {
   'use strict';
   if (window.__MM_APP) { window.__MM_APP.show(); return; }
-  const VERSION = 'v1.5 2026-11-14';
+  const VERSION = 'v1.6 2026-11-14';
   const base = location.origin + ((location.pathname.match(/^\/(sites|teams)\/[^/]+/) || [''])[0]);
 
   /* ================= SharePoint REST ================= */
@@ -352,7 +352,8 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       <p class="note">把討論會的 Word 檔拖進來，確認內容後寫入「案例」清單。「案例」只顯示姓氏與年齡；病歷號、姓名、床號另存於「對照表」，僅主任與研究醫師可查。Word 檔不會上傳。</p>
       <div class="drop" id="drop" tabindex="0"><b id="dt">拖曳 Word 檔到這裡，或點選檔案</b><div class="note" id="ds">可一次選多個檔；超長住院、Morbidity、Mortality 均可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
       <div class="row"><span id="ymw" style="display:none">討論年月 <input type="text" id="ym" placeholder="例：2026-10"> <span class="note" id="ymh">檔名中找不到月份，請填寫。</span></span>
-        <label class="ck" title="寫入的資料可一次刪除，不影響正式案例"><input type="checkbox" id="demo">演練模式<span class="note">（練習用，可一次刪除）</span></label></div>
+</div>
+      <div id="testbox"></div>
       <div id="res"></div></div>`;
     let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
@@ -365,7 +366,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const shared = ymIn.value.trim();
       if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">請在上方填寫討論年月。</p>'; return; }
       res.innerHTML = '<div class="load">處理中…</div>';
-      try { R = await plan(files.map(f => ({ file: f, ym: isMortF(f) ? null : (ymFromName(f) || shared) })), $('#demo').checked); render(); }
+      try { R = await plan(files.map(f => ({ file: f, ym: isMortF(f) ? null : (ymFromName(f) || shared) })), false); render(); }
       catch (e) { res.innerHTML = `<p class="bad">處理失敗：${esc(e.message)}</p>`; }
     }
     function pick(list) {
@@ -379,7 +380,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
     ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
     drop.addEventListener('drop', e => pick(e.dataTransfer.files));
-    ymIn.addEventListener('change', go); $('#demo').addEventListener('change', go);
+    ymIn.addEventListener('change', go);
 
     function render() {
       const res = $('#res'), d = R.items, n = d.filter(x => x.ok).length, dup = d.filter(x => x.dup).length;
@@ -388,16 +389,14 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           ? `<p class="bad">${esc(g.name)}：內容裡還有疑似病歷號的長串數字（${esc(g.leak.join('、'))}），這個檔不會寫入，請告訴主任。</p>`
           : `<h3>${esc(g.ctype)} ${g.n} 例，可識別資料已隱去${g.dup ? `　<span class="warn">其中 ${g.dup} 例之前已收過，會略過</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
         ${unG ? `<p class="note warn">${unG} 例無法自動判斷診斷群，寫入後請在清單補選。</p>` : ''}
-        ${R.demo ? '<p class="note">演練模式：寫入的案例代碼以 TEST- 開頭，練習完按最下方「刪除演練資料」。</p>' : ''}
         <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每一例會同時寫入「案例」與「對照表」；任一邊沒寫成功，該例會整筆取消。</span></div>
         <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
         ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
-        <h3>演練資料</h3><p class="note">刪除所有 TEST- 開頭的練習案例（含對照表）。正式案例不受影響。</p><button class="b" id="purge">刪除演練資料</button>`;
+`;
       const cnt = () => { $('#wn').textContent = res.querySelectorAll('input[data-i]:checked').length; };
       res.querySelectorAll('input[data-i]').forEach(c => c.addEventListener('change', cnt));
       $('#write').addEventListener('click', () => write([...res.querySelectorAll('input[data-i]:checked')].map(c => R.items[+c.dataset.i])));
-      $('#purge').addEventListener('click', purge);
     }
     async function write(sel) {
       const log = $('#log'), btn = $('#write'); log.hidden = false; log.textContent = ''; btn.disabled = true;
@@ -419,15 +418,21 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       meetReady = false; // 開會頁下次重讀
     }
     async function purge() {
-      const res = $('#res'); let log = $('#log'); if (!log) { res.insertAdjacentHTML('beforeend', '<pre class="log" id="log"></pre>'); log = $('#log'); }
-      log.hidden = false; log.textContent = '刪除中…\n';
-      let n = 0;
-      for (const t of ['案例', '對照表']) {
-        const li = await listInfo(t); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title&$filter=startswith(Title,'TEST-')`);
-        for (const it of j.value) { await delItem(li, it.Id); if (t === '案例') n++; }
-      }
-      log.textContent += `已刪除 ${n} 例練習資料。`; meetReady = false;
+      const box = $('#testbox'); box.innerHTML = '<p class="note">刪除中…</p>'; let n = 0;
+      try {
+        for (const t of ['案例', '對照表']) {
+          const li = await listInfo(t); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title&$filter=startswith(Title,'TEST-')`);
+          for (const it of j.value) { await delItem(li, it.Id); if (t === '案例') n++; }
+        }
+        box.innerHTML = `<p class="note">已刪除 ${n} 例測試資料。</p>`; meetReady = false;
+      } catch (e) { box.innerHTML = `<p class="bad">刪除失敗：${esc(e.message)}</p>`; }
     }
+    (async () => { // 清單裡若有舊的測試資料（代碼 TEST- 開頭）才提示
+      try {
+        const li = await listInfo('案例'); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id&$filter=startswith(Title,'TEST-')`);
+        if (j.value.length) { $('#testbox').innerHTML = `<p class="note warn">「案例」清單裡有 ${j.value.length} 例測試資料（代碼 TEST- 開頭）。 <button class="b" id="purge">刪除測試資料</button></p>`; $('#purge').addEventListener('click', purge); }
+      } catch (_) {}
+    })();
   }
   // 轉換 → 依 SharePoint 既有資料重新編號、標出重複
   async function plan(specs, demo) {
