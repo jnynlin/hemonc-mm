@@ -22,7 +22,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
-<p>目前最新：<b>v1.15</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：定案表單拿掉「長官意見」，「會議結論」改一行；可勾「需要改善行動」，定案時自動建立。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
+<p>目前最新：<b>v1.16</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：改善行動改選「負責單位」（預設「會後指派」），不在會中點名個人。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
@@ -30,8 +30,9 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
 <p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
-<details><summary>展開全部（16 版）</summary>
+<details><summary>展開全部（17 版）</summary>
 <table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.16</b><br><span class="muted">2026-11-14</span></td><td>改善行動的「負責人」改為下拉選「負責單位」，預設「會後指派」；會議結論提示字精簡。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.15</b><br><span class="muted">2026-11-14</span></td><td>定案表單：拿掉「長官意見」；「會議結論」改一行並加提示；勾「需要改善行動」填行動、負責人、到期日，定案時自動建立改善行動，連到該筆正式紀錄與主要根因。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.14</b><br><span class="muted">2026-11-14</span></td><td>「投票」清單改用網址尋找；多語系站台依名稱找不到時，投票按鈕不會出現。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.13</b><br><span class="muted">2026-11-14</span></td><td>匿名投票無法使用時，在定案表單說明原因。</td><td class="nw">—</td></tr>
@@ -67,7 +68,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section><h2>會議中</h2>
 <ul><li>只有主任能在開會頁「定案」；其他人看到的是唯讀畫面。</li>
-<li>會中決議要改善的事，在定案表單勾「需要改善行動」填一行即可，會自動進「改善行動」清單，下個月在開會頁「改善行動」回顧。</li>
+<li>會中決議要改善的事，在定案表單勾「需要改善行動」，寫要做什麼、選負責單位（來不及決定就留「會後指派」，會後到清單補），會自動進「改善行動」清單，下個月在開會頁「改善行動」回顧。</li>
 <li>定案無法撤銷。內容需要更正時，到「正式紀錄」該筆的「修正附註」補充說明。</li>
 <li>超長住院與 M&amp;M 分開開會時，開會頁上方切換「超長住院」或「M&amp;M」再開始投影。</li>
 <li>需要投票時，在投影頁定案表單按「開始匿名投票」。螢幕出現 QR code，與會者用手機投「可預防性」，按「結束投票」後再按「套用到定案表單」，票數與分布會自動填入。最高票同票時，請主任選定。</li>
