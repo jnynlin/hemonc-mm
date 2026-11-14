@@ -138,14 +138,13 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 
 <h2><span class="n">03</span>收案：兩種進法</h2>
 <div class="two">
-  <div class="cmp"><div class="lbl good">A 批次（建議）</div>
-    <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷）。開網頁轉換器 <a href="https://jnynlin.github.io/hemonc-mm/mm_convert.html">jnynlin.github.io/hemonc-mm/mm_convert.html</a>，把 Word 檔拖進去（全部在你的瀏覽器裡算，檔案不會上傳），一次去識別、編碼、拆欄，下載兩個檔：</p>
-    <ul>
-      <li><code>案例_匯入_….xlsx</code> → 進「案例」清單（下一節）；已含姓＋OO、年齡</li>
-      <li><code>對照表_匯入_….xlsx</code> → 進「對照表」清單；含病歷號，匯完立刻刪</li>
-    </ul>
-    <p>頁面顯示「去識別檢查：通過」才算完成；預覽表順手看診斷群有沒有歸錯。</p>
-    <p><b>Word「診斷」欄怎麼寫，拆欄才會準：</b>第 1 行＝主診斷，接著用逗號帶診療史（s/p…、currently on…）；第 2 行起每行一個其他診斷／併發症。轉換器會把第 1 行的主診斷放「詳細診斷」、s/p 之後放「治療內容」、第 2 行起放「臨床經過」（以「｜」分隔）。</p>
+  <div class="cmp"><div class="lbl good">A 批次（建議）：書籤「M&amp;M」</div>
+    <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷）。第一次先照 <a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html">書籤安裝頁</a> 把「M&amp;M」拖到 Edge 的我的最愛列。</p>
+    <ol><li>打開 monthly-meeting 站台 → 點我的最愛列上的「M&amp;M」→「收案」。</li>
+      <li>把 Word 檔拖進去（超長住院要確認討論年月）。自動去識別、編碼、拆欄，下方預覽每例的主診斷／診療史／其他問題。</li>
+      <li>看一眼切分對不對、「去識別通過」→ 按「<b>寫入勾選的 N 例</b>」。每例同時寫「案例」與「對照表」。</li></ol>
+    <p>代碼自動接續清單裡已有的號碼；同一病人同月份已收過會標「已收過」不重寫。第一次可勾「演練模式」（代碼 TEST-，可一鍵刪除）。Word 檔不上傳、電腦上不留任何含病歷號的檔案。</p>
+    <p><b>Word「診斷」欄怎麼寫，拆欄才會準：</b>第 1 行＝主診斷，接著用逗號帶診療史（s/p…、currently on…）；第 2 行起每行一個其他診斷／併發症。</p>
   </div>
   <div class="cmp"><div class="lbl">B 單筆</div>
     <p>臨時追加一例時，「案例」→ <b>＋ 新增</b>，右側滑出表單，從上往下填。必填欄位（<span class="req">＊</span>）沒填存不了；「詳細診斷」太短會跳紅字。</p>
@@ -153,23 +152,8 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   </div>
 </div>
 
-<h3>A 的第二步：匯進清單（兩種方法，擇一）</h3>
-<p><b>方法一：匯入腳本（建議）</b>——不用對欄位、不怕換行、重跑不會重複。</p>
-<ol>
-  <li>瀏覽器開站台 <code>…/sites/monthly-meeting</code>，按 <kbd>F12</kbd> → 上方「Console（主控台）」。</li>
-  <li>把主任給的 <code>import_items.js</code> 全文貼進去 → <kbd>Enter</kbd>。頁面右上角出現「M&M 匯入」小面板。</li>
-  <li>面板選 <code>案例_匯入_….xlsx</code>（會自動選清單「案例」）→ <b>開始匯入</b>。逐筆回報 ✓，最後印「=== 匯入完成 ===  新增 N、略過 N、失敗 N」。</li>
-  <li>再選 <code>對照表_匯入_….xlsx</code>（自動切到「對照表」）→ 開始匯入。做完刪掉電腦上的對照表檔。</li>
-  <li>任何一筆 ✗ 會寫原因（通常是選項字不符）；修 Excel 那格後重跑，已匯入的會自動略過。</li>
-</ol>
-<p><b>方法二：格線貼上</b>——沒有腳本時用。</p>
-<ol>
-  <li>SharePoint「案例」→ 右上檢視切到「<b>匯入</b>」（欄位順序＝匯入檔；用別的檢視會錯位）。</li>
-  <li>開 <code>案例_匯入_….xlsx</code>，選<b>第 2 列到最後一列</b>（不含標題列）→ <kbd>Ctrl+C</kbd>。</li>
-  <li>工具列 <b>以格線編輯</b> → 點最底下空白列的「標題」格 → <kbd>Ctrl+V</kbd>。第一次先貼 1 列試對位。</li>
-  <li>看「狀態」欄都「整理中」、「主治醫師回覆」都「未徵詢」、沒有紅格 → <b>結束格線檢視</b>。</li>
-  <li>「對照表」清單同樣切「匯入」檢視後貼 <code>對照表_匯入_….xlsx</code>。</li>
-</ol>
+<h3>沒有書籤時（備用）</h3>
+<p>用網頁轉換器 <a href="https://jnynlin.github.io/hemonc-mm/mm_convert.html">mm_convert.html</a> 下載兩個 xlsx，再用 <code>import_items.js</code>（站台 F12 主控台貼上）或「匯入」檢視格線貼上。對照表檔匯完立刻刪。</p>
 <figure>
 <svg viewBox="0 0 760 210" role="img" aria-label="以格線編輯貼上示意">
   <rect width="760" height="210" fill="var(--soft)"/>
@@ -378,6 +362,6 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <li>對照表已貼進 SharePoint「對照表」清單，本機 CSV 已刪</li>
 </ul>
 
-<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.2 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、mm_convert.html、import_items.js、mm_dashboard.html</footer>
+<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.3 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、書籤「M&M」（收案／開會）；備用：mm_convert.html、import_items.js</footer>
 </div>
 </body></html>

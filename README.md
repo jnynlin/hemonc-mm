@@ -15,3 +15,8 @@ GitHub Pages：https://jnynlin.github.io/hemonc-mm/
 - SharePoint 清單建置腳本 `create_lists.js`、欄位規格 `List欄位規格.xlsx`、Python 版轉換器 `mm_import.py`、清單匯入腳本 `import_items.js`：院內保管。
 - 轉換邏輯以 `mm_import.py` 為準；`mm_convert.html` 為逐函式移植，53 例回歸比對 0 差異（2026-11-14）。
 - `theme.js`：主題切換（跟隨系統／深／淺），四頁共用；artifact 版不載入。
+
+## SharePoint 書籤版（2026-11-14 起為主要用法）
+- `bookmarks.html`：安裝頁。主任把 `mm_app.js` 上傳到站台「文件」最上層；每位使用者把「M&M」書籤拖到我的最愛列。
+- `mm_app.js`：書籤從站台文件庫載入執行；收案（Word → 案例＋對照表）、開會（儀表板直讀清單、定案寫回正式紀錄）。由 `src/build_app.py` 組合 `mm_convert.html` 的轉換核心與 `mm_dashboard.html`，請勿手改。
+- `src/test_mock_sharepoint.js`：端對端測試用的 SharePoint REST 模擬。
