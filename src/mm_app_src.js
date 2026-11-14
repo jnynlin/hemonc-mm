@@ -150,10 +150,10 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       return;
     }
     P.innerHTML = `<div class="w"><h2>收案</h2>
-      <p class="note">把研究醫師整理的討論會 Word 檔拖進來。系統會隱去病歷號、全名與床號，編好案例代碼，確認後寫入「案例」清單；可識別資料另存在只有主任與研究醫師看得到的「對照表」。Word 檔不會離開這台電腦。</p>
-      <div class="drop" id="drop" tabindex="0"><b id="dt">把 Word 檔拖到這裡，或點一下選擇（可一次多個）</b><div class="note" id="ds">超長住院、Morbidity、Mortality 討論會清單皆可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
-      <div class="row"><span id="ymw">討論年月 <input type="text" id="ym" placeholder="2026-10"> <span class="note" id="ymh">檔名沒有年月時才需要填。</span></span>
-        <label class="ck"><input type="checkbox" id="demo">演練模式（寫入的資料可一次刪除，不影響正式案例）</label></div>
+      <p class="note">把討論會的 Word 檔拖進來，確認內容後寫入「案例」清單。「案例」只顯示姓氏與年齡；病歷號、姓名、床號另存於「對照表」，僅主任與研究醫師可查。Word 檔不會上傳。</p>
+      <div class="drop" id="drop" tabindex="0"><b id="dt">拖曳 Word 檔到這裡，或點選檔案</b><div class="note" id="ds">可一次選多個檔；超長住院、Morbidity、Mortality 均可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
+      <div class="row"><span id="ymw" style="display:none">討論年月 <input type="text" id="ym" placeholder="例：2026-10"> <span class="note" id="ymh">檔名中找不到月份，請填寫。</span></span>
+        <label class="ck" title="寫入的資料可一次刪除，不影響正式案例"><input type="checkbox" id="demo">演練模式<span class="note">（練習用，可一次刪除）</span></label></div>
       <div id="res"></div></div>`;
     let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
@@ -164,8 +164,8 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const needYm = files.some(f => !isMortF(f) && !ymFromName(f));
       $('#ymw').style.display = needYm ? '' : 'none';
       const shared = ymIn.value.trim();
-      if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">有檔案看不出是哪個月份，請填討論年月（例如 2026-10）。</p>'; return; }
-      res.innerHTML = '<div class="load">整理中，並檢查是否已經收過…</div>';
+      if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">請在上方填寫討論年月。</p>'; return; }
+      res.innerHTML = '<div class="load">處理中…</div>';
       try { R = await plan(files.map(f => ({ file: f, ym: isMortF(f) ? null : (ymFromName(f) || shared) })), $('#demo').checked); render(); }
       catch (e) { res.innerHTML = `<p class="bad">處理失敗：${esc(e.message)}</p>`; }
     }
@@ -173,7 +173,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const fs = [...(list || [])].filter(f => /\.docx$/i.test(f.name));
       if (!fs.length) { $('#ds').innerHTML = '<span class="bad">請選擇 Word 檔（.docx）</span>'; return; }
       files = fs; drop.classList.add('has'); $('#dt').textContent = fs.map(f => f.name).join('、');
-      $('#ds').textContent = `已選 ${fs.length} 個檔，點這裡可重新選擇`; go();
+      $('#ds').textContent = `已選 ${fs.length} 個檔（點此可重新選擇）`; go();
     }
     drop.addEventListener('click', () => fileIn.click());
     fileIn.addEventListener('change', () => pick(fileIn.files));
@@ -216,7 +216,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       }
       say(`完成：新增 ${ok} 例${fail ? `，${fail} 例未寫入（原因見上方）` : ''}。`);
       if (ok) say(`接下來請到「案例」清單逐案填寫初評、徵詢主治，完成後把狀態改成「待討論」。\n${cl.url}`);
-      R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '把 .docx 拖到這裡（可一次多個），或點一下選檔'; $('#ds').textContent = '已完成。要收下一批，再把檔案拖進來。';
+      R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '拖曳 Word 檔到這裡，或點選檔案'; $('#ds').textContent = '已完成。如要收下一批，請再拖入檔案。';
       meetReady = false; // 開會頁下次重讀
     }
     async function purge() {
