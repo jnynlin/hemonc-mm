@@ -255,7 +255,7 @@ function decideForm(c){ if(!SP.canDecide) return '<p class="small muted">定案�
     <div class="jc" id="jc" hidden><b>主要根因屬於「臨床決策」時，請先討論：</b>當時有哪些條件，讓這個決定在當下看來合理？換一位資歷相近的醫師，在相同的時間、資訊與工作量下，是否也會做出同樣的決定？<br><span id="jcneed">並請在「共識促成因素」至少勾選一項其他層級的因素。</span></div>
     <label>共識可預防性<select name="prev" required><option value="">（選擇）</option>${PREV.map(p=>`<option ${p===i.preventability?'selected':''}>${p}</option>`).join('')}</select></label>
     <div class="lbl">決策方式</div><div class="seg">${DMODE.map(d=>`<label><input type="radio" name="mode" value="${d}" ${d===mode?'checked':''} required>${d}</label>`).join('')}</div>
-    ${SP.vote?`<div class="vstart"><button type="button" class="btn" id="vstart">開始匿名投票</button><span class="small muted">大家用手機掃 QR code 投「可預防性」，結果自動填入下方</span></div>`:''}
+    ${SP.vote?`<div class="vstart"><button type="button" class="btn" id="vstart">開始匿名投票</button><span class="small muted">大家用手機掃 QR code 投「可預防性」，結果自動填入下方</span></div>`:'<p class="small muted">匿名投票尚未啟用：站台還沒有「投票」清單，請重跑 create_lists.js（v13 以上）。</p>'}
     <div class="vote"><label>出席<input type="number" name="att" min="0" inputmode="numeric"></label><label>票數<input type="number" name="votes" min="0" inputmode="numeric"></label><label class="w">投票分布<input type="text" name="dist" placeholder="例：同意 8、不同意 2"></label></div>
     <label>會議結論<textarea name="concl" rows="2"></textarea></label>
     <label>長官意見<textarea name="chief" rows="2"></textarea></label>
