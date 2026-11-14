@@ -19,25 +19,23 @@ a.dl{color:var(--accent);font-weight:600} kbd{border:1px solid var(--line);borde
 <script src="theme.js"></script>
 </head>
 <body><div class="wrap">
-<header><h1>M&M 書籤安裝</h1><p>裝好後，在 SharePoint 站台按一下「M&M」：收案（Word 直接寫進清單）、開會（投影＋定案直接寫回正式紀錄）。</p></header>
+<header><h1>M&M 書籤安裝</h1><p>血液腫瘤科 M&M 討論會使用。在科內 SharePoint 站台按一下「M&M」，即可收案與開會。</p></header>
 
-<section><h2>一、上傳程式到站台 <small>主任做一次；改版時再上傳覆蓋</small></h2>
+<section><h2>安裝 <small>每人一次</small></h2>
+<ol><li>在 Edge 按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>，網址列下方會出現「我的最愛列」。</li>
+<li>用滑鼠按住下面的「M&M」，拖到我的最愛列上放開。</li></ol>
+<p><a class="bm" href="javascript:%28async%28%29%3D%3E%7Btry%7Bif%28window.__MM_APP%29return%20window.__MM_APP.show%28%29%3Bif%28%21%2Fsharepoint%5C.com%24%2F.test%28location.hostname%29%29return%20alert%28%27%E8%AB%8B%E5%85%88%E6%89%93%E9%96%8B%20SharePoint%20%E7%9A%84%20M%26M%20%E7%AB%99%E5%8F%B0%EF%BC%8C%E5%86%8D%E6%8C%89%E9%80%99%E5%80%8B%E6%9B%B8%E7%B1%A4%E3%80%82%27%29%3Bconst%20b%3Dlocation.origin%2B%28location.pathname.match%28%2F%5E%5C%2F%28sites%7Cteams%29%5C%2F%5B%5E%2F%5D%2B%2F%29%7C%7C%5B%27%27%5D%29%5B0%5D%3Bconst%20j%3Dawait%28await%20fetch%28b%2B%22%2F_api%2Fweb%2Flists%3F%24filter%3DBaseTemplate%20eq%20101%20and%20Hidden%20eq%20false%26%24select%3DRootFolder%2FServerRelativeUrl%26%24expand%3DRootFolder%22%2C%7Bheaders%3A%7BAccept%3A%27application%2Fjson%3Bodata%3Dnometadata%27%7D%7D%29%29.json%28%29%3Bfor%28const%20l%20of%20j.value%7C%7C%5B%5D%29%7Bconst%20p%3DencodeURIComponent%28%28l.RootFolder.ServerRelativeUrl%2B%27%2Fmm_app.js%27%29.replace%28%2F%27%2Fg%2C%22%27%27%22%29%29%3Bfor%28const%20u%20of%20%5B%22GetFileByServerRelativePath%28decodedurl%3D%27%22%2Bp%2B%22%27%29%22%2C%22GetFileByServerRelativeUrl%28%27%22%2Bp%2B%22%27%29%22%5D%29%7Bconst%20r%3Dawait%20fetch%28b%2B%27%2F_api%2Fweb%2F%27%2Bu%2B%27%2F%24value%3Ft%3D%27%2BDate.now%28%29%29%3Bif%28r.ok%29%7B%280%2Ceval%29%28await%20r.text%28%29%29%3Breturn%7D%7D%7Dalert%28%27%E6%89%BE%E4%B8%8D%E5%88%B0%20mm_app.js%E3%80%82%E8%AB%8B%E5%85%88%E6%8A%8A%20mm_app.js%20%E4%B8%8A%E5%82%B3%E5%88%B0%E6%9C%AC%E7%AB%99%E3%80%8C%E6%96%87%E4%BB%B6%E3%80%8D%E7%9A%84%E6%9C%80%E4%B8%8A%E5%B1%A4%EF%BC%88%E4%B8%BB%E4%BB%BB%E5%81%9A%E4%B8%80%E6%AC%A1%E5%8D%B3%E5%8F%AF%EF%BC%89%E3%80%82%27%29%7Dcatch%28e%29%7Balert%28%27M%26M%EF%BC%9A%27%2Be.message%29%7D%7D%29%28%29" onclick="alert('請用滑鼠按住，拖到上方的我的最愛列。');return false">M&M</a></p></section>
+
+<section><h2>使用</h2>
+<ol><li>開啟科內 M&M 的 SharePoint 站台（任何一頁皆可）。</li>
+<li>點我的最愛列上的「M&M」。
+<ul><li><b>收案</b>：研究醫師把討論會 Word 檔拖進來，確認後寫入清單。</li>
+<li><b>開會</b>：查看待討論案例、投影；主席可在會中直接定案。</li></ul></li>
+<li>用完按右上角「關閉」，回到 SharePoint。</li></ol>
+<p class="muted">「M&M」只在 SharePoint 站台上運作，使用你自己的帳號權限，資料不會傳到其他地方。</p></section>
+
+<section><h2>主任專用 <small>更新程式時</small></h2>
 <ol><li>下載 <a class="dl" href="mm_app.js" download>mm_app.js</a>。</li>
-<li>打開 SharePoint 的 monthly-meeting 站台 → 左側「文件」。</li>
-<li>把 mm_app.js 拖進去（放在最上層，不要放進資料夾）。同名檔已存在就選「取代」。</li></ol>
-<p class="muted">程式放在你們自己的站台，書籤每次從那裡讀；以後改版只換這個檔，大家的書籤不用動。</p></section>
-
-<section><h2>二、裝書籤 <small>每個使用者各做一次</small></h2>
-<ol><li>按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd> 叫出「我的最愛列」。</li>
-<li>把下面這顆按住拖到那條列上放開：</li></ol>
-<p><a class="bm" href="javascript:%28async%28%29%3D%3E%7Btry%7Bif%28window.__MM_APP%29return%20window.__MM_APP.show%28%29%3Bif%28%21%2Fsharepoint%5C.com%24%2F.test%28location.hostname%29%29return%20alert%28%27%E8%AB%8B%E5%85%88%E6%89%93%E9%96%8B%20SharePoint%20%E7%9A%84%20M%26M%20%E7%AB%99%E5%8F%B0%EF%BC%8C%E5%86%8D%E6%8C%89%E9%80%99%E5%80%8B%E6%9B%B8%E7%B1%A4%E3%80%82%27%29%3Bconst%20b%3Dlocation.origin%2B%28location.pathname.match%28%2F%5E%5C%2F%28sites%7Cteams%29%5C%2F%5B%5E%2F%5D%2B%2F%29%7C%7C%5B%27%27%5D%29%5B0%5D%3Bconst%20j%3Dawait%28await%20fetch%28b%2B%22%2F_api%2Fweb%2Flists%3F%24filter%3DBaseTemplate%20eq%20101%20and%20Hidden%20eq%20false%26%24select%3DRootFolder%2FServerRelativeUrl%26%24expand%3DRootFolder%22%2C%7Bheaders%3A%7BAccept%3A%27application%2Fjson%3Bodata%3Dnometadata%27%7D%7D%29%29.json%28%29%3Bfor%28const%20l%20of%20j.value%7C%7C%5B%5D%29%7Bconst%20p%3DencodeURIComponent%28%28l.RootFolder.ServerRelativeUrl%2B%27%2Fmm_app.js%27%29.replace%28%2F%27%2Fg%2C%22%27%27%22%29%29%3Bfor%28const%20u%20of%20%5B%22GetFileByServerRelativePath%28decodedurl%3D%27%22%2Bp%2B%22%27%29%22%2C%22GetFileByServerRelativeUrl%28%27%22%2Bp%2B%22%27%29%22%5D%29%7Bconst%20r%3Dawait%20fetch%28b%2B%27%2F_api%2Fweb%2F%27%2Bu%2B%27%2F%24value%3Ft%3D%27%2BDate.now%28%29%29%3Bif%28r.ok%29%7B%280%2Ceval%29%28await%20r.text%28%29%29%3Breturn%7D%7D%7Dalert%28%27%E6%89%BE%E4%B8%8D%E5%88%B0%20mm_app.js%E3%80%82%E8%AB%8B%E5%85%88%E6%8A%8A%20mm_app.js%20%E4%B8%8A%E5%82%B3%E5%88%B0%E6%9C%AC%E7%AB%99%E3%80%8C%E6%96%87%E4%BB%B6%E3%80%8D%E7%9A%84%E6%9C%80%E4%B8%8A%E5%B1%A4%EF%BC%88%E4%B8%BB%E4%BB%BB%E5%81%9A%E4%B8%80%E6%AC%A1%E5%8D%B3%E5%8F%AF%EF%BC%89%E3%80%82%27%29%7Dcatch%28e%29%7Balert%28%27M%26M%EF%BC%9A%27%2Be.message%29%7D%7D%29%28%29" onclick="alert('不要點它，請按住拖到上方的我的最愛列。');return false">M&M</a></p>
-<p class="muted">之前裝的「M&M 測試」可以刪掉（在我的最愛列上按右鍵 → 刪除）。</p></section>
-
-<section><h2>三、使用</h2>
-<ol><li>打開 monthly-meeting 站台（任何一頁）。</li>
-<li>點我的最愛列上的「M&M」，畫面蓋上一層工具：
-<ul><li><b>收案</b>（研究醫師）：拖入討論會 Word（可一次多個）→ 預覽三欄切分 → 「寫入」。代碼自動接續清單裡的號碼；已收過的病人會標出來不重寫。勾「演練模式」寫的是 TEST- 資料，可一鍵刪除。</li>
-<li><b>開會</b>（主席）：直接讀清單，不用匯出。投影時右側直接選共識根因／可預防性／決策方式 →「定案」寫進正式紀錄，案例自動改「已定案」。</li></ul></li>
-<li>「全螢幕」給投影用；「關閉」回到 SharePoint。</li></ol>
-<p class="muted">書籤不是網頁：它是一小段程式，在你目前開著的 SharePoint 頁面上、用你已登入的身分讀寫清單；資料不經任何其他伺服器。沒有權限的人（例如不在「M&M 對照表」群組）收案頁會直接說明，不會寫入任何東西。</p></section>
+<li>開啟站台左側「文件」，把檔案拖進最上層，同名檔選「取代」。</li></ol>
+<p class="muted">大家的書籤不需要重裝。</p></section>
 </div></body></html>

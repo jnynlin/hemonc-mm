@@ -12,7 +12,7 @@
   async function getDigest() {
     if (digest && Date.now() - digestAt < 15 * 60e3) return digest;
     const r = await fetch(base + '/_api/contextinfo', { method: 'POST', headers: { Accept: 'application/json;odata=verbose' } });
-    if (!r.ok) throw new Error('拿不到寫入權杖（' + r.status + '），請重新整理頁面再試');
+    if (!r.ok) throw new Error('連線逾時，請重新整理頁面後再按一次「M&M」（代碼 ' + r.status + '）');
     digest = (await r.json()).d.GetContextWebInformation.FormDigestValue; digestAt = Date.now(); return digest;
   }
   async function rq(path, { method = 'GET', body = null, headers = {} } = {}) {
@@ -70,10 +70,10 @@
       const v = String(raw).trim(), k = f.EntityPropertyName, ch = f.Choices || [];
       switch (f.TypeAsString) {
         case 'Number': { const n = parseFloat(v.replace(/[^\d.-]/g, '')); if (isNaN(n)) warn.push(`${h}「${v}」不是數字`); else body[k] = n; break; }
-        case 'Choice': if (ch.length && !ch.includes(v)) warn.push(`${h}「${v}」不在選項內`); else body[k] = v; break;
+        case 'Choice': if (ch.length && !ch.includes(v)) warn.push(`${h}「${v}」不是清單選項`); else body[k] = v; break;
         case 'MultiChoice': { const vals = split(v).filter(x => !ch.length || ch.includes(x)); if (vals.length) body[k] = { __metadata: { type: 'Collection(Edm.String)' }, results: vals }; break; }
         case 'DateTime': { const d = new Date(v.replace(/[./]/g, '-')); if (!isNaN(d)) body[k] = ymd(d) + 'T00:00:00Z'; break; }
-        case 'Lookup': { const id = lookupIds && lookupIds[v]; if (id) body[k + 'Id'] = id; else warn.push(`${h}「${v}」對不到根因分類`); break; }
+        case 'Lookup': { const id = lookupIds && lookupIds[v]; if (id) body[k + 'Id'] = id; else warn.push(`${h}「${v}」不在根因分類中`); break; }
         case 'LookupMulti': { const ids = split(v).map(x => lookupIds && lookupIds[x]).filter(Boolean); if (ids.length) body[k + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: ids }; break; }
         default: body[k] = v;
       }
@@ -121,7 +121,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
 .load{padding:60px;text-align:center;color:var(--muted)}
 </style>
 <div class="root"><div class="bar" id="bar"><b>M&amp;M</b><button class="tab" data-t="intake">收案</button><button class="tab" data-t="meet">開會</button><span class="sp"></span><span class="v">${VERSION}</span><button class="b" id="fs" title="全螢幕（投影用）">全螢幕</button><button class="b" id="close">關閉</button></div>
-<div class="body"><div class="pane" id="p-intake"></div><div class="pane" id="p-meet" hidden><div class="load">讀取 SharePoint 清單中…</div></div></div></div>`;
+<div class="body"><div class="pane" id="p-intake"></div><div class="pane" id="p-meet" hidden><div class="load">讀取中…</div></div></div></div>`;
   const $ = s => sh.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   const clip = (t, n) => { const a = [...String(t || '')]; return esc(a.slice(0, n).join('')) + (a.length > n ? '…' : ''); };
@@ -146,14 +146,14 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     P.innerHTML = '<div class="load">檢查權限中…</div>';
     const [okCase, okKey] = await Promise.all([canAdd('案例'), canAdd('對照表')]);
     if (!okCase || !okKey) {
-      P.innerHTML = `<div class="w"><h2>收案</h2><div class="banner">${!okCase ? '你沒有新增「案例」清單項目的權限。' : '你看不到或不能寫入「對照表」清單（需在「M&amp;M 對照表」群組）。'}<br>案例與對照表必須一起寫入，所以這裡不會寫任何資料。請主任把你加進群組後，重新整理頁面再按書籤。</div></div>`;
+      P.innerHTML = `<div class="w"><h2>收案</h2><div class="banner">你的帳號目前還不能收案${okCase ? '（尚未加入「M&amp;M 對照表」群組）' : ''}。<br>請主任開通權限後，重新整理頁面再試。「開會」頁不受影響，可以照常使用。</div></div>`;
       return;
     }
-    P.innerHTML = `<div class="w"><h2>收案：Word → SharePoint</h2>
-      <p class="note">把研究醫師的討論會 Word 檔拖進來 → 自動去識別、編碼、拆欄 → 確認後直接寫入「案例」與「對照表」。Word 檔不會上傳，只在這台電腦的瀏覽器解析。</p>
-      <div class="drop" id="drop" tabindex="0"><b id="dt">把 .docx 拖到這裡（可一次多個），或點一下選檔</b><div class="note" id="ds">超長住院／Morbidity／Mortality 討論會清單</div><input type="file" id="file" accept=".docx" multiple hidden></div>
-      <div class="row"><span id="ymw">討論年月 <input type="text" id="ym" placeholder="2026-10"> <span class="note" id="ymh">檔名看不出年月的超長住院／Morbidity 檔才需要。</span></span>
-        <label class="ck"><input type="checkbox" id="demo">演練模式（代碼加 TEST-，可一鍵刪除）</label></div>
+    P.innerHTML = `<div class="w"><h2>收案</h2>
+      <p class="note">把研究醫師整理的討論會 Word 檔拖進來。系統會隱去病歷號、全名與床號，編好案例代碼，確認後寫入「案例」清單；可識別資料另存在只有主任與研究醫師看得到的「對照表」。Word 檔不會離開這台電腦。</p>
+      <div class="drop" id="drop" tabindex="0"><b id="dt">把 Word 檔拖到這裡，或點一下選擇（可一次多個）</b><div class="note" id="ds">超長住院、Morbidity、Mortality 討論會清單皆可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
+      <div class="row"><span id="ymw">討論年月 <input type="text" id="ym" placeholder="2026-10"> <span class="note" id="ymh">檔名沒有年月時才需要填。</span></span>
+        <label class="ck"><input type="checkbox" id="demo">演練模式（寫入的資料可一次刪除，不影響正式案例）</label></div>
       <div id="res"></div></div>`;
     let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
@@ -164,16 +164,16 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const needYm = files.some(f => !isMortF(f) && !ymFromName(f));
       $('#ymw').style.display = needYm ? '' : 'none';
       const shared = ymIn.value.trim();
-      if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">有檔名看不出年月，請填討論年月（YYYY-MM），填好會自動轉換。</p>'; return; }
-      res.innerHTML = '<div class="load">轉換並比對 SharePoint 既有資料…</div>';
+      if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">有檔案看不出是哪個月份，請填討論年月（例如 2026-10）。</p>'; return; }
+      res.innerHTML = '<div class="load">整理中，並檢查是否已經收過…</div>';
       try { R = await plan(files.map(f => ({ file: f, ym: isMortF(f) ? null : (ymFromName(f) || shared) })), $('#demo').checked); render(); }
-      catch (e) { res.innerHTML = `<p class="bad">失敗：${esc(e.message)}</p>`; }
+      catch (e) { res.innerHTML = `<p class="bad">處理失敗：${esc(e.message)}</p>`; }
     }
     function pick(list) {
       const fs = [...(list || [])].filter(f => /\.docx$/i.test(f.name));
-      if (!fs.length) { $('#ds').innerHTML = '<span class="bad">請選 .docx</span>'; return; }
+      if (!fs.length) { $('#ds').innerHTML = '<span class="bad">請選擇 Word 檔（.docx）</span>'; return; }
       files = fs; drop.classList.add('has'); $('#dt').textContent = fs.map(f => f.name).join('、');
-      $('#ds').textContent = `${fs.length} 個檔（點這裡換檔；可一次選或拖多個）`; go();
+      $('#ds').textContent = `已選 ${fs.length} 個檔，點這裡可重新選擇`; go();
     }
     drop.addEventListener('click', () => fileIn.click());
     fileIn.addEventListener('change', () => pick(fileIn.files));
@@ -186,15 +186,15 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const res = $('#res'), d = R.items, n = d.filter(x => x.ok).length, dup = d.filter(x => x.dup).length;
       const unG = d.filter(x => x.ok && !x.draft.dxGroup).length;
       res.innerHTML = `${R.groups.map(g => g.leak.length
-          ? `<p class="bad">✗ ${esc(g.name)}：去識別未通過（仍含 6 碼以上數字：${esc(g.leak.join('、'))}），這個檔不寫入，請回報主任。</p>`
-          : `<h3><span class="ok">✓</span> ${esc(g.ctype)} ${g.n} 例，去識別通過${g.dup ? `　<span class="warn">其中 ${g.dup} 例已收過，不重寫</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
-        ${unG ? `<p class="note warn">▲ ${unG} 例診斷群沒自動歸到，寫入後在清單手選。</p>` : ''}
-        ${R.demo ? '<p class="note">演練模式：代碼前加 TEST-。演練完按最下面「刪除演練資料」。</p>' : ''}
-        <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每例寫「案例」＋「對照表」各一筆；對照表失敗會把該案例退回，不留半套。</span></div>
+          ? `<p class="bad">${esc(g.name)}：內容裡還有疑似病歷號的長串數字（${esc(g.leak.join('、'))}），這個檔不會寫入，請告訴主任。</p>`
+          : `<h3>${esc(g.ctype)} ${g.n} 例，可識別資料已隱去${g.dup ? `　<span class="warn">其中 ${g.dup} 例之前已收過，會略過</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
+        ${unG ? `<p class="note warn">${unG} 例無法自動判斷診斷群，寫入後請在清單補選。</p>` : ''}
+        ${R.demo ? '<p class="note">演練模式：寫入的案例代碼以 TEST- 開頭，練習完按最下方「刪除演練資料」。</p>' : ''}
+        <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每一例會同時寫入「案例」與「對照表」；任一邊沒寫成功，該例會整筆取消。</span></div>
         <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
         ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
-        <h3>演練資料</h3><p class="note">刪除兩個清單裡所有代碼以 TEST- 開頭的項目。</p><button class="b" id="purge">刪除演練資料（TEST-）</button>`;
+        <h3>演練資料</h3><p class="note">刪除所有 TEST- 開頭的練習案例（含對照表）。正式案例不受影響。</p><button class="b" id="purge">刪除演練資料</button>`;
       const cnt = () => { $('#wn').textContent = res.querySelectorAll('input[data-i]:checked').length; };
       res.querySelectorAll('input[data-i]').forEach(c => c.addEventListener('change', cnt));
       $('#write').addEventListener('click', () => write([...res.querySelectorAll('input[data-i]:checked')].map(c => R.items[+c.dataset.i])));
@@ -210,24 +210,24 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           const c = toBody(cl, x.caseRow); const k = toBody(kl, x.keyRow);
           const cr = await addItem(cl, c.body); caseId = cr.Id;
           try { await addItem(kl, k.body); }
-          catch (e) { await delItem(cl, caseId).catch(() => {}); throw new Error('對照表寫入失敗，已退回案例：' + e.message); }
-          ok++; say(`${x.code} ✓${c.warn.length ? '（略過：' + c.warn.join('；') + '）' : ''}`);
-        } catch (e) { fail++; say(`${x.code} ✗ ${e.message}`); }
+          catch (e) { await delItem(cl, caseId).catch(() => {}); throw new Error('對照表沒寫成功，這一例已整筆取消：' + e.message); }
+          ok++; say(`${x.code} 已寫入${c.warn.length ? '（未填：' + c.warn.join('；') + '）' : ''}`);
+        } catch (e) { fail++; say(`${x.code} 未寫入：${e.message}`); }
       }
-      say(`=== 完成：新增 ${ok}、失敗 ${fail} ===`);
-      if (ok) say(`下一步：到「案例」清單逐案補初評、徵詢主治，完成的狀態改「待討論」。\n${cl.url}`);
-      R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '把 .docx 拖到這裡（可一次多個），或點一下選檔'; $('#ds').textContent = '寫完了；要收下一批再拖進來';
+      say(`完成：新增 ${ok} 例${fail ? `，${fail} 例未寫入（原因見上方）` : ''}。`);
+      if (ok) say(`接下來請到「案例」清單逐案填寫初評、徵詢主治，完成後把狀態改成「待討論」。\n${cl.url}`);
+      R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '把 .docx 拖到這裡（可一次多個），或點一下選檔'; $('#ds').textContent = '已完成。要收下一批，再把檔案拖進來。';
       meetReady = false; // 開會頁下次重讀
     }
     async function purge() {
       const res = $('#res'); let log = $('#log'); if (!log) { res.insertAdjacentHTML('beforeend', '<pre class="log" id="log"></pre>'); log = $('#log'); }
-      log.hidden = false; log.textContent = '刪除演練資料中…\n';
+      log.hidden = false; log.textContent = '刪除中…\n';
       let n = 0;
       for (const t of ['案例', '對照表']) {
         const li = await listInfo(t); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id,Title&$filter=startswith(Title,'TEST-')`);
-        for (const it of j.value) { await delItem(li, it.Id); n++; }
+        for (const it of j.value) { await delItem(li, it.Id); if (t === '案例') n++; }
       }
-      log.textContent += `已刪除 ${n} 筆（兩個清單合計）。`; meetReady = false;
+      log.textContent += `已刪除 ${n} 例練習資料。`; meetReady = false;
     }
   }
   // 轉換 → 依 SharePoint 既有資料重新編號、標出重複
@@ -277,7 +277,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'), raw = caseRaw[code];
     if (!raw) throw new Error('找不到案例 ' + code);
     const ex = await rq(`web/lists(guid'${rl.id}')/items?$select=Id&$filter=Title eq '${q(code)}'`);
-    if (ex.value.length) throw new Error('正式紀錄已經有 ' + code + '，不重複寫入；要修正請到正式紀錄用「修正附註」。');
+    if (ex.value.length) throw new Error(code + ' 已經定案過。如需修正，請到「正式紀錄」該筆的「修正附註」補充。');
     const body = { __metadata: { type: rl.type } };
     for (const f of rl.ours) { // 複製案例欄位
       const cf = cl.f[f.InternalName === 'Title' ? '標題' : f.Title]; if (!cf || f.ReadOnlyField) continue;
@@ -288,7 +288,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       else if (v != null && v !== '') body[k] = v;
     }
     const F = t => rl.f[t] && rl.f[t].EntityPropertyName, set = (t, v) => { if (F(t) && v != null && v !== '') body[F(t)] = v; };
-    const mid = facIds[p.main]; if (!mid) throw new Error('根因分類找不到「' + p.main + '」');
+    const mid = facIds[p.main]; if (!mid) throw new Error('找不到根因「' + p.main + '」，請按「重新讀取」後再試。');
     body[F('共識主要根因') + 'Id'] = mid;
     const fids = p.factors.map(x => facIds[x]).filter(Boolean); if (fids.length) body[F('共識促成因素') + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: fids };
     set('共識可預防性', p.prev); set('決策方式', p.mode); set('會議結論', p.conclusion); set('長官意見', p.chief); set('投票分布', p.dist);
@@ -297,11 +297,11 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const initMain = caseDisp[code]['初評主要根因'] || ''; set('初評一致', initMain === p.main ? '是' : '否');
     await addItem(rl, body);
     try { await mergeItem(cl, raw.Id, { __metadata: { type: cl.type }, [cl.f['狀態'].EntityPropertyName]: '已定案' }); }
-    catch (e) { throw new Error('正式紀錄已寫入，但案例狀態沒改成「已定案」：' + e.message + '（請到案例清單手動改）'); }
+    catch (e) { throw new Error('定案已寫入，但案例狀態沒有更新。請到「案例」清單把這一例改成「已定案」。（' + e.message + '）'); }
     return { ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
   }
   async function meetInit() {
-    meetReady = true; const P = $('#p-meet'); P.innerHTML = '<div class="load">讀取 SharePoint 清單中…</div>';
+    meetReady = true; const P = $('#p-meet'); P.innerHTML = '<div class="load">讀取中…</div>';
     try {
       const [data, can] = await Promise.all([loadData(), canAdd('正式紀錄')]);
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
@@ -309,11 +309,11 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
       w.MM_SP = { data, canDecide: can, decide, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
-      const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '從 SharePoint 重讀最新資料';
-      rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });
+      const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
+      rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });
       const nav = doc.getElementById('nav'); if (nav) nav.appendChild(rb);
       w.focus();
-    } catch (e) { meetReady = false; P.innerHTML = `<div class="w"><p class="bad">讀取失敗：${esc(e.message)}</p><button class="b" id="retry">再試一次</button></div>`; P.querySelector('#retry').onclick = meetInit; }
+    } catch (e) { meetReady = false; P.innerHTML = `<div class="w"><p class="bad">讀取清單失敗，請稍後再試。（${esc(e.message)}）</p><button class="b" id="retry">再試一次</button></div>`; P.querySelector('#retry').onclick = meetInit; }
   }
   // 投影時 Esc 先交給儀表板；儀表板外按 Esc 不關閉，避免誤觸
   window.__MM_APP = { show, version: VERSION };

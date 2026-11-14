@@ -19,18 +19,19 @@ li a{font-size:18px;font-weight:600;color:var(--accent);text-decoration:none}
 li a:hover{text-decoration:underline}
 li p{margin:4px 0 0;color:var(--muted);font-size:14.5px}
 footer{font-size:13px;color:var(--muted);margin-top:32px}
+.muted{color:var(--muted)} .muted a{color:var(--accent)}
 </style>
 <script src="theme.js"></script>
 </head>
 <body>
 <div class="wrap">
-<header><h1>血液腫瘤科 M&M 工具</h1><p>超長住院／Morbidity／Mortality 討論會：資料準備、會議投影、操作手冊。所有工具都在瀏覽器本機執行，不上傳任何資料。</p></header>
+<header><h1>血液腫瘤科 M&M 工具</h1><p>超長住院、Morbidity、Mortality 討論會使用。</p></header>
 <ol>
-  <li><a href="mm_convert.html">案例轉換</a><p>把研究醫師整理的 Word 討論會清單轉成 SharePoint「案例」與「對照表」匯入檔（去識別、姓＋OO、年齡、診斷群）。</p></li>
-  <li><a href="mm_dashboard.html">會議儀表板</a><p>載入 SharePoint 匯出的 CSV：待討論案例、投影模式、根因 Pareto 與月趨勢。</p></li>
-  <li><a href="handbook.html">研究醫師手冊</a><p>每月收案、填初評、徵詢主治、送會、會後歸檔的逐步說明。</p></li>
+  <li><a href="bookmarks.html">書籤安裝</a><p>第一次使用請先安裝。之後在科內 SharePoint 站台按「M&amp;M」即可收案與開會。</p></li>
+  <li><a href="handbook.html">研究醫師手冊</a><p>每月收案、填寫初評、徵詢主治、送會的步驟說明。</p></li>
 </ol>
-<footer>資料本體在院內 SharePoint 站台 monthly-meeting；本站只有程式與說明，沒有病人資料。</footer>
+<p class="muted" style="margin-top:28px;font-size:14px">備用工具（書籤無法使用時）：<a href="mm_convert.html">案例轉換</a>　·　<a href="mm_dashboard.html">會議儀表板</a></p>
+<footer>病人資料只存放在院內 SharePoint；本站僅提供程式與說明。</footer>
 </div>
 </body>
 </html>

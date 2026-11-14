@@ -75,26 +75,26 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <p>每月把案例整理進 SharePoint「案例」清單、寫初評、徵詢主治、送進會議。照這份做，一次 12 例約 90 分鐘。</p>
 </header>
 
-<h2><span class="n">00</span>開始前的三條鐵律</h2>
+<h2><span class="n">00</span>開始前請記住三件事</h2>
 <div class="rules">
   <div class="rule"><b>「案例」只放姓＋OO 與年齡</b><span>可以：林OO、67 歲、男、2026-10、案例代碼。不可以：全名、病歷號、床號、出生日期、完整住院／死亡日期。全科成員都看得到這個清單。</span></div>
-  <div class="rule"><b>真實身分只在「對照表」清單</b><span>代碼 ↔ 病歷號／全名／床號／主治，放同站台的「對照表」清單，只有「M&M 對照表」群組（研究醫師、主席）看得到。不另存 CSV 在筆電或信箱。</span></div>
-  <div class="rule"><b>六碼以上的數字別出現在案例</b><span>病歷號、身分證、電話都是連續數字。貼上前 <kbd>Ctrl+F</kbd> 掃一次；轉換程式也會替你擋，但最後一關是你。</span></div>
+  <div class="rule"><b>真實身分只在「對照表」清單</b><span>代碼 ↔ 病歷號／全名／床號／主治，放同站台的「對照表」清單，只有「M&M 對照表」群組（研究醫師、主席）看得到。不要另外存檔在筆電，也不要寄到信箱。</span></div>
+  <div class="rule"><b>六碼以上的數字別出現在案例</b><span>病歷號、身分證、電話都是連續數字。自己補寫內容時特別留意；收案時系統也會檢查一次。</span></div>
 </div>
 
 <h2><span class="n">01</span>每月時程</h2>
 <div class="timeline">
-  <div class="tl"><div class="w">月初 1–5 日</div><b>收案</b><span>從住院系統撈上月超長住院（≥30 天）、死亡、重大併發症名單，產生去識別匯入檔。</span></div>
+  <div class="tl"><div class="w">月初 1–5 日</div><b>收案</b><span>整理上月超長住院（≥30 天）、死亡、重大併發症名單（Word），用書籤「M&amp;M」收案。</span></div>
   <div class="tl"><div class="w">5–15 日</div><b>寫初評</b><span>每例填詳細診斷、臨床經過、主要根因、促成因素、可預防性、五個為什麼。</span></div>
   <div class="tl"><div class="w">15–22 日</div><b>徵詢主治</b><span>把初評給該案主治看，填「主治醫師回覆」三選一與說明。</span></div>
-  <div class="tl"><div class="w">會前 2 日</div><b>送會</b><span>狀態改「待討論」，匯出 CSV 載入投影頁試跑一遍。</span></div>
-  <div class="tl"><div class="w">會後</div><b>歸檔</b><span>主席寫入「正式紀錄」；你把定案的案例狀態改「已定案」，改善行動指定負責人。</span></div>
+  <div class="tl"><div class="w">會前 2 日</div><b>送會</b><span>狀態改「待討論」，用「M&amp;M」→「開會」確認案例都已列出。</span></div>
+  <div class="tl"><div class="w">會後</div><b>歸檔</b><span>會中定案時，正式紀錄與案例狀態會自動更新；你負責新增改善行動、指定負責人。</span></div>
 </div>
 
 <h2><span class="n">02</span>進入清單</h2>
 <ol>
   <li>Teams → 團隊「monthly-meeting」→ 右上 <b>⋯ → 在 SharePoint 中開啟</b>；或直接開站台網址。</li>
-  <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（你的主戰場）、<b>對照表</b>（只有你和主席看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
+  <li>左側 <b>網站內容</b> → 六個清單：<b>案例</b>（主要工作清單）、<b>對照表</b>（只有你和主席看得到）、<b>根因分類</b>（唯讀詞彙表）、<b>正式紀錄</b>（只能看）、<b>改善行動</b>、<b>會議</b>。</li>
   <li>開「案例」。上方檢視切換：<b>所有項目</b>／<b>整理中</b>／<b>待討論</b>。每天工作用「整理中」。</li>
 </ol>
 <figure>
@@ -122,59 +122,37 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   </g>
   <g font-size="11" fill="var(--accent)">
     <path d="M100 48 L100 36" stroke="var(--accent)" fill="none" marker-end="url(#a)"/><text x="40" y="236">① 單筆新增走這裡</text>
-    <text x="150" y="258">② 批次貼上走「以格線編輯」</text>
-    <text x="420" y="236">③ 會前「匯出 → CSV」給投影頁</text>
-    <text x="520" y="258">④ 檢視切「整理中」只看未完成的</text>
+    <text x="150" y="258">② 要一次改很多列時用「以格線編輯」</text>
+    
+    <text x="520" y="258">③ 檢視切「整理中」只看未完成的</text>
   </g>
   <defs><marker id="a" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="var(--accent)"/></marker></defs>
   <path d="M100 50 L100 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M96 46 L100 40 L104 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
   <path d="M195 50 L195 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M191 46 L195 40 L199 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
-  <path d="M270 50 L270 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M266 46 L270 40 L274 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
+  
   <path d="M620 50 L620 40" stroke="var(--accent)" stroke-width="1.5" fill="none"/><path d="M616 46 L620 40 L624 46" stroke="var(--accent)" stroke-width="1.5" fill="none"/>
   <text x="100" y="284" font-size="11" fill="var(--muted)">標題欄＝案例代碼：LOS（超長住院）／MOR（Mortality）／MOB（Morbidity）-年-月-流水號</text>
 </svg>
-<figcaption>圖 1　「案例」清單。四個常用入口都在工具列；狀態是你唯一要手動推進的欄位。</figcaption>
+<figcaption>圖 1　「案例」清單。常用功能都在上方工具列；「狀態」是你需要自己更新的欄位。</figcaption>
 </figure>
 
 <h2><span class="n">03</span>收案：兩種進法</h2>
 <div class="two">
-  <div class="cmp"><div class="lbl good">A 批次（建議）：書籤「M&amp;M」</div>
+  <div class="cmp"><div class="lbl good">A 整批收案（建議）：書籤「M&amp;M」</div>
     <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷）。第一次先照 <a href="https://jnynlin.github.io/hemonc-mm/bookmarks.html">書籤安裝頁</a> 把「M&amp;M」拖到 Edge 的我的最愛列。</p>
     <ol><li>打開 monthly-meeting 站台 → 點我的最愛列上的「M&amp;M」→「收案」。</li>
-      <li>把 Word 檔拖進去（可一次拖多個，例如超長住院和 Mortality 兩份一起）。自動去識別、編碼、拆欄，下方預覽每例的主診斷／診療史／其他問題。</li>
-      <li>看一眼切分對不對、「去識別通過」→ 按「<b>寫入勾選的 N 例</b>」。每例同時寫「案例」與「對照表」。</li></ol>
-    <p>代碼自動接續清單裡已有的號碼；同一病人同月份已收過會標「已收過」不重寫。第一次可勾「演練模式」（代碼 TEST-，可一鍵刪除）。Word 檔不上傳、電腦上不留任何含病歷號的檔案。</p>
+      <li>把 Word 檔拖進去（可一次拖多個，例如超長住院和 Mortality 兩份一起）。系統會隱去病歷號、全名與床號，編好案例代碼，並把診斷分成主診斷、診療史、其他問題三欄供你確認。</li>
+      <li>確認分欄無誤後，按「<b>寫入勾選的 N 例</b>」。每一例會同時寫入「案例」與「對照表」。</li></ol>
+    <p>案例代碼會接續清單裡已有的號碼；同一病人同一月份已經收過的，會標示「已收過」並略過。第一次使用可勾選「演練模式」，練習用的資料可以一次刪除。Word 檔不會上傳，電腦上也不會留下含病歷號的檔案。</p>
     <p><b>Word「診斷」欄怎麼寫，拆欄才會準：</b>第 1 行＝主診斷，接著用逗號帶診療史（s/p…、currently on…）；第 2 行起每行一個其他診斷／併發症。</p>
   </div>
-  <div class="cmp"><div class="lbl">B 單筆</div>
+  <div class="cmp"><div class="lbl">B 單筆補登</div>
     <p>臨時追加一例時，「案例」→ <b>＋ 新增</b>，右側滑出表單，從上往下填。必填欄位（<span class="req">＊</span>）沒填存不了；「詳細診斷」太短會跳紅字。</p>
     <p>標題自己照規則編：上一個流水號＋1，例如本月已有 LOS-2026-10-12，新增就是 <code>LOS-2026-10-13</code>，並補一列到對照表。</p>
   </div>
 </div>
 
-<h3>沒有書籤時（備用）</h3>
-<p>用網頁轉換器 <a href="https://jnynlin.github.io/hemonc-mm/mm_convert.html">mm_convert.html</a> 下載兩個 xlsx，再用 <code>import_items.js</code>（站台 F12 主控台貼上）或「匯入」檢視格線貼上。對照表檔匯完立刻刪。</p>
-<figure>
-<svg viewBox="0 0 760 210" role="img" aria-label="以格線編輯貼上示意">
-  <rect width="760" height="210" fill="var(--soft)"/>
-  <rect x="0" y="0" width="760" height="34" fill="var(--bg)" stroke="var(--line)"/>
-  <text x="18" y="22" font-size="13" font-weight="700" fill="var(--fg)">案例</text>
-  <rect x="64" y="7" width="84" height="20" rx="3" fill="var(--ok-soft)"/><text x="74" y="21" font-size="12" fill="var(--ok)">結束格線 ✓</text>
-  <text x="620" y="22" font-size="12" fill="var(--muted)">格線模式中</text>
-  <g font-size="11" fill="var(--muted)"><text x="18" y="56">標題</text><text x="140" y="56">年月</text><text x="210" y="56">案例類型</text><text x="300" y="56">年齡層</text><text x="360" y="56">性別</text><text x="410" y="56">診斷群</text><text x="500" y="56">治療階段</text><text x="580" y="56">詳細診斷</text><text x="700" y="56">…</text></g>
-  <line x1="0" y1="64" x2="760" y2="64" stroke="var(--line)"/>
-  <g font-size="12" fill="var(--fg)">
-    <text x="18" y="88" font-family="var(--mono)">LOS-2026-10-01</text><text x="140" y="88">2026-10</text><text x="210" y="88">超長住院</text><text x="300" y="88">60–69</text><text x="360" y="88">男</text><text x="410" y="88">大腸直腸癌</text><text x="500" y="88" fill="var(--muted)">（空）</text><text x="580" y="88">Adenocarcinoma of…</text>
-    <text x="18" y="114" font-family="var(--mono)">LOS-2026-10-02</text><text x="140" y="114">2026-10</text><text x="210" y="114">超長住院</text><text x="300" y="114">40–49</text><text x="360" y="114">女</text><text x="410" y="114">急性白血病</text><text x="500" y="114" fill="var(--muted)">（空）</text><text x="580" y="114">AML, FLT3-ITD+…</text>
-  </g>
-  <rect x="10" y="70" width="740" height="52" fill="none" stroke="var(--accent)" stroke-dasharray="4 3"/>
-  <rect x="10" y="126" width="740" height="24" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
-  <text x="18" y="142" font-size="12" fill="var(--accent)">▌點這一格再 Ctrl+V（游標在「標題」欄的空白列）</text>
-  <text x="18" y="178" font-size="11" fill="var(--muted)">Excel 欄序＝清單欄序（25 欄）；「治療階段」匯入時留空，由你依病程選。多值欄（促成因素）用「;」分隔。</text>
-  <text x="18" y="196" font-size="11" fill="var(--bad)">貼完若「年月」欄跑進「標題」，代表起點點錯格：Ctrl+Z 全部復原，重點一次。</text>
-</svg>
-<figcaption>圖 2　格線貼上。虛線＝剛貼上的列；實線＝貼上前要點的起始格。</figcaption>
-</figure>
+<p class="muted">書籤無法使用時，請聯絡主任改用備用方式處理。</p>
 
 <h2><span class="n">04</span>填每一欄：規格與範例</h2>
 <p>打開單筆（點標題），右側是表單。<span class="req">＊</span>＝必填。欄位順序就是思考順序：先事實，再判斷，再別人的意見。</p>
@@ -184,12 +162,12 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <tr><td>年月 <span class="req">＊</span></td><td>討論月份</td><td><code>2026-10</code>（Mortality 以死亡月為準）</td></tr>
 <tr><td>案例類型 <span class="req">＊</span></td><td>可複選</td><td>超長住院／Morbidity／Mortality。一位病人既超長住院又死亡 → 勾兩個，一筆就好。</td></tr>
 <tr><td>病人簡稱</td><td>姓＋OO</td><td>林OO；複姓取兩字（歐陽OO）。不寫全名。</td></tr>
-<tr><td>年齡／年齡層／性別</td><td>實際年齡＋區間</td><td>67、60–69、男。年齡是預後判讀的必要資訊；年齡層給統計圖用，兩個都填（匯入檔已自動帶入）。</td></tr>
-<tr><td>診斷群</td><td>單選 17 類</td><td>血液 6 類＋固態瘤 11 類。轉換程式會猜，請核對。</td></tr>
+<tr><td>年齡／年齡層／性別</td><td>實際年齡＋區間</td><td>67、60–69、男。年齡是預後判讀的必要資訊；年齡層給統計圖用，兩個都要有（收案時自動帶入）。</td></tr>
+<tr><td>診斷群</td><td>單選 17 類</td><td>血液 6 類＋固態瘤 11 類。收案時系統會先判斷，請核對。</td></tr>
 <tr><td>治療階段</td><td>單選</td><td>血液：誘導／鞏固維持／移植／復發難治；固態瘤：新輔助／輔助／根治性同步放化療／第一線（轉移）／第二線以後；共通：診斷分期中／緩和支持性。</td></tr>
-<tr><td>詳細診斷 <span class="req">＊</span></td><td>一句主診斷，≤255 字，≥12 字</td><td><span class="good">好：</span>Acute myeloid leukemia, FLT3-ITD+, NPM1 wt, adverse risk<br><span class="badtxt">不行：</span>malignancy of head and neck／lymphoma／AML（會被系統擋下）<br>公式：<b>組織型態 ＋ 分期或風險分群 ＋ 分子標記</b>。治療線寫在「治療內容」。轉換器從 Word 第 1 行自動切，切錯就手動搬。</td></tr>
-<tr><td>治療內容</td><td>診療史＋本次住院做了什麼</td><td>轉換器帶入 Word 第 1 行 s/p 之後的診療史（例 s/p 7+3 + midostaurin, relapse 2026/3, currently on Ven-AZA C2）；自己再補本次住院：G-CSF、broad-spectrum antibiotics for FN、ICU D12–D18。</td></tr>
-<tr><td>臨床經過</td><td>其他診斷／併發症 ＋ 這次住院的經過</td><td>轉換器帶入 Word 第 2 行起（以「｜」分隔，一項一個）。<b>你要接著寫這次住院發生什麼</b>：何時、什麼事、怎麼處置、結果。檢查：日期只留「第 X 天」或「2026/10 中旬」；不出現同事姓名（寫「值班醫師」）。</td></tr>
+<tr><td>詳細診斷 <span class="req">＊</span></td><td>一句主診斷，≤255 字，≥12 字</td><td><span class="good">好：</span>Acute myeloid leukemia, FLT3-ITD+, NPM1 wt, adverse risk<br><span class="badtxt">不行：</span>malignancy of head and neck／lymphoma／AML（會被系統擋下）<br>公式：<b>組織型態 ＋ 分期或風險分群 ＋ 分子標記</b>。治療線寫在「治療內容」。收案時會從 Word 第 1 行自動分出，分錯了直接在表單裡移過去。</td></tr>
+<tr><td>治療內容</td><td>診療史＋本次住院做了什麼</td><td>收案時自動帶入 Word 第 1 行 s/p 之後的診療史（例 s/p 7+3 + midostaurin, relapse 2026/3, currently on Ven-AZA C2）；自己再補本次住院：G-CSF、broad-spectrum antibiotics for FN、ICU D12–D18。</td></tr>
+<tr><td>臨床經過</td><td>其他診斷／併發症 ＋ 這次住院的經過</td><td>收案時自動帶入 Word 第 2 行起的內容（以「｜」分隔，一項一個）。<b>你要接著寫這次住院發生什麼</b>：何時、什麼事、怎麼處置、結果。檢查：日期只留「第 X 天」或「2026/10 中旬」；不出現同事姓名（寫「值班醫師」）。</td></tr>
 <tr><td>住院天數</td><td>整數</td><td>Mortality 算到死亡當日。</td></tr>
 <tr><td>可避免天數</td><td>你的估計</td><td>「等 PET 排程 6 天、等安養機構 9 天」→ 15。寫不出來留空，會議上補。</td></tr>
 <tr><td>死亡預期性</td><td>Mortality 必填</td><td>預期（疾病進展）／非預期。非預期才是會議重點；「不適用」只給非 Mortality 案。</td></tr>
@@ -214,7 +192,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
     <text x="398" y="54">標題 *</text><rect x="398" y="60" width="340" height="22" fill="var(--soft)" stroke="var(--line)"/><text x="406" y="75" font-size="12" font-family="var(--mono)" fill="var(--fg)">MOB-2026-10-01</text>
     <text x="398" y="102">案例類型 *</text><rect x="398" y="108" width="340" height="22" fill="var(--soft)" stroke="var(--line)"/><text x="406" y="123" font-size="12" fill="var(--fg)">☑ Morbidity　☐ 超長住院　☐ Mortality</text>
     <text x="398" y="150">詳細診斷 *</text><rect x="398" y="156" width="340" height="22" fill="var(--soft)" stroke="var(--bad)" stroke-width="1.5"/><text x="406" y="171" font-size="12" fill="var(--fg)">lymphoma</text>
-    <text x="398" y="194" font-size="11" fill="var(--bad)">詳細診斷太籠統：請寫組織型態、分期／風險分群、分子標記與目前治療線（至少 12 字）。</text>
+    <text x="398" y="194" font-size="11" fill="var(--bad)">詳細診斷請寫得具體一些：組織型態、分期或風險分群、分子標記（至少 12 字）。</text>
   </g>
   <rect x="398" y="212" width="60" height="24" rx="3" fill="var(--accent)"/><text x="414" y="228" font-size="12" fill="#fff">儲存</text>
   <text x="470" y="228" font-size="12" fill="var(--muted)">取消</text>
@@ -278,7 +256,7 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <h2><span class="n">07</span>送進會議：改「待討論」</h2>
 <p>每例滿足下列五點才把狀態改成 <span class="pill ready">待討論</span>：</p>
 <ul class="check">
-  <li>詳細診斷合格（≥12 字、有型態＋分期＋標記＋治療線）</li>
+  <li>詳細診斷完整（至少 12 字，含型態、分期或風險分群、分子標記）</li>
   <li>臨床經過裡沒有全名、病歷號、完整日期（姓＋OO、年齡可以）</li>
   <li>初評主要根因已選、可預防性已選</li>
   <li>Mortality 案：死亡預期性已選（預期／非預期）</li>
@@ -302,35 +280,17 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <figcaption>圖 4　狀態只往右走。退回「整理中」要在主治醫師說明寫原因。</figcaption>
 </figure>
 
-<h2><span class="n">08</span>會前兩天：匯出與投影試跑</h2>
+<h2><span class="n">08</span>會前兩天：確認會議清單</h2>
 <ol>
-  <li>「案例」清單 → 工具列 <b>匯出 → 匯出至 CSV</b>，存成 <code>案例.csv</code>。「正式紀錄」同樣匯出成 <code>正式紀錄.csv</code>（前幾個月的定案，給趨勢圖用）。</li>
-  <li>開 <code>MM_SharePoint\mm_dashboard.html</code>（雙擊即可，離線）→ 「載入」分頁 → 兩個 CSV 拖進去。</li>
-  <li>切「待討論案例」：應看到本月全部待討論案，不同意初評的排前面。</li>
-  <li>按「投影模式」→ <kbd>→</kbd> 翻下一案、<kbd>←</kbd> 上一案、<kbd>Esc</kbd> 離開。接會議室螢幕時用 <kbd>Win</kbd>+<kbd>P</kbd> 延伸或 Miracast 投到電視。</li>
-  <li>把兩個 CSV 一起放進會議資料夾，會議當天不用再連 SharePoint。</li>
+  <li>站台按「M&amp;M」→「開會」。</li>
+  <li>「待討論案例」應列出本月所有待討論案例，依主治意見分成三組：意見不同、尚未徵詢、主治同意。</li>
+  <li>按「投影模式」試翻幾案：<kbd>→</kbd> 下一案、<kbd>←</kbd> 上一案、<kbd>Esc</kbd> 離開。接會議室螢幕時按 <kbd>Win</kbd>+<kbd>P</kbd> 選「延伸」或「複製」。</li>
+  <li>有案例沒出現，通常是狀態還停在「整理中」。</li>
 </ol>
-<figure>
-<svg viewBox="0 0 760 200" role="img" aria-label="匯出到投影流程">
-  <rect width="760" height="200" fill="var(--bg)"/>
-  <g font-size="12" fill="var(--fg)">
-    <rect x="20" y="40" width="200" height="110" fill="var(--soft)" stroke="var(--line)"/>
-    <text x="34" y="64" font-weight="700">SharePoint 案例</text><text x="34" y="88">工具列 → 匯出</text><text x="34" y="108">→ 匯出至 CSV</text><text x="34" y="136" font-family="var(--mono)" font-size="11">案例.csv</text>
-    <rect x="280" y="40" width="200" height="110" fill="var(--soft)" stroke="var(--line)"/>
-    <text x="294" y="64" font-weight="700">mm_dashboard.html</text><text x="294" y="88">載入 → 拖入 CSV</text><text x="294" y="108">待討論案例 ✓</text><text x="294" y="136" fill="var(--muted)" font-size="11">離線、單檔、不需安裝</text>
-    <rect x="540" y="40" width="200" height="110" fill="var(--accent-soft)"/>
-    <text x="554" y="64" font-weight="700" fill="var(--accent)">投影模式</text><text x="554" y="88">一案一頁：事實 → 初評 vs 主治</text><text x="554" y="108">← → 翻頁　Esc 離開</text><text x="554" y="136" fill="var(--muted)" font-size="11">定案後主席寫正式紀錄</text>
-  </g>
-  <path d="M222 95 L276 95" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M270 90 L278 95 L270 100" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
-  <path d="M482 95 L536 95" stroke="var(--fg)" stroke-width="1.5" fill="none"/><path d="M530 90 L538 95 L530 100" stroke="var(--fg)" stroke-width="1.5" fill="none"/>
-  <text x="380" y="182" text-anchor="middle" font-size="11" fill="var(--muted)">CSV 已是去識別資料，但仍是院內病安資料：放院內電腦或加密隨身碟，不寄 Gmail、不放 LINE。</text>
-</svg>
-<figcaption>圖 5　會前三步。整個過程不需要資訊室。</figcaption>
-</figure>
 
 <h2><span class="n">09</span>會後 30 分鐘</h2>
 <ol>
-  <li>主席在「正式紀錄」新增定案後，你把對應案例的狀態改 <span class="pill done">已定案</span>。</li>
+  <li>會中按下「定案」後，正式紀錄與案例狀態（<span class="pill done">已定案</span>）都已自動更新，無需再改。</li>
   <li>有改善行動的案例：「改善行動」清單新增一筆：標題（動詞開頭：「交班單加 FN 風險欄」）、負責人、到期日、針對因素、關聯紀錄。</li>
   <li>「會議」清單新增一筆：會議日期、年月、出席人數、跨案例事項（例如「本月 4 例都卡在安置等待 → 提社工聯繫會議」）。</li>
   <li>下月收案時先看上月改善行動有沒有「完成」。</li>
@@ -339,17 +299,15 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <h2><span class="n">10</span>常見問題</h2>
 <div class="tw"><table>
 <tr><th>狀況</th><th>處理</th></tr>
-<tr><td>存檔時紅字「詳細診斷太籠統」</td><td>照公式補到 ≥12 字：型態＋分期／風險＋標記＋治療線。</td></tr>
-<tr><td>格線貼上後欄位錯位</td><td><kbd>Ctrl+Z</kbd> 到底，確認起點是「標題」格、Excel 不含標題列，重貼。</td></tr>
-<tr><td>找不到「以格線編輯」</td><td>檢視切到「匯入」或「所有項目」；某些篩選檢視不提供格線。</td></tr>
-<tr><td>匯入腳本某筆 ✗「不在選項內」</td><td>該格的字要和清單選項一模一樣（例「超長住院」不是「超長住院 」）。改 Excel 後重跑，已匯入的會略過。</td></tr>
-<tr><td>貼上後詳細診斷和臨床經過看起來重複／像經過</td><td>舊版轉換器的問題。新版：第 1 行主診斷→詳細診斷、s/p 之後→治療內容、第 2 行起→臨床經過，不再重複。</td></tr>
+<tr><td>存檔時出現紅字「詳細診斷請寫得具體一些」</td><td>補到至少 12 字：型態、分期或風險分群、分子標記。</td></tr>
+<tr><td>收案時顯示「已收過」</td><td>同一病人同一月份已在清單裡，系統會略過，避免重複建檔。</td></tr>
+<tr><td>收案頁顯示沒有權限</td><td>請主任把你加入「M&amp;M 對照表」群組，重新整理頁面後再試。</td></tr>
 <tr><td>「根因分類」少了想選的項目</td><td>不要自己加。先選最接近的，在五個為什麼寫明，會議提案新增；主席同意後由主席加。</td></tr>
 <tr><td>病人同月既超長住院又死亡</td><td>一筆，案例類型勾兩個，代碼用 MOR。</td></tr>
 <tr><td>主治要求改初評</td><td>不改。初評是你的判斷，主治意見填主治欄位；並排才有討論。</td></tr>
 <tr><td>要查某案是哪位病人</td><td>開「對照表」清單，用案例代碼搜尋。看不到這個清單＝你不在「M&M 對照表」群組，找主席加。</td></tr>
 <tr><td>不小心把病歷號貼進「案例」了</td><td>立刻改掉該欄 → 該項目 ⋯ → 版本歷程記錄 → 刪除含病歷號的舊版本 → 通知主席。</td></tr>
-<tr><td>臨床經過裡的日期怎麼寫</td><td>相對日「入院第 5 天」或「2026/10 中旬」；轉換程式已把完整日期改成年月，自己補寫時照辦。</td></tr>
+<tr><td>臨床經過裡的日期怎麼寫</td><td>相對日「入院第 5 天」或「2026/10 中旬」；收案時系統已把完整日期改成年月，自己補寫時也照這個方式。</td></tr>
 </table></div>
 
 <h2><span class="n">11</span>送會前一分鐘檢核</h2>
@@ -358,10 +316,10 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
   <li>每例詳細診斷≥12 字、臨床經過無全名／病歷號／完整日期</li>
   <li>每例有主要根因＋可預防性；Mortality 有死亡預期性</li>
   <li>主治醫師回覆三選一都填了（未徵詢者在說明註明）</li>
-  <li>CSV 已匯出、mm_dashboard 載入正常、投影模式翻過一遍</li>
-  <li>對照表已貼進 SharePoint「對照表」清單，本機 CSV 已刪</li>
+  <li>用「M&amp;M」→「開會」確認案例都已列出，投影模式翻過一遍</li>
+  <li>電腦上沒有留下含病歷號的檔案</li>
 </ul>
 
-<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.3 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、書籤「M&M」（收案／開會）；備用：mm_convert.html、import_items.js</footer>
+<footer>血液腫瘤科 M&amp;M 案例庫 · 研究醫師手冊 v1.4 · 2026 年 11 月</footer>
 </div>
 </body></html>
