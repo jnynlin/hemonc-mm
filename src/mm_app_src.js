@@ -358,10 +358,23 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     set('出席人數', p.attendees); set('票數', p.votes);
     const today = ymd(new Date()); set('會議日期', today + 'T00:00:00Z');
     const initMain = caseDisp[code]['初評主要根因'] || ''; set('初評一致', initMain === p.main ? '是' : '否');
-    await addItem(rl, body);
+    const recItem = await addItem(rl, body);
     try { await mergeItem(cl, raw.Id, { __metadata: { type: cl.type }, [cl.f['狀態'].EntityPropertyName]: '已定案' }); }
     catch (e) { throw new Error('定案已寫入，但案例狀態沒有更新。請到「案例」清單把這一例改成「已定案」。（' + e.message + '）'); }
-    return { ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
+    let _action = null, _actionError = null;
+    if (p.action && p.action.title) { // 會中決議的改善行動：建一筆，連到這筆正式紀錄與主要根因
+      try {
+        const al = await listInfo('改善行動'), A = t => al.f[t] && al.f[t].EntityPropertyName, ab = { __metadata: { type: al.type }, Title: p.action.title };
+        if (A('負責人') && p.action.owner) ab[A('負責人')] = p.action.owner;
+        if (A('到期日') && p.action.due) ab[A('到期日')] = p.action.due + 'T00:00:00Z';
+        if (A('狀態')) ab[A('狀態')] = '待辦';
+        if (A('針對因素')) ab[A('針對因素') + 'Id'] = mid;
+        if (A('關聯紀錄') && recItem && recItem.Id) ab[A('關聯紀錄') + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: [recItem.Id] };
+        await addItem(al, ab);
+        _action = { '標題': p.action.title, '負責人': p.action.owner, '到期日': p.action.due, '狀態': '待辦', '針對因素': p.main, '關聯紀錄': code };
+      } catch (e) { _actionError = e.message; }
+    }
+    return { _action, _actionError, ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
   }
   /* ---------- 會中匿名投票：手機掃 QR 開「投票」清單的表單；每人以最後一票為準 ---------- */
   let voteLi = null;

@@ -7,7 +7,7 @@
     '案例': [...caseF(), T('狀態', 'mmStatus', 'Choice', { Choices: ['整理中', '待討論', '已定案'] }), T('主治醫師', 'mmAttending', 'User')],
     '正式紀錄': [...caseF(), T('共識主要根因', 'mmConsMainFactor', 'Lookup'), T('共識促成因素', 'mmConsFactors', 'LookupMulti'), T('共識可預防性', 'mmConsPrev', 'Choice', { Choices: PREV }), T('決策方式', 'mmDecisionMode', 'Choice', { Choices: ['三方一致', '主席裁定', '投票'] }), T('長官意見', 'mmChiefComment', 'Note'), T('會議結論', 'mmConclusion', 'Note'), T('會議日期', 'mmMeetingDate', 'DateTime'), T('出席人數', 'mmAttendees', 'Number'), T('票數', 'mmVotes', 'Number'), T('投票分布', 'mmVoteDist', 'Note'), T('初評一致', 'mmConcordant', 'Choice', { Choices: ['是', '否'] })],
     '根因分類': [T('標題', 'Title', 'Text'), T('層級', 'mmLevel', 'Choice', { Choices: ['病人因素', '工作任務與流程', '超長住院因素'] }), T('排序', 'mmSortOrder', 'Number')],
-    '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('到期日', 'mmDueDate', 'DateTime'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] }), T('備註', 'mmRemarks', 'Note')],
+    '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('到期日', 'mmDueDate', 'DateTime'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] }), T('備註', 'mmRemarks', 'Note'), T('針對因素', 'mmTargetFactor', 'Lookup'), T('關聯紀錄', 'mmRelatedRecords', 'LookupMulti')],
     '投票': [T('標題', 'Title', 'Text'), T('可預防性', 'mmVotePrev', 'Choice', { Choices: PREV }), T('案例代碼', 'mmVoteCase', 'Text'), T('場次', 'mmVoteSession', 'Text')],
     '對照表': [T('標題', 'Title', 'Text'), T('病歷號', 'mmChartNo', 'Text'), T('姓名', 'mmPatientName', 'Text'), T('床號', 'mmBed', 'Text'), T('主治醫師', 'mmAttending', 'Text'), T('原主治', 'mmPrevAttending', 'Text'), T('住院日期', 'mmAdmissionDate', 'Text'), T('死亡日期', 'mmDeathDate', 'Text'), T('住院日數原文', 'mmLOSRaw', 'Text')],
   };
@@ -50,6 +50,7 @@
       for (const [k, v] of Object.entries(b)) {
         if (k === 'mmAttendingId' && F.find(x => x.InternalName === 'mmAttending')) { const u = (MOCK.users || []).find(x => x.Id === v); it.mmAttendingId = v; it.mmAttending = u ? { Id: u.Id, Title: u.DisplayText } : null; continue; }
         const fl = F.find(x => x.EntityPropertyName + 'Id' === k && /^Lookup/.test(x.TypeAsString));
+        if (fl && fl.InternalName === 'mmRelatedRecords') { it.mmRelatedRecords = v.results.map(id => { const r = DB['正式紀錄'].find(x => x.Id === id); return r ? { Id: id, Title: r.Title } : { Id: id, Title: '?' }; }); continue; }
         if (fl) { it[fl.InternalName] = fl.TypeAsString === 'Lookup' ? fac(v) : v.results.map(fac); continue; }
         if (!F.find(x => x.EntityPropertyName === k)) return J({ 'odata.error': { message: { value: 'property ' + k + ' does not exist on ' + t } } }, 400);
         it[k] = v && v.results ? v.results : v;
