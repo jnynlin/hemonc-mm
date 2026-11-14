@@ -14,7 +14,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,"Noto
 section{padding:18px 0;border-bottom:1px solid var(--line)} h2{font-size:18px;margin:0 0 6px} h2 small{font-weight:400;color:var(--muted);font-size:14px;margin-left:8px}
 ol,ul{padding-left:1.4em;margin:6px 0} li{margin:5px 0} .muted{color:var(--muted);font-size:14px} .warn{color:var(--bad)}
 a{color:var(--accent)} code{font-family:ui-monospace,Consolas,monospace;font-size:.85em;background:var(--soft);padding:1px 5px;border-radius:3px;word-break:break-all}
-table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top} th{color:var(--muted);font-weight:500;font-size:13px}
+td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);margin:6px 0} table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top} th{color:var(--muted);font-weight:500;font-size:13px}
 </style>
 <script src="theme.js"></script>
 </head>
@@ -22,18 +22,32 @@ table{border-collapse:collapse;width:100%;font-size:15px} th,td{text-align:left;
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
+<p>目前最新：<b>v1.14</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：「投票」清單改用網址尋找，多語系站台也找得到。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
 <p class="muted">全站只留一份 mm_app.js；「文件」裡不要再放一份，否則可能讀到舊版。大家的書籤不需要重裝。</p></section>
 
-<section><h2>本次更新要做 <small>主治醫師欄位，2026-11</small></h2>
-<ol><li>站台 F12 主控台重跑 <code>create_lists.js</code>（v12）：「案例」會多「主治醫師」欄與「我的案例」檢視（只列初評已寫好的案例）。</li>
-<li>上傳新版 mm_app.js（見上方）。</li>
-<li>按「M&amp;M」→「收案」，頁面會提示「有 N 例還沒有主治醫師」，按「依對照表補填」。對不到的會列出代碼，請研究醫師在清單手動選。</li>
-<li>重跑 <code>setup_home.js</code>：首頁多一個「我的案例」連結。</li>
-<li>Teams「案例」分頁：主治開啟後切到「我的案例」即可。</li>
-<li>再重跑一次 <code>create_lists.js</code>（v13）會建立「投票」清單，供會中匿名投票。</li></ol></section>
+<section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
+<p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
+<details><summary>展開全部（15 版）</summary>
+<table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.14</b><br><span class="muted">2026-11-14</span></td><td>「投票」清單改用網址尋找；多語系站台依名稱找不到時，投票按鈕不會出現。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.13</b><br><span class="muted">2026-11-14</span></td><td>匿名投票無法使用時，在定案表單說明原因。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.12</b><br><span class="muted">2026-11-14</span></td><td>投影頁內建匿名投票：手機掃 QR code 投「可預防性」，結果自動填入定案表單。</td><td class="nw">需重跑 create_lists v13</td></tr>
+<tr><td class="nw"><b>v1.11</b><br><span class="muted">2026-11-14</span></td><td>「主治醫師」欄：收案時依 Word 自動帶入；已收的案例可依對照表補填；主治用「我的案例」找自己的案例。</td><td class="nw">需重跑 create_lists v11–v12</td></tr>
+<tr><td class="nw"><b>v1.10</b><br><span class="muted">2026-11-14</span></td><td>開會頁的「說明」改連到同仁使用說明。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.9</b><br><span class="muted">2026-11-14</span></td><td>上月延續案例標示與月份排序、「改善行動」回顧頁、定案前重讀最新內容、Word 格式異常時整檔不寫入。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.8</b><br><span class="muted">2026-11-14</span></td><td>開會頁可切換「全部／超長住院／M&amp;M」，投影跟著篩選。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.7</b><br><span class="muted">2026-11-14</span></td><td>開會頁文字精簡；說明分頁改為連結。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.6</b><br><span class="muted">2026-11-14</span></td><td>移除演練模式；清單有 TEST- 測試資料時才提示刪除。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.5</b><br><span class="muted">2026-11-14</span></td><td>收案頁文字精簡；討論年月只在需要時出現。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.4</b><br><span class="muted">2026-11-14</span></td><td>所有畫面文字改寫，去除內部術語。</td><td class="nw">需重跑 create_lists v10</td></tr>
+<tr><td class="nw"><b>v1.3</b><br><span class="muted">2026-11-14</span></td><td>根因「個人因素」改為「臨床決策」等用詞；主要根因在「臨床決策」層時須另勾其他層級才能定案。</td><td class="nw">需重跑 create_lists v9</td></tr>
+<tr><td class="nw"><b>v1.2</b><br><span class="muted">2026-11-14</span></td><td>收案可一次拖入多個 Word 檔。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1.1</b><br><span class="muted">2026-11-14</span></td><td>修正投影頁「未評」顯示成程式碼。</td><td class="nw">—</td></tr>
+<tr><td class="nw"><b>v1</b><br><span class="muted">2026-11-14</span></td><td>書籤版上線：收案直接寫入清單、開會直接讀清單、會中定案寫回正式紀錄。</td><td class="nw">需重跑 create_lists v8</td></tr>
+</table></details></section>
 
 <section><h2>加人、換人</h2>
 <table>
