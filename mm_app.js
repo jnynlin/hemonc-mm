@@ -1,10 +1,10 @@
-/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.1 2026-11-14
+/* 血腫科 M&M — SharePoint 站台內工具（收案＋開會）  v1.2 2026-11-14
    由書籤載入：書籤從本站「文件」庫讀 mm_app.js 後執行。資料只在瀏覽器 ↔ 本站 SharePoint 之間，不經其他伺服器。
    本檔由 build_app.py 產生：轉換核心取自 mm_convert.html、儀表板取自 mm_dashboard.html，請勿手改。 */
 (() => {
   'use strict';
   if (window.__MM_APP) { window.__MM_APP.show(); return; }
-  const VERSION = 'v1.1 2026-11-14';
+  const VERSION = 'v1.2 2026-11-14';
   const base = location.origin + ((location.pathname.match(/^\/(sites|teams)\/[^/]+/) || [''])[0]);
 
   /* ================= SharePoint REST ================= */
@@ -350,46 +350,48 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     }
     P.innerHTML = `<div class="w"><h2>收案：Word → SharePoint</h2>
       <p class="note">把研究醫師的討論會 Word 檔拖進來 → 自動去識別、編碼、拆欄 → 確認後直接寫入「案例」與「對照表」。Word 檔不會上傳，只在這台電腦的瀏覽器解析。</p>
-      <div class="drop" id="drop" tabindex="0"><b id="dt">把 .docx 拖到這裡，或點一下選檔</b><div class="note" id="ds">超長住院／Morbidity／Mortality 討論會清單</div><input type="file" id="file" accept=".docx" hidden></div>
-      <div class="row"><span id="ymw">討論年月 <input type="text" id="ym" placeholder="2026-10"> <span class="note" id="ymh">超長住院／Morbidity 需要；檔名有「2026年10月」會自動帶入。</span></span>
+      <div class="drop" id="drop" tabindex="0"><b id="dt">把 .docx 拖到這裡（可一次多個），或點一下選檔</b><div class="note" id="ds">超長住院／Morbidity／Mortality 討論會清單</div><input type="file" id="file" accept=".docx" multiple hidden></div>
+      <div class="row"><span id="ymw">討論年月 <input type="text" id="ym" placeholder="2026-10"> <span class="note" id="ymh">檔名看不出年月的超長住院／Morbidity 檔才需要。</span></span>
         <label class="ck"><input type="checkbox" id="demo">演練模式（代碼加 TEST-，可一鍵刪除）</label></div>
       <div id="res"></div></div>`;
-    let file = null, R = null;
+    let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
-    const isMort = () => file && /mortality|死亡/i.test(file.name);
+    const isMortF = f => /mortality|死亡/i.test(f.name);
+    const ymFromName = f => { const m = f.name.match(/(\d{4})年\s*(\d{1,2})月/); return m ? m[1] + '-' + m[2].padStart(2, '0') : ''; };
     async function go() {
-      const res = $('#res');
-      if (!file) return;
-      $('#ymw').style.display = isMort() ? 'none' : '';
-      const ym = ymIn.value.trim();
-      if (!isMort() && !/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) { res.innerHTML = '<p class="warn">請填討論年月（YYYY-MM），填好會自動轉換。</p>'; return; }
+      const res = $('#res'); if (!files.length) return;
+      const needYm = files.some(f => !isMortF(f) && !ymFromName(f));
+      $('#ymw').style.display = needYm ? '' : 'none';
+      const shared = ymIn.value.trim();
+      if (needYm && !/^\d{4}-(0[1-9]|1[0-2])$/.test(shared)) { res.innerHTML = '<p class="warn">有檔名看不出年月，請填討論年月（YYYY-MM），填好會自動轉換。</p>'; return; }
       res.innerHTML = '<div class="load">轉換並比對 SharePoint 既有資料…</div>';
-      try { R = await plan(file, isMort() ? null : ym, $('#demo').checked); render(); }
+      try { R = await plan(files.map(f => ({ file: f, ym: isMortF(f) ? null : (ymFromName(f) || shared) })), $('#demo').checked); render(); }
       catch (e) { res.innerHTML = `<p class="bad">失敗：${esc(e.message)}</p>`; }
     }
-    function pick(f) {
-      if (!f) return; if (!/\.docx$/i.test(f.name)) { $('#ds').innerHTML = '<span class="bad">請選 .docx</span>'; return; }
-      file = f; drop.classList.add('has'); $('#dt').textContent = f.name; $('#ds').textContent = '（點這裡換檔）';
-      const m = f.name.match(/(\d{4})年\s*(\d{1,2})月/); if (m) ymIn.value = m[1] + '-' + m[2].padStart(2, '0');
-      go();
+    function pick(list) {
+      const fs = [...(list || [])].filter(f => /\.docx$/i.test(f.name));
+      if (!fs.length) { $('#ds').innerHTML = '<span class="bad">請選 .docx</span>'; return; }
+      files = fs; drop.classList.add('has'); $('#dt').textContent = fs.map(f => f.name).join('、');
+      $('#ds').textContent = `${fs.length} 個檔（點這裡換檔；可一次選或拖多個）`; go();
     }
     drop.addEventListener('click', () => fileIn.click());
-    fileIn.addEventListener('change', () => pick(fileIn.files[0]));
+    fileIn.addEventListener('change', () => pick(fileIn.files));
     ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
     ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-    drop.addEventListener('drop', e => pick(e.dataTransfer.files[0]));
+    drop.addEventListener('drop', e => pick(e.dataTransfer.files));
     ymIn.addEventListener('change', go); $('#demo').addEventListener('change', go);
 
     function render() {
-      const res = $('#res'), d = R.items, n = d.filter(x => !x.dup).length, dup = d.length - n;
-      if (R.leak.length) { res.innerHTML = `<p class="bad">✗ 去識別未通過：仍含 6 碼以上數字（${esc(R.leak.join('、'))}）。不寫入，請回報主任。</p>`; return; }
-      const unG = d.filter(x => !x.draft.dxGroup).length;
-      res.innerHTML = `<h3><span class="ok">✓</span> ${esc(R.ctype)} ${d.length} 例，去識別通過${dup ? `　<span class="warn">其中 ${dup} 例已收過，預設不寫</span>` : ''}</h3>
+      const res = $('#res'), d = R.items, n = d.filter(x => x.ok).length, dup = d.filter(x => x.dup).length;
+      const unG = d.filter(x => x.ok && !x.draft.dxGroup).length;
+      res.innerHTML = `${R.groups.map(g => g.leak.length
+          ? `<p class="bad">✗ ${esc(g.name)}：去識別未通過（仍含 6 碼以上數字：${esc(g.leak.join('、'))}），這個檔不寫入，請回報主任。</p>`
+          : `<h3><span class="ok">✓</span> ${esc(g.ctype)} ${g.n} 例，去識別通過${g.dup ? `　<span class="warn">其中 ${g.dup} 例已收過，不重寫</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
         ${unG ? `<p class="note warn">▲ ${unG} 例診斷群沒自動歸到，寫入後在清單手選。</p>` : ''}
         ${R.demo ? '<p class="note">演練模式：代碼前加 TEST-。演練完按最下面「刪除演練資料」。</p>' : ''}
-        <div class="row"><button class="b p" id="write">寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每例寫「案例」＋「對照表」各一筆；對照表失敗會把該案例退回，不留半套。</span></div>
+        <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每例寫「案例」＋「對照表」各一筆；對照表失敗會把該案例退回，不留半套。</span></div>
         <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
-        ${d.map((x, i) => `<tr class="${x.dup ? 'dup' : ''}"><td><input type="checkbox" data-i="${i}" ${x.dup ? 'disabled title="已收過，不重複寫入"' : 'checked'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')}</table></div>
+        ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
         <h3>演練資料</h3><p class="note">刪除兩個清單裡所有代碼以 TEST- 開頭的項目。</p><button class="b" id="purge">刪除演練資料（TEST-）</button>`;
       const cnt = () => { $('#wn').textContent = res.querySelectorAll('input[data-i]:checked').length; };
@@ -413,7 +415,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       }
       say(`=== 完成：新增 ${ok}、失敗 ${fail} ===`);
       if (ok) say(`下一步：到「案例」清單逐案補初評、徵詢主治，完成的狀態改「待討論」。\n${cl.url}`);
-      R = null; file = null; drop.classList.remove('has'); $('#dt').textContent = '把 .docx 拖到這裡，或點一下選檔'; $('#ds').textContent = '寫完了；要收下一個檔再拖進來';
+      R = null; files = []; drop.classList.remove('has'); $('#dt').textContent = '把 .docx 拖到這裡（可一次多個），或點一下選檔'; $('#ds').textContent = '寫完了；要收下一批再拖進來';
       meetReady = false; // 開會頁下次重讀
     }
     async function purge() {
@@ -428,38 +430,35 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     }
   }
   // 轉換 → 依 SharePoint 既有資料重新編號、標出重複
-  async function plan(file, ym, demo) {
-    const r = await MM.convert(await file.arrayBuffer(), ym);
-    const cl = await listInfo('案例'), kl = await listInfo('對照表'), chartF = kl.f['病歷號'];
-    const E = t => cl.f[t].EntityPropertyName;
+  async function plan(specs, demo) {
+    const cl = await listInfo('案例'), kl = await listInfo('對照表'), chartF = kl.f['病歷號'], E = t => cl.f[t].EntityPropertyName;
     const cases = (await rq(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Title,${E('病人簡稱')},${E('年齡')},${E('詳細診斷')}`)).value;
     const titles = cases.map(x => x.Title || '');
     const fp = (stem, s, a, dx) => [stem.replace(/^TEST-/, ''), s || '', a ?? '', String(dx || '').slice(0, 40)].join('|');
     const byFp = {}; for (const c of cases) { const m = (c.Title || '').match(/^(.*-\d{4}-\d{2}-)\d+$/); if (m) byFp[fp(m[1], c[E('病人簡稱')], c[E('年齡')], c[E('詳細診斷')])] = c.Title; }
     const keys = (await rq(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${chartF.EntityPropertyName}`)).value;
     const byChart = {}; for (const k of keys) { const c = String(k[chartF.EntityPropertyName] || '').trim(); if (c) (byChart[c] = byChart[c] || []).push(k.Title || ''); }
-    const pre = demo ? 'TEST-' : '', next = {};
-    const items = r.drafts.map((d, i) => {
-      const prefix = d.code.replace(/-\d{4}-\d{2}-\d+$/, ''), stem = `${pre}${prefix}-${d.ym}-`;
-      const chart = String(r.keyRows[i][1] || '').trim();
-      let dup = (byChart[chart] || []).find(t => t.startsWith(stem) && /^\d+$/.test(t.slice(stem.length))) || null;
-      if (!dup) { const hit = byFp[fp(stem, d.nameShort, d.age, d.dxDetail)]; if (hit && hit.startsWith(stem)) dup = hit; } // 案例在、對照表沒有的舊資料
-      return { d, i, stem, dup };
-    });
-    for (const x of items) {
-      if (x.dup) { x.code = x.dup; continue; }
-      if (next[x.stem] == null) next[x.stem] = Math.max(0, ...titles.filter(t => t.startsWith(x.stem)).map(t => parseInt(t.slice(x.stem.length), 10)).filter(n => !isNaN(n)));
-      x.code = x.stem + String(++next[x.stem]).padStart(2, '0');
-    }
+    const pre = demo ? 'TEST-' : '', next = {}, groups = [], items = [];
     const obj = (cols, row) => { const o = {}; cols.forEach((c, j) => o[c] = row[j]); return o; };
-    return {
-      ctype: r.ctype, leak: r.leak, demo,
-      items: items.map(x => {
-        const caseRow = obj(MM.LIST_COLS, r.caseRows[x.i]), keyRow = obj(MM.KEY_COLS, r.keyRows[x.i]);
-        caseRow['標題'] = x.code; keyRow['標題'] = x.code;
-        return { code: x.code, dup: x.dup, draft: x.d, caseRow, keyRow };
-      })
-    };
+    for (const sp of specs) {
+      const r = await MM.convert(await sp.file.arrayBuffer(), sp.ym);
+      const g = { name: sp.file.name, ctype: r.ctype, leak: r.leak, n: r.drafts.length, dup: 0 }; groups.push(g);
+      r.drafts.forEach((d, i) => {
+        const prefix = d.code.replace(/-\d{4}-\d{2}-\d+$/, ''), stem = `${pre}${prefix}-${d.ym}-`, chart = String(r.keyRows[i][1] || '').trim();
+        let dup = (byChart[chart] || []).find(t => t.startsWith(stem) && /^\d+$/.test(t.slice(stem.length))) || null;
+        if (!dup) { const hit = byFp[fp(stem, d.nameShort, d.age, d.dxDetail)]; if (hit && hit.startsWith(stem)) dup = hit; } // 案例在、對照表沒有的舊資料
+        let code = dup;
+        if (!dup) {
+          if (next[stem] == null) next[stem] = Math.max(0, ...titles.filter(t => t.startsWith(stem)).map(t => parseInt(t.slice(stem.length), 10)).filter(n => !isNaN(n)));
+          code = stem + String(++next[stem]).padStart(2, '0');
+          if (chart) (byChart[chart] = byChart[chart] || []).push(code); // 同一批兩個檔重複的病人
+        } else g.dup++;
+        const caseRow = obj(MM.LIST_COLS, r.caseRows[i]), keyRow = obj(MM.KEY_COLS, r.keyRows[i]);
+        caseRow['標題'] = code; keyRow['標題'] = code;
+        items.push({ g, code, dup, ok: !dup && !r.leak.length, draft: d, caseRow, keyRow });
+      });
+    }
+    return { demo, groups, items };
   }
 
   /* ================= 開會（儀表板＋定案寫回） ================= */
