@@ -4,7 +4,7 @@
   const PREV = ['不可預防', '可能可預防', '很可能可預防', '明確可預防'];
   const caseF = () => [T('標題', 'Title', 'Text'), T('年月', 'mmYearMonth', 'Text'), T('案例類型', 'mmCaseType', 'MultiChoice', { Choices: ['超長住院', 'Morbidity', 'Mortality'] }), T('年齡層', 'mmAgeBand', 'Choice', { Choices: ['<40', '40–49', '50–59', '60–69', '70–79', '≥80'] }), T('性別', 'mmSex', 'Choice', { Choices: ['男', '女'] }), T('診斷群', 'mmDxGroup', 'Text'), T('治療階段', 'mmPhase', 'Text'), T('詳細診斷', 'mmDxDetail', 'Text'), T('治療內容', 'mmTreatment', 'Note'), T('臨床經過', 'mmCourse', 'Note'), T('住院天數', 'mmLOS', 'Number'), T('可避免天數', 'mmAvoidableDays', 'Number'), T('死亡預期性', 'mmDeathExpect', 'Choice', { Choices: ['不適用', '預期（疾病進展）', '非預期'] }), T('Morbidity等級', 'mmMorbGrade', 'Choice', { Choices: ['不適用', 'I', 'II'] }), T('初評主要根因', 'mmInitMainFactor', 'Lookup'), T('初評促成因素', 'mmInitFactors', 'LookupMulti'), T('初評可預防性', 'mmInitPrev', 'Choice', { Choices: PREV }), T('主治醫師回覆', 'mmAttStatus', 'Choice', { Choices: ['未徵詢', '同意初評', '不同意初評'] }), T('主治醫師說明', 'mmAttNote', 'Note'), T('五個為什麼', 'mmFiveWhys', 'Note'), T('學習重點', 'mmLessons', 'Note'), T('參考指引文獻', 'mmRefs', 'Note'), T('病人簡稱', 'mmPatientShort', 'Text'), T('年齡', 'mmAge', 'Number')];
   const L = {
-    '案例': [...caseF(), T('狀態', 'mmStatus', 'Choice', { Choices: ['整理中', '待討論', '已定案'] })],
+    '案例': [...caseF(), T('狀態', 'mmStatus', 'Choice', { Choices: ['整理中', '待討論', '已定案'] }), T('主治醫師', 'mmAttending', 'User')],
     '正式紀錄': [...caseF(), T('共識主要根因', 'mmConsMainFactor', 'Lookup'), T('共識促成因素', 'mmConsFactors', 'LookupMulti'), T('共識可預防性', 'mmConsPrev', 'Choice', { Choices: PREV }), T('決策方式', 'mmDecisionMode', 'Choice', { Choices: ['三方一致', '主席裁定', '投票'] }), T('長官意見', 'mmChiefComment', 'Note'), T('會議結論', 'mmConclusion', 'Note'), T('會議日期', 'mmMeetingDate', 'DateTime'), T('出席人數', 'mmAttendees', 'Number'), T('票數', 'mmVotes', 'Number'), T('投票分布', 'mmVoteDist', 'Note'), T('初評一致', 'mmConcordant', 'Choice', { Choices: ['是', '否'] })],
     '根因分類': [T('標題', 'Title', 'Text'), T('層級', 'mmLevel', 'Choice', { Choices: ['病人因素', '工作任務與流程', '超長住院因素'] }), T('排序', 'mmSortOrder', 'Number')],
     '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('到期日', 'mmDueDate', 'DateTime'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] }), T('備註', 'mmRemarks', 'Note')],
@@ -23,6 +23,8 @@
     const path = decodeURIComponent(url.split('/_api/')[1]); const m = (opt.method || 'GET').toUpperCase(), xm = (opt.headers || {})['X-HTTP-Method'];
     MOCK.log.push(m + ' ' + (xm || '') + ' ' + path.slice(0, 90));
     if (path === 'contextinfo') return J({ d: { GetContextWebInformation: { FormDigestValue: 'D' } } });
+    if (path.startsWith('SP.UI.ApplicationPages.ClientPeoplePickerWebServiceInterface.clientPeoplePickerSearchUser')) { const qs = JSON.parse(opt.body).queryParams.QueryString; const hits = (MOCK.users || []).filter(u => u.DisplayText.includes(qs)).map(u => ({ Key: u.Key, DisplayText: u.DisplayText })); return J({ d: { ClientPeoplePickerSearchUser: JSON.stringify(hits) } }); }
+    if (path === 'web/ensureuser') { const k = JSON.parse(opt.body).logonName; const u = (MOCK.users || []).find(x => x.Key === k); return u ? J({ d: { Id: u.Id, Title: u.DisplayText } }) : J({ 'odata.error': { message: { value: 'user not found' } } }, 404); }
     let mt = path.match(/^web\/lists\/getbytitle\('(.+?)'\)/);
     if (mt) { const t = mt[1].replace(/''/g, "'"); if (!L[t] || (t === '對照表' && !MOCK.perms['對照表'])) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404); return J({ Id: ids[t], ListItemEntityTypeFullName: 'SP.Data.' + ids[t], RootFolder: { ServerRelativeUrl: '/sites/x/Lists/' + t } }); }
     mt = path.match(/^web\/lists\(guid'(g\d)'\)\/(.*)$/); if (!mt) return J({ error: 'unknown ' + path }, 400);
@@ -30,7 +32,7 @@
     if (rest.startsWith('fields')) return J({ value: F });
     if (rest === 'EffectiveBasePermissions') return J({ Low: '4294967295', High: '2147483647' });
     let im = rest.match(/^items\((\d+)\)(?:\?.*)?$/);
-    if (im) { const id = +im[1], i = DB[t].findIndex(x => x.Id === id); if (m === 'GET') return i < 0 ? J({ 'odata.error': { message: { value: 'Item does not exist' } } }, 404) : J({ ...DB[t][i] }); if (xm === 'DELETE') { DB[t].splice(i, 1); return new Response(null, { status: 204 }); } if (xm === 'MERGE') { const b = JSON.parse(opt.body); delete b.__metadata; Object.assign(DB[t][i], b); return new Response(null, { status: 204 }); } }
+    if (im) { const id = +im[1], i = DB[t].findIndex(x => x.Id === id); if (m === 'GET') return i < 0 ? J({ 'odata.error': { message: { value: 'Item does not exist' } } }, 404) : J({ ...DB[t][i] }); if (xm === 'DELETE') { DB[t].splice(i, 1); return new Response(null, { status: 204 }); } if (xm === 'MERGE') { const b = JSON.parse(opt.body); delete b.__metadata; Object.assign(DB[t][i], b); if (b.mmAttendingId) { const u = (MOCK.users || []).find(x => x.Id === b.mmAttendingId); DB[t][i].mmAttending = u ? { Id: u.Id, Title: u.DisplayText } : null; } return new Response(null, { status: 204 }); } }
     if (rest.startsWith('items') && m === 'GET') {
       let rows = DB[t]; const f = rest.match(/\$filter=([^&]*)/);
       if (f) { let a; if ((a = f[1].match(/startswith\(Title,'(.*)'\)/))) rows = rows.filter(r => (r.Title || '').startsWith(a[1])); if ((a = f[1].match(/Title eq '(.*)'/))) rows = rows.filter(r => r.Title === a[1].replace(/''/g, "'")); }
@@ -39,6 +41,7 @@
     if (rest === 'items' && m === 'POST') {
       const b = JSON.parse(opt.body); delete b.__metadata; const it = { Id: seq++ };
       for (const [k, v] of Object.entries(b)) {
+        if (k === 'mmAttendingId' && F.find(x => x.InternalName === 'mmAttending')) { const u = (MOCK.users || []).find(x => x.Id === v); it.mmAttendingId = v; it.mmAttending = u ? { Id: u.Id, Title: u.DisplayText } : null; continue; }
         const fl = F.find(x => x.EntityPropertyName + 'Id' === k && /^Lookup/.test(x.TypeAsString));
         if (fl) { it[fl.InternalName] = fl.TypeAsString === 'Lookup' ? fac(v) : v.results.map(fac); continue; }
         if (!F.find(x => x.EntityPropertyName === k)) return J({ 'odata.error': { message: { value: 'property ' + k + ' does not exist on ' + t } } }, 400);

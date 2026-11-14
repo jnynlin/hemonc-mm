@@ -39,11 +39,11 @@
     try { const li = await listInfo(title); const p = await rq(`web/lists(guid'${li.id}')/EffectiveBasePermissions`); return (Number(p.Low) & 2) !== 0; }
     catch (_) { return false; }
   }
-  function selExp(li) { const sel = ['Id'], exp = []; for (const f of li.ours) { if (/^Lookup/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); } return `$select=${sel.join(',')}${exp.length ? '&$expand=' + exp.join(',') : ''}`; }
+  function selExp(li) { const sel = ['Id'], exp = []; for (const f of li.ours) { if (/^(Lookup|User)/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); } return `$select=${sel.join(',')}${exp.length ? '&$expand=' + exp.join(',') : ''}`; }
   async function readOne(title, id) { const li = await listInfo(title); return rq(`web/lists(guid'${li.id}')/items(${id})?${selExp(li)}`); }
   async function readAll(title) {
     const li = await listInfo(title); const sel = ['Id'], exp = [];
-    for (const f of li.ours) { if (/^Lookup/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); }
+    for (const f of li.ours) { if (/^(Lookup|User)/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); }
     let url = `web/lists(guid'${li.id}')/items?$top=5000&$select=${sel.join(',')}${exp.length ? '&$expand=' + exp.join(',') : ''}`, out = [];
     while (url) { const j = await rq(url); out = out.concat(j.value || []); url = j['odata.nextLink'] || null; }
     return out;
@@ -53,8 +53,8 @@
     const o = { _id: it.Id };
     for (const f of li.ours) {
       const t = f.InternalName === 'Title' ? '標題' : f.Title, ty = f.TypeAsString;
-      let v = /^Lookup/.test(ty) ? it[f.InternalName] : it[f.EntityPropertyName];
-      if (ty === 'Lookup') v = v && v.Title ? v.Title : '';
+      let v = /^(Lookup|User)/.test(ty) ? it[f.InternalName] : it[f.EntityPropertyName];
+      if (ty === 'Lookup' || ty === 'User') v = v && v.Title ? v.Title : '';
       else if (ty === 'LookupMulti') v = (v || []).map(x => x.Title).join(';');
       else if (ty === 'MultiChoice') v = (v || []).join(';');
       else if (ty === 'DateTime') v = v ? ymd(v) : '';
@@ -75,12 +75,27 @@
         case 'Choice': if (ch.length && !ch.includes(v)) warn.push(`${h}「${v}」不是清單選項`); else body[k] = v; break;
         case 'MultiChoice': { const vals = split(v).filter(x => !ch.length || ch.includes(x)); if (vals.length) body[k] = { __metadata: { type: 'Collection(Edm.String)' }, results: vals }; break; }
         case 'DateTime': { const d = new Date(v.replace(/[./]/g, '-')); if (!isNaN(d)) body[k] = ymd(d) + 'T00:00:00Z'; break; }
+        case 'User': { const id = parseInt(v, 10); if (id) body[k + 'Id'] = id; break; }
         case 'Lookup': { const id = lookupIds && lookupIds[v]; if (id) body[k + 'Id'] = id; else warn.push(`${h}「${v}」不在根因分類中`); break; }
         case 'LookupMulti': { const ids = split(v).map(x => lookupIds && lookupIds[x]).filter(Boolean); if (ids.length) body[k + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: ids }; break; }
         default: body[k] = v;
       }
     }
     return { body, warn };
+  }
+  const userCache = {};
+  async function resolveUser(name) { // Word 上的主治姓名 → 站台使用者 Id；同名或找不到回傳 null
+    name = String(name || '').split(/[／/、,，\s]/).filter(Boolean)[0] || '';
+    if (!name) return { id: null, why: 'Word 沒寫主治' };
+    if (userCache[name]) return userCache[name];
+    let out = { id: null, why: '找不到「' + name + '」' };
+    try {
+      const r = await rq('SP.UI.ApplicationPages.ClientPeoplePickerWebServiceInterface.clientPeoplePickerSearchUser', { method: 'POST', body: { queryParams: { __metadata: { type: 'SP.UI.ApplicationPages.ClientPeoplePickerQueryParameters' }, AllowEmailAddresses: true, AllowMultipleEntities: false, AllUrlZones: false, MaximumEntitySuggestions: 10, PrincipalSource: 15, PrincipalType: 1, QueryString: name } } });
+      const hits = JSON.parse(r.ClientPeoplePickerSearchUser || '[]').filter(e => String(e.DisplayText || '').startsWith(name));
+      if (hits.length > 1) out = { id: null, why: '「' + name + '」有 ' + hits.length + ' 位同名' };
+      else if (hits.length === 1) { const u = await rq('web/ensureuser', { method: 'POST', body: { logonName: hits[0].Key } }); out = { id: u.Id, name: hits[0].DisplayText }; }
+    } catch (e) { out = { id: null, why: '查詢帳號失敗' }; }
+    return (userCache[name] = out);
   }
   const addItem = (li, body) => rq(`web/lists(guid'${li.id}')/items`, { method: 'POST', body });
   const delItem = (li, id) => rq(`web/lists(guid'${li.id}')/items(${id})`, { method: 'POST', headers: { 'X-HTTP-Method': 'DELETE', 'IF-MATCH': '*' } });
@@ -156,7 +171,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       <div class="drop" id="drop" tabindex="0"><b id="dt">拖曳 Word 檔到這裡，或點選檔案</b><div class="note" id="ds">可一次選多個檔；超長住院、Morbidity、Mortality 均可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
       <div class="row"><span id="ymw" style="display:none">討論年月 <input type="text" id="ym" placeholder="例：2026-10"> <span class="note" id="ymh">檔名中找不到月份，請填寫。</span></span>
 </div>
-      <div id="testbox"></div>
+      <div id="testbox"></div><div id="attbox"></div>
       <div id="res"></div></div>`;
     let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
@@ -194,9 +209,10 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           ? `<p class="bad">${esc(g.name)}：內容裡還有疑似病歷號的長串數字（${esc(g.leak.join('、'))}），這個檔不會寫入，請告訴主任。</p>`
           : `<h3>${esc(g.ctype)} ${g.n} 例，可識別資料已隱去${g.dup ? `　<span class="warn">其中 ${g.dup} 例之前已收過，會略過</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
         ${unG ? `<p class="note warn">${unG} 例無法自動判斷診斷群，寫入後請在清單補選。</p>` : ''}
+        ${(() => { const n = d.filter(x => x.ok && x.att && !x.att.id).length; return n ? `<p class="note warn">${n} 例沒有自動帶入主治醫師，寫入後請在清單的「主治醫師」欄選取。</p>` : ''; })()}
         <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每一例會同時寫入「案例」與「對照表」；任一邊沒寫成功，該例會整筆取消。</span></div>
-        <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
-        ${R.groups.map(g => `<tr><td colspan="8" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}${x.noDate ? '<br><span class="warn">找不到日期，不寫入</span>' : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
+        <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>主治</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
+        ${R.groups.map(g => `<tr><td colspan="9" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}${x.noDate ? '<br><span class="warn">找不到日期，不寫入</span>' : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${!x.att ? '—' : x.att.id ? esc(String(x.att.name).split(' ')[0]) : `<span class="warn">${esc(x.att.why)}</span>`}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
 `;
       const cnt = () => { $('#wn').textContent = res.querySelectorAll('input[data-i]:checked').length; };
@@ -232,6 +248,24 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
         box.innerHTML = `<p class="note">已刪除 ${n} 例測試資料。</p>`; meetReady = false;
       } catch (e) { box.innerHTML = `<p class="bad">刪除失敗：${esc(e.message)}</p>`; }
     }
+    async function backfill(missing) {
+      const box = $('#attbox'); box.innerHTML = '<p class="note">補填中…</p>';
+      try {
+        const cl = await listInfo('案例'), kl = await listInfo('對照表'), kf = kl.f['主治醫師'].EntityPropertyName, uf = cl.f['主治醫師'].EntityPropertyName;
+        const keys = {}; for (const k of (await rq(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${kf}`)).value) keys[k.Title] = k[kf];
+        let ok = 0; const miss = [];
+        for (const c of missing) { const r = await resolveUser(keys[c.Title]); if (r.id) { await mergeItem(cl, c.Id, { __metadata: { type: cl.type }, [uf + 'Id']: r.id }); ok++; } else miss.push(`${c.Title}（${r.why}）`); }
+        box.innerHTML = `<p class="note">已補填 ${ok} 例主治醫師。${miss.length ? `<br><span class="warn">${miss.length} 例需手動選取：${esc(miss.join('、'))}</span>` : ''}</p>`; meetReady = false;
+      } catch (e) { box.innerHTML = `<p class="bad">補填失敗：${esc(e.message)}</p>`; }
+    }
+    (async () => { // 已收的案例若還沒有主治醫師，提供依對照表補填
+      try {
+        const cl = await listInfo('案例'); if (!cl.f['主治醫師']) return;
+        const uf = cl.f['主治醫師'].EntityPropertyName;
+        const missing = (await rq(`web/lists(guid'${cl.id}')/items?$top=5000&$select=Id,Title,${uf}Id`)).value.filter(c => !c[uf + 'Id'] && !/^TEST-/.test(c.Title || ''));
+        if (missing.length) { $('#attbox').innerHTML = `<p class="note warn">「案例」清單有 ${missing.length} 例還沒有主治醫師。 <button class="b" id="bf">依對照表補填</button></p>`; $('#bf').addEventListener('click', () => backfill(missing)); }
+      } catch (_) {}
+    })();
     (async () => { // 清單裡若有舊的測試資料（代碼 TEST- 開頭）才提示
       try {
         const li = await listInfo('案例'); const j = await rq(`web/lists(guid'${li.id}')/items?$top=5000&$select=Id&$filter=startswith(Title,'TEST-')`);
@@ -264,7 +298,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           if (miss.length) g.bad = miss.join('、');
         }
       }
-      r.drafts.forEach((d, i) => {
+      for (let i = 0; i < r.drafts.length; i++) { const d = r.drafts[i];
         const prefix = d.code.replace(/-\d{4}-\d{2}-\d+$/, ''), stem = `${pre}${prefix}-${d.ym}-`, chart = String(r.keyRows[i][1] || '').trim();
         let dup = (byChart[chart] || []).find(t => t.startsWith(stem) && /^\d+$/.test(t.slice(stem.length))) || null;
         if (!dup) { const hit = byFp[fp(stem, d.nameShort, d.age, d.dxDetail)]; if (hit && hit.startsWith(stem)) dup = hit; } // 案例在、對照表沒有的舊資料
@@ -276,9 +310,10 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
         } else g.dup++;
         const caseRow = obj(MM.LIST_COLS, r.caseRows[i]), keyRow = obj(MM.KEY_COLS, r.keyRows[i]);
         caseRow['標題'] = code; keyRow['標題'] = code;
+        const att = cl.f['主治醫師'] ? await resolveUser(keyRow['主治醫師']) : null; if (att && att.id) caseRow['主治醫師'] = att.id;
         const noDate = !d.ym || d.ym === '0000-00';
-        items.push({ g, code: noDate ? '（無日期）' : code, dup, noDate, ok: !dup && !noDate && !r.leak.length && !g.bad, draft: d, caseRow, keyRow });
-      });
+        items.push({ g, att, code: noDate ? '（無日期）' : code, dup, noDate, ok: !dup && !noDate && !r.leak.length && !g.bad, draft: d, caseRow, keyRow });
+      }
     }
     return { demo, groups, items };
   }
@@ -303,6 +338,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const body = { __metadata: { type: rl.type } };
     for (const f of rl.ours) { // 複製案例欄位
       const cf = cl.f[f.InternalName === 'Title' ? '標題' : f.Title]; if (!cf || f.ReadOnlyField) continue;
+      if (f.TypeAsString === 'User') continue;
       const ty = f.TypeAsString, v = /^Lookup/.test(ty) ? raw[cf.InternalName] : raw[cf.EntityPropertyName], k = f.EntityPropertyName;
       if (ty === 'Lookup') { if (v && v.Id) body[k + 'Id'] = v.Id; }
       else if (ty === 'LookupMulti') { const ids = (v || []).map(x => x.Id).filter(Boolean); if (ids.length) body[k + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: ids }; }
