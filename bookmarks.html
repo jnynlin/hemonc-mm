@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>M&M 書籤安裝</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#fbfbf9;--fg:#1f2428;--muted:#5d6670;--line:#d9ddd6;--accent:#1c5cab;--accent-soft:#e3ecf8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;--accent-soft:#1d2a3c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;--accent-soft:#1d2a3c;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,"Noto Sans TC","Microsoft JhengHei",sans-serif;padding:0 16px 48px}
+.wrap{max-width:760px;margin:0 auto} header{padding:28px 0 14px;border-bottom:2px solid var(--fg)} h1{font-size:24px;margin:0}
+h2{font-size:18px;margin:28px 0 8px} ol{padding-left:1.4em} li{margin:6px 0} .muted{color:var(--muted);font-size:14px}
+a.bm{display:inline-block;padding:10px 22px;border:2px dashed var(--accent);color:var(--accent);background:var(--accent-soft);text-decoration:none;font-weight:600;border-radius:8px;cursor:grab;margin:8px 0}
+kbd{border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:14px}
+</style>
+<script src="theme.js"></script>
+</head>
+<body><div class="wrap">
+<header><h1>M&M 書籤安裝</h1></header>
+<h2>步驟 1：叫出 Edge 的「我的最愛列」</h2>
+<p>按 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>，網址列下方會出現一條橫列。已經有就跳過。</p>
+<h2>步驟 2：把下面這顆按鈕「拖」到那條橫列上</h2>
+<p><a class="bm" href="javascript:%28async%28%29%3D%3E%7Btry%7Bconst%20b%3Dlocation.origin%2B%28location.pathname.match%28%2F%5E%5C%2Fsites%5C%2F%5B%5E%2F%5D%2B%2F%29%7C%7C%5B%27%27%5D%29%5B0%5D%3Bif%28%21%2Fsharepoint%5C.com%24%2F.test%28location.hostname%29%29%7Balert%28%27%E8%AB%8B%E5%85%88%E6%89%93%E9%96%8B%20SharePoint%20%E7%9A%84%20monthly-meeting%20%E7%AB%99%E5%8F%B0%EF%BC%8C%E5%86%8D%E6%8C%89%E9%80%99%E5%80%8B%E6%9B%B8%E7%B1%A4%E3%80%82%27%29%3Breturn%7Dconst%20r%3Dawait%20fetch%28b%2B%22%2F_api%2Fweb%2Flists%2Fgetbytitle%28%27%E6%A1%88%E4%BE%8B%27%29%2Fitems%3F%24top%3D5%26%24select%3DId%22%2C%7Bheaders%3A%7BAccept%3A%27application%2Fjson%3Bodata%3Dnometadata%27%7D%7D%29%3Bconst%20j%3Dawait%20r.json%28%29%3Blet%20ev%3Btry%7Bev%3D%280%2Ceval%29%28%271%2B1%27%29%3D%3D%3D2%3F%27%E5%8F%AF%27%3A%27%E4%B8%8D%E5%8F%AF%27%7Dcatch%28e%29%7Bev%3D%27%E8%A2%AB%E6%93%8B%27%7Dalert%28%27%E6%9B%B8%E7%B1%A4%E5%8F%AF%E5%9F%B7%E8%A1%8C%20%E2%9C%93%5Cn%E8%AE%80%E6%B8%85%E5%96%AE%EF%BC%9A%27%2Br.status%2B%27%EF%BC%88%27%2B%28j.value%3Fj.value.length%3A%27%3F%27%29%2B%27%20%E7%AD%86%EF%BC%89%5Cn%E5%8B%95%E6%85%8B%E8%BC%89%E5%85%A5%E7%A8%8B%E5%BC%8F%EF%BC%9A%27%2Bev%29%7Dcatch%28e%29%7Balert%28%27%E9%8C%AF%E8%AA%A4%EF%BC%9A%27%2Be.message%29%7D%7D%29%28%29" onclick="alert('不要點它，請用滑鼠按住拖到上方的我的最愛列。');return false">M&M 測試</a></p>
+<p class="muted">按住不放 → 往上拖到我的最愛列 → 放開。橫列上就會多一個「M&M 測試」。</p>
+<h2>步驟 3：到 SharePoint 站台上按它</h2>
+<ol><li>打開 monthly-meeting 站台（任何一頁都可以）。</li><li>點我的最愛列上的「M&M 測試」。</li><li>頁面上方跳出小框，把三行結果告訴主任。</li></ol>
+<p class="muted">書籤不是網頁：它是一小段程式，點了會在「目前開著的頁面」上執行，用你已登入的身分讀 SharePoint 清單，不會把資料送到別處。</p>
+</div></body></html>
