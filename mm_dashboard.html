@@ -1,11 +1,5 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-</head>
-<body>
 <title>M&M 會議儀表板</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -37,8 +31,11 @@ section{padding-block:22px;border-bottom:1px solid var(--rule)} section:last-chi
 .row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
 .btn{border:1px solid var(--axis);background:var(--surface);border-radius:6px;padding:6px 12px;cursor:pointer} .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff} .btn.sm{padding:3px 8px;font-size:.85rem}
 select,input[type=text]{border:1px solid var(--axis);border-radius:6px;background:var(--surface);padding:6px 8px}
-label.f{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--fg2)} label.f input[type=file]{font-size:.85rem}
-.loads{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--fg2);border-top:2px solid var(--rule);padding-top:10px} label.f input[type=file]{font-size:.85rem;margin-top:4px}
+label.f .t{font-size:1rem;color:var(--fg);font-weight:600;display:flex;gap:8px;align-items:baseline} label.f .step{font-family:var(--mono,ui-monospace,monospace);font-size:.75rem;color:var(--accent)}
+label.f .tag{font-size:.7rem;padding:0 6px;border-radius:9px;background:var(--accent-soft);color:var(--fg2)} label.f .tag.req{background:var(--accent);color:#fff}
+label.f .d{color:var(--fg2);line-height:1.5;min-height:3em} label.f .when{color:var(--muted);font-size:.78rem}
+.loads{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px 28px}
 .loads .ok{color:var(--good);font-size:.8rem} .loads .no{color:var(--muted);font-size:.8rem}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 24px} .tile .v{font-size:2rem;font-weight:700;line-height:1.1} .tile .l{color:var(--fg2);font-size:.85rem} .tile .sub{color:var(--muted);font-size:.8rem}
 .tbl{overflow-x:auto} table{border-collapse:collapse;width:100%;font-size:.9rem} th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);vertical-align:top} th{color:var(--fg2);font-weight:500;font-size:.8rem;white-space:nowrap} td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -62,8 +59,8 @@ body.present .top{display:none} body.present main{max-width:1400px;padding-block
 </style>
 
 <div class="top"><div class="top-in">
-  <div><h1>M&amp;M 會議儀表板</h1><div class="dept">離線版：讀 SharePoint List 匯出檔（正式紀錄／案例／根因分類／改善行動）</div></div>
-  <nav id="nav"><button data-view="load">載入</button><button data-view="records">紀錄與分析</button><button data-view="prep">待討論案例</button><button data-view="about">說明</button></nav>
+  <div><h1>M&amp;M 會議儀表板</h1><div class="dept">離線版：載入 SharePoint 匯出檔 → 會前看待討論案例、投影 → 會後看紀錄與分析</div></div>
+  <nav id="nav"><button data-view="load">載入</button><button data-view="prep">待討論案例</button><button data-view="records">紀錄與分析</button><button data-view="about">說明</button></nav>
 </div></div>
 <main>
   <div id="v-load" hidden></div><div id="v-records" hidden></div><div id="v-prep" hidden></div><div id="v-about" hidden></div><div id="v-present" hidden></div>
@@ -151,12 +148,12 @@ function opinionBlock(c){ const i=c.initial,a=c.attending; return `<div class="c
 
 /* ---------- 載入 ---------- */
 function renderLoad(){ const el=$('#v-load'); const L=state.loaded; const st=k=>L[k]?`<span class="ok">已載入 ${esc(L[k].name)}（${L[k].n} 列${L[k].at?'，'+esc(L[k].at):''}）</span>`:'<span class="no">尚未載入</span>';
-  el.innerHTML=`<section><div class="sec-head"><h2>載入 SharePoint 匯出檔</h2><span class="note">各清單右上「匯出 → 匯出至 CSV」（Excel 亦可，需網路載入解析器）。檔案只在這台電腦的瀏覽器處理，不會上傳。</span></div>
+  el.innerHTML=`<section><div class="sec-head"><h2>載入 SharePoint 匯出檔</h2><span class="note">每個清單在 SharePoint 右上「匯出 → 匯出至 CSV」各存一個檔，對應拖進下面的格子。檔案只在這台電腦的瀏覽器處理，不會上傳。第一次用只要前兩個。</span></div>
     <div class="loads">
-      <label class="f">正式紀錄（分析用，必要） <input type="file" id="f-records" accept=".csv,.xlsx,.txt">${st('records')}</label>
-      <label class="f">案例（待討論清單與投影） <input type="file" id="f-drafts" accept=".csv,.xlsx,.txt">${st('drafts')}</label>
-      <label class="f">根因分類（層級交叉表） <input type="file" id="f-factors" accept=".csv,.xlsx,.txt">${st('factors')}</label>
-      <label class="f">改善行動 <input type="file" id="f-actions" accept=".csv,.xlsx,.txt">${st('actions')}</label>
+      <label class="f"><span class="t"><span class="step">1</span>案例 <span class="tag req">會前必要</span></span><span class="d">本月要討論的案例與初評、主治意見。給「待討論案例」與「投影模式」用。</span><span class="when">來源：SharePoint 清單「案例」（也可直接用轉換器產出的 案例_匯入_*.xlsx 先看）</span><input type="file" id="f-drafts" accept=".csv,.xlsx,.txt">${st('drafts')}</label>
+      <label class="f"><span class="t"><span class="step">2</span>正式紀錄 <span class="tag req">分析必要</span></span><span class="d">歷月已定案的共識根因、可預防性、決策方式。給「紀錄與分析」的所有圖表用；第一個月還沒有紀錄可先略過。</span><span class="when">來源：SharePoint 清單「正式紀錄」</span><input type="file" id="f-records" accept=".csv,.xlsx,.txt">${st('records')}</label>
+      <label class="f"><span class="t"><span class="step">3</span>根因分類 <span class="tag">選用</span></span><span class="d">27 項因素各屬哪一層（病人／個人／流程／團隊／環境／組織／超長住院）。載入後根因圖會依層分組並顯示層級交叉表；不載入也能畫圖，只是不分層。</span><span class="when">來源：SharePoint 清單「根因分類」（內容固定，匯出一次留著重複用）</span><input type="file" id="f-factors" accept=".csv,.xlsx,.txt">${st('factors')}</label>
+      <label class="f"><span class="t"><span class="step">4</span>改善行動 <span class="tag">選用</span></span><span class="d">上月定案的改善行動與進度，會中回顧「做了沒」。</span><span class="when">來源：SharePoint 清單「改善行動」</span><input type="file" id="f-actions" accept=".csv,.xlsx,.txt">${st('actions')}</label>
     </div>
     <div class="row" style="margin-top:16px"><label class="row small">超長住院門檻（天） <input type="text" id="thr" value="${state.thr}" style="width:5em"></label><button class="btn" id="sample">載入範例資料</button><button class="btn" id="clear">清除已載入資料</button><span class="small" id="load-msg"></span></div>
     </section>`;
@@ -211,6 +208,3 @@ function renderAbout(){ $('#v-about').innerHTML=`<section><div class="sec-head">
 
 restore(); (function(){ const h=location.hash.slice(1); setView(VIEWS.includes(h)&&h!=='present'?h:(state.records.length?'records':'load')); })();
 </script>
-
-</body>
-</html>
