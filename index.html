@@ -7,7 +7,8 @@
 <meta name="robots" content="noindex">
 <style>
 :root{--bg:#fbfbf9;--fg:#1f2428;--muted:#5d6670;--line:#d9ddd6;--accent:#1c5cab}
-@media (prefers-color-scheme:dark){:root{--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;color-scheme:dark}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181b;--fg:#e6e8e3;--muted:#9aa3ab;--line:#333a40;--accent:#7fb0ee;color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 system-ui,-apple-system,"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;padding:0 16px 48px}
 .wrap{max-width:720px;margin:0 auto}
 header{padding:36px 0 16px;border-bottom:2px solid var(--fg)}
@@ -19,6 +20,7 @@ li a:hover{text-decoration:underline}
 li p{margin:4px 0 0;color:var(--muted);font-size:14.5px}
 footer{font-size:13px;color:var(--muted);margin-top:32px}
 </style>
+<script src="theme.js"></script>
 </head>
 <body>
 <div class="wrap">
