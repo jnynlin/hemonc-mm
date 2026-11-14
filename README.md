@@ -12,5 +12,5 @@
 GitHub Pages：https://jnynlin.github.io/hemonc-mm/
 
 ## 相關（不在本 repo）
-- SharePoint 清單建置腳本 `create_lists.js`、欄位規格 `List欄位規格.xlsx`、Python 版轉換器 `mm_import.py`：院內保管。
+- SharePoint 清單建置腳本 `create_lists.js`、欄位規格 `List欄位規格.xlsx`、Python 版轉換器 `mm_import.py`、清單匯入腳本 `import_items.js`：院內保管。
 - 轉換邏輯以 `mm_import.py` 為準；`mm_convert.html` 為逐函式移植，53 例回歸比對 0 差異（2026-11-14）。

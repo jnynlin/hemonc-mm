@@ -1,5 +1,4 @@
 <!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><title>M&M 案例庫 研究醫師手冊</title>
-
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* 版面：單欄手冊，左側窄數字欄＝真實步驟順序；圖示為 SharePoint 畫面的線稿示意 */
@@ -140,16 +139,13 @@ footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-si
 <h2><span class="n">03</span>收案：兩種進法</h2>
 <div class="two">
   <div class="cmp"><div class="lbl good">A 批次（建議）</div>
-    <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷經過）。用轉換程式一次去識別、編碼、拆欄：</p>
-<pre>cd C:\Users\...\MM_工具
-python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2026-10</pre>
-    <p>產出到 <code>out\</code>：</p>
+    <p>研究醫師原本就會整理一份 Word（表格：床號／病歷號／姓名／年齡／主治 ＋ 右欄診斷）。開網頁轉換器 <a href="https://jnynlin.github.io/hemonc-mm/mm_convert.html">jnynlin.github.io/hemonc-mm/mm_convert.html</a>，把 Word 檔拖進去（全部在你的瀏覽器裡算，檔案不會上傳），一次去識別、編碼、拆欄，下載兩個檔：</p>
     <ul>
-      <li><code>案例_匯入_….xlsx</code> → 貼進「案例」清單（下一節）；已含姓＋OO、年齡</li>
-      <li><code>對照表_匯入_….xlsx</code> → 貼進「對照表」清單（同樣用格線編輯）</li>
-      <li><code>對照表_….csv</code>／<code>drafts_….json</code> → 中間檔，貼完即可刪除</li>
+      <li><code>案例_匯入_….xlsx</code> → 進「案例」清單（下一節）；已含姓＋OO、年齡</li>
+      <li><code>對照表_匯入_….xlsx</code> → 進「對照表」清單；含病歷號，匯完立刻刪</li>
     </ul>
-    <p>程式會印「去識別檢查：通過」才算完成；印出代碼清單時順手看診斷群有沒有歸錯。</p>
+    <p>頁面顯示「去識別檢查：通過」才算完成；預覽表順手看診斷群有沒有歸錯。</p>
+    <p><b>Word「診斷」欄怎麼寫，拆欄才會準：</b>第 1 行＝主診斷，接著用逗號帶診療史（s/p…、currently on…）；第 2 行起每行一個其他診斷／併發症。轉換器會把第 1 行的主診斷放「詳細診斷」、s/p 之後放「治療內容」、第 2 行起放「臨床經過」（以「｜」分隔）。</p>
   </div>
   <div class="cmp"><div class="lbl">B 單筆</div>
     <p>臨時追加一例時，「案例」→ <b>＋ 新增</b>，右側滑出表單，從上往下填。必填欄位（<span class="req">＊</span>）沒填存不了；「詳細診斷」太短會跳紅字。</p>
@@ -157,13 +153,22 @@ python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2
   </div>
 </div>
 
-<h3>A 的第二步：貼進清單</h3>
+<h3>A 的第二步：匯進清單（兩種方法，擇一）</h3>
+<p><b>方法一：匯入腳本（建議）</b>——不用對欄位、不怕換行、重跑不會重複。</p>
 <ol>
+  <li>瀏覽器開站台 <code>…/sites/monthly-meeting</code>，按 <kbd>F12</kbd> → 上方「Console（主控台）」。</li>
+  <li>把主任給的 <code>import_items.js</code> 全文貼進去 → <kbd>Enter</kbd>。頁面右上角出現「M&M 匯入」小面板。</li>
+  <li>面板選 <code>案例_匯入_….xlsx</code>（會自動選清單「案例」）→ <b>開始匯入</b>。逐筆回報 ✓，最後印「=== 匯入完成 ===  新增 N、略過 N、失敗 N」。</li>
+  <li>再選 <code>對照表_匯入_….xlsx</code>（自動切到「對照表」）→ 開始匯入。做完刪掉電腦上的對照表檔。</li>
+  <li>任何一筆 ✗ 會寫原因（通常是選項字不符）；修 Excel 那格後重跑，已匯入的會自動略過。</li>
+</ol>
+<p><b>方法二：格線貼上</b>——沒有腳本時用。</p>
+<ol>
+  <li>SharePoint「案例」→ 右上檢視切到「<b>匯入</b>」（欄位順序＝匯入檔；用別的檢視會錯位）。</li>
   <li>開 <code>案例_匯入_….xlsx</code>，選<b>第 2 列到最後一列</b>（不含標題列）→ <kbd>Ctrl+C</kbd>。</li>
-  <li>SharePoint「案例」→ 工具列 <b>以格線編輯</b> → 點最底下空白列的「標題」格 → <kbd>Ctrl+V</kbd>。</li>
-  <li>等它跑完（41 列約 20 秒），看最右邊「狀態」欄是不是都「整理中」、「主治醫師回覆」都「未徵詢」。對了就按 <b>結束格線</b>。</li>
-  <li>第一次做先貼 2 列試對位，再貼全部。</li>
-  <li>同樣方法把 <code>對照表_匯入_….xlsx</code> 貼進「對照表」清單（9 欄：標題＝案例代碼、病歷號、姓名、床號、主治醫師、原主治、住院日期、死亡日期、住院日數原文）。</li>
+  <li>工具列 <b>以格線編輯</b> → 點最底下空白列的「標題」格 → <kbd>Ctrl+V</kbd>。第一次先貼 1 列試對位。</li>
+  <li>看「狀態」欄都「整理中」、「主治醫師回覆」都「未徵詢」、沒有紅格 → <b>結束格線檢視</b>。</li>
+  <li>「對照表」清單同樣切「匯入」檢視後貼 <code>對照表_匯入_….xlsx</code>。</li>
 </ol>
 <figure>
 <svg viewBox="0 0 760 210" role="img" aria-label="以格線編輯貼上示意">
@@ -198,9 +203,9 @@ python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2
 <tr><td>年齡／年齡層／性別</td><td>實際年齡＋區間</td><td>67、60–69、男。年齡是預後判讀的必要資訊；年齡層給統計圖用，兩個都填（匯入檔已自動帶入）。</td></tr>
 <tr><td>診斷群</td><td>單選 17 類</td><td>血液 6 類＋固態瘤 11 類。轉換程式會猜，請核對。</td></tr>
 <tr><td>治療階段</td><td>單選</td><td>血液：誘導／鞏固維持／移植／復發難治；固態瘤：新輔助／輔助／根治性同步放化療／第一線（轉移）／第二線以後；共通：診斷分期中／緩和支持性。</td></tr>
-<tr><td>詳細診斷 <span class="req">＊</span></td><td>一行，≤255 字，≥12 字</td><td><span class="good">好：</span>Acute myeloid leukemia, FLT3-ITD+, NPM1 wt, post induction (7+3 + midostaurin) D21, persistent blasts<br><span class="badtxt">不行：</span>malignancy of head and neck／lymphoma／AML（會被系統擋下）<br>公式：<b>組織型態 ＋ 分期或風險分群 ＋ 分子標記 ＋ 目前治療線</b></td></tr>
-<tr><td>治療內容</td><td>本次住院做了什麼</td><td>R-CHOP C3D1、G-CSF、broad-spectrum antibiotics for FN、ICU D12–D18</td></tr>
-<tr><td>臨床經過</td><td>去識別敘述，可多段</td><td>匯入時已放原文全段。檢查：日期只留「第 X 天」或「2026/10 中旬」；不出現同事姓名（寫「值班醫師」）。</td></tr>
+<tr><td>詳細診斷 <span class="req">＊</span></td><td>一句主診斷，≤255 字，≥12 字</td><td><span class="good">好：</span>Acute myeloid leukemia, FLT3-ITD+, NPM1 wt, adverse risk<br><span class="badtxt">不行：</span>malignancy of head and neck／lymphoma／AML（會被系統擋下）<br>公式：<b>組織型態 ＋ 分期或風險分群 ＋ 分子標記</b>。治療線寫在「治療內容」。轉換器從 Word 第 1 行自動切，切錯就手動搬。</td></tr>
+<tr><td>治療內容</td><td>診療史＋本次住院做了什麼</td><td>轉換器帶入 Word 第 1 行 s/p 之後的診療史（例 s/p 7+3 + midostaurin, relapse 2026/3, currently on Ven-AZA C2）；自己再補本次住院：G-CSF、broad-spectrum antibiotics for FN、ICU D12–D18。</td></tr>
+<tr><td>臨床經過</td><td>其他診斷／併發症 ＋ 這次住院的經過</td><td>轉換器帶入 Word 第 2 行起（以「｜」分隔，一項一個）。<b>你要接著寫這次住院發生什麼</b>：何時、什麼事、怎麼處置、結果。檢查：日期只留「第 X 天」或「2026/10 中旬」；不出現同事姓名（寫「值班醫師」）。</td></tr>
 <tr><td>住院天數</td><td>整數</td><td>Mortality 算到死亡當日。</td></tr>
 <tr><td>可避免天數</td><td>你的估計</td><td>「等 PET 排程 6 天、等安養機構 9 天」→ 15。寫不出來留空，會議上補。</td></tr>
 <tr><td>死亡預期性</td><td>Mortality 必填</td><td>預期（疾病進展）／非預期。非預期才是會議重點；「不適用」只給非 Mortality 案。</td></tr>
@@ -352,7 +357,9 @@ python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2
 <tr><th>狀況</th><th>處理</th></tr>
 <tr><td>存檔時紅字「詳細診斷太籠統」</td><td>照公式補到 ≥12 字：型態＋分期／風險＋標記＋治療線。</td></tr>
 <tr><td>格線貼上後欄位錯位</td><td><kbd>Ctrl+Z</kbd> 到底，確認起點是「標題」格、Excel 不含標題列，重貼。</td></tr>
-<tr><td>找不到「以格線編輯」</td><td>檢視切回「所有項目」；某些篩選檢視不提供格線。</td></tr>
+<tr><td>找不到「以格線編輯」</td><td>檢視切到「匯入」或「所有項目」；某些篩選檢視不提供格線。</td></tr>
+<tr><td>匯入腳本某筆 ✗「不在選項內」</td><td>該格的字要和清單選項一模一樣（例「超長住院」不是「超長住院 」）。改 Excel 後重跑，已匯入的會略過。</td></tr>
+<tr><td>貼上後詳細診斷和臨床經過看起來重複／像經過</td><td>舊版轉換器的問題。新版：第 1 行主診斷→詳細診斷、s/p 之後→治療內容、第 2 行起→臨床經過，不再重複。</td></tr>
 <tr><td>「根因分類」少了想選的項目</td><td>不要自己加。先選最接近的，在五個為什麼寫明，會議提案新增；主席同意後由主席加。</td></tr>
 <tr><td>病人同月既超長住院又死亡</td><td>一筆，案例類型勾兩個，代碼用 MOR。</td></tr>
 <tr><td>主治要求改初評</td><td>不改。初評是你的判斷，主治意見填主治欄位；並排才有討論。</td></tr>
@@ -371,6 +378,6 @@ python mm_import.py "血液腫瘤科2026年10月份超長住院討論會.docx" 2
   <li>對照表已貼進 SharePoint「對照表」清單，本機 CSV 已刪</li>
 </ul>
 
-<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.1 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、mm_import.py、mm_dashboard.html</footer>
+<footer>血液腫瘤科 M&M 案例庫 · 研究醫師手冊 v1.2 · 2026-11-14 · 工具：SharePoint 清單（monthly-meeting）、mm_convert.html、import_items.js、mm_dashboard.html</footer>
 </div>
 </body></html>

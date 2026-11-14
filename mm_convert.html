@@ -71,7 +71,8 @@ footer{margin-top:40px;padding-top:12px;border-top:1px solid var(--line);font-si
     <button id="dl-case">下載 案例_匯入.xlsx</button>
     <button id="dl-key" class="sec">下載 對照表_匯入.xlsx（含病歷號）</button>
   </div>
-  <p class="note">兩個檔都用 SharePoint 清單的「以格線編輯」貼上：Excel 選第 2 列到最後一列 → 複製 → 點格線最底空白列的「標題」格 → 貼上。對照表只貼進「對照表」清單，貼完請刪除本機檔案。</p>
+  <p class="note">匯入 SharePoint 有兩條路：<b>A. 匯入腳本</b>（建議）— 在 SharePoint 站台按 F12 貼 <code>import_items.js</code>，選這個 xlsx，逐筆寫入、已存在的代碼會略過；<b>B. 格線貼上</b> — 清單先切到「匯入」檢視 → 以格線編輯 → Excel 選第 2 列到最後一列複製 → 點最底空白列的「標題」格貼上。對照表只進「對照表」清單，貼完請刪除本機檔案。</p>
+  <p class="note">欄位怎麼拆：Word「診斷」第 1 行的主診斷 → <b>詳細診斷</b>（255 字內）；第 1 行從第一個 s/p／currently／diagnosed 等診療史子句起 → <b>治療內容</b>；第 2 行起的其他診斷／併發症 → <b>臨床經過</b>（以「｜」分隔，研究醫師再在後面接寫住院經過）。</p>
   <h2>案例預覽（已去識別，將進入「案例」清單）</h2>
   <div class="tw"><table id="prev"></table></div>
   <details><summary>顯示對照表（含病歷號、姓名；只貼進限權限的「對照表」清單）</summary><div class="tw"><table id="keyprev"></table></div></details>
@@ -224,11 +225,25 @@ function parseRight(lines, kind) {
   return out;
 }
 function nameShort(n) { n = (n || '').trim(); if (!n) return ''; const two = ['歐陽','司徒','司馬','諸葛','上官','端木','夏侯','皇甫','尉遲','公孫','長孫','令狐','張簡','范姜']; return (two.includes(n.slice(0, 2)) ? n.slice(0, 2) : n.slice(0, 1)) + 'OO'; }
+// 研究醫師的「診斷」其實是問題清單：第 1 行＝主診斷＋診療史，第 2 行起＝其他診斷／併發症。
+// 回傳 [詳細診斷, 治療內容, 臨床經過]：主診斷＝第 1 行切在第一個診療史子句之前（255 字、≥12 字）；
+// 治療內容＝第 1 行其餘；臨床經過＝第 2 行起以「｜」相接（格線貼上不能有換行）。與 mm_import.py 同步。
+const STRONG = '(?:s/p|status post|currently|underwent|received|receiving|treated|diagnosed|接受|目前|曾|使用|化療|治療|已完成)';
+const WEAK = '(?:now |under |post |after |dx |on [A-Za-z-]+(?:mab|nib|platin|taxel|cycle)|with (?:relapse|progression|recurren|refractory|PD\\b))';
+const TX_CUT = new RegExp('(?:[,;，；]\\s*|\\s+)(?=' + STRONG + ')|[,;，；]\\s*(?=' + WEAK + ')', 'i');
 function splitDx(t, limit = 250) {
-  const lines = t.split('\n').map(l => l.trim()).filter(Boolean); let head = '';
-  for (const l of lines) { const cand = head ? head + '；' + l : l; if ([...cand].length > limit) break; head = cand; }
-  if (!head && lines.length) head = [...lines[0]].slice(0, limit).join('');
-  return [head, t.trim()];
+  const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+  if (!lines.length) return ['', '', ''];
+  const first = lines[0], m = TX_CUT.exec(first);
+  let dx = first, tx = '';
+  if (m) { dx = first.slice(0, m.index).trim(); tx = first.slice(m.index + m[0].length).trim(); }
+  if (dx.length < 12) { dx = first; tx = ''; }
+  if (dx.length > limit) {
+    const cut = Math.max(...[...',;，；. '].map(c => dx.lastIndexOf(c, limit - 1)));
+    dx = (cut >= 12 ? dx.slice(0, cut) : dx.slice(0, limit)).replace(/[,;，； .]+$/, '');
+  }
+  dx = dx.replace(/[,;，； ]+$/, '');
+  return [dx, tx, lines.slice(1).join('｜')];
 }
 function deidentify(s) {
   return s.replace(/\b(20\d{2})(0[1-9]|1[0-2])([0-3]\d)\b/g, '$1/$2')
@@ -256,10 +271,10 @@ async function convert(buf, defaultYm) {
     const ym = R.ym || defaultYm || '0000-00'; counters[ym] = (counters[ym] || 0) + 1;
     const code = `${prefix}-${ym}-${String(counters[ym]).padStart(2, '0')}`;
     key.push({ code, bed: L.bed, chart: L.chart, name: L.name, attending: L.attending, prevAttending: L.prevAttending, admission: R.admission, death: R.death, losRaw: R.losRaw });
-    const [dxDetail, course] = splitDx(deidentify(R.dx));
-    drafts.push({ code, ym, types: [ctype], ageBand: ageBand(L.age), age: L.age, nameShort: nameShort(L.name), sex: L.sex, dxGroup: dxGroup(course), dxDetail, course, los: R.los, deathExpected: kind === 'mortality' ? '' : '不適用', morbGrade: '不適用' });
+    const full = deidentify(R.dx), [dxDetail, treatment, course] = splitDx(full);
+    drafts.push({ code, ym, types: [ctype], ageBand: ageBand(L.age), age: L.age, nameShort: nameShort(L.name), sex: L.sex, dxGroup: dxGroup(full), dxDetail, treatment, course, los: R.los, deathExpected: kind === 'mortality' ? '' : '不適用', morbGrade: '不適用' });
   }
-  const caseRows = drafts.map(d => [d.code, d.ym, d.types.join(';'), d.ageBand, d.sex, d.dxGroup, '', d.dxDetail, '', d.course, d.los ?? '', '', d.deathExpected, d.morbGrade, '', '', '', '未徵詢', '', '', '', '', '', '', '整理中', d.nameShort, d.age ?? '']);
+  const caseRows = drafts.map(d => [d.code, d.ym, d.types.join(';'), d.ageBand, d.sex, d.dxGroup, '', d.dxDetail, d.treatment, d.course, d.los ?? '', '', d.deathExpected, d.morbGrade, '', '', '', '未徵詢', '', '', '', '', '', '', '整理中', d.nameShort, d.age ?? '']);
   const keyRows = key.map(k => [k.code, k.chart, k.name, k.bed, k.attending, k.prevAttending, k.admission, k.death, k.losRaw]);
   const leak = drafts.filter(d => /\d{6,}/.test(JSON.stringify(d))).map(d => d.code);
   return { kind, ctype, head, drafts, key, leak, caseRows, keyRows, caseXlsx: () => writeXlsx(LIST_COLS, caseRows), keyXlsx: () => writeXlsx(KEY_COLS, keyRows) };
