@@ -22,7 +22,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
-<p>目前最新：<b>v1.17</b>（2026-11-14）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：壓力測試後的穩定性修正（流量限制自動重試、清單超過 5000 筆、兩台電腦同時定案、異常 Word 檔提示）。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
+<p>目前最新：<b>v1.18</b>（2026-11-15）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：投影頁改版，畫面只放案例；定案表單收進右側抽屜（按右下「定案」或鍵盤 D）。不需重跑 create_lists。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
@@ -30,8 +30,9 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
 <p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
-<details><summary>展開全部（18 版）</summary>
+<details><summary>展開全部（19 版）</summary>
 <table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.18</b><br><span class="muted">2026-11-15</span></td><td>投影頁改版：案例資訊一行摘要、初評與主治意見一行；定案表單收進右側抽屜（右下「定案」或 D 開啟、Esc 關閉，開啟時案例內容左移不被遮住）；修正未勾「需要改善行動」時欄位仍顯示。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.17</b><br><span class="muted">2026-11-14</span></td><td>壓力測試修正：SharePoint 流量限制時自動等候重試；清單超過 5000 筆仍正確編號與查重複；兩台電腦同時定案只留一筆；寫入失敗不留半套並提示再拖一次補寫；非 Word 檔一放入就說明。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.16</b><br><span class="muted">2026-11-14</span></td><td>改善行動的「負責人」改為下拉選「負責單位」，預設「會後指派」；會議結論提示字精簡。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.15</b><br><span class="muted">2026-11-14</span></td><td>定案表單：拿掉「長官意見」；「會議結論」改一行並加提示；勾「需要改善行動」填行動、負責人、到期日，定案時自動建立改善行動，連到該筆正式紀錄與主要根因。</td><td class="nw">—</td></tr>
@@ -68,7 +69,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <li>提醒：討論會 Word 的表格格式維持原樣（左欄：床號、病歷號、姓名、年齡性別、主治；右欄：日期與診斷），格式變了收案會被擋下。</li></ol></section>
 
 <section><h2>會議中</h2>
-<ul><li>只有主任能在開會頁「定案」；其他人看到的是唯讀畫面。</li>
+<ul><li>投影畫面只放案例。要定案時按右下「定案」或鍵盤 <b>D</b>，右側會滑出表單；Esc 關閉。只有主任看得到可填的表單，其他人看到的是唯讀說明。</li>
 <li>會中決議要改善的事，在定案表單勾「需要改善行動」，寫要做什麼、選負責單位（來不及決定就留「會後指派」，會後到清單補），會自動進「改善行動」清單，下個月在開會頁「改善行動」回顧。</li>
 <li>定案無法撤銷。內容需要更正時，到「正式紀錄」該筆的「修正附註」補充說明。</li>
 <li>超長住院與 M&amp;M 分開開會時，開會頁上方切換「超長住院」或「M&amp;M」再開始投影。</li>

@@ -1,0 +1,122 @@
+{
+ "volume": {
+  "intakeFirstCode": "LOS-2026-10-64",
+  "intakeErr": "",
+  "maxExistingOct": "LOS-2026-10-63",
+  "codeCollision": false,
+  "backfillNotice": "「案例」清單有 6000 例還沒有主治醫師。 依對照表補填",
+  "meetLoadMs": 50,
+  "prepRows": 25,
+  "recordsRenderMs": 0,
+  "decide": "LOS-2026-12-54 已定案，並寫入正式紀錄。",
+  "thresholdHits": 0,
+  "calls": 49,
+  "_wall_s": 2.4
+ },
+ "volume_records": {
+  "decide": "寫入失敗：LOS-2026-12-13 已經定案過。如需修正，請到「正式紀錄」該筆的「修正附註」補充。",
+  "thresholdHits": 0,
+  "_wall_s": 2.5
+ },
+ "throttle": {
+  "planErr": "",
+  "result": "完成：新增 53 例。",
+  "notWritten": 0,
+  "throttled": 43,
+  "consistency": {
+   "cases": 53,
+   "keys": 53,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.5
+ },
+ "faults": {
+  "planErr": "",
+  "result": "完成：新增 46 例，7 例未寫入（原因見上方）。",
+  "failedInjected": 8,
+  "consistency": {
+   "cases": 46,
+   "keys": 46,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.5
+ },
+ "faults_redrop": {
+  "first": "完成：新增 45 例，8 例未寫入（原因見上方）。",
+  "afterFirst": {
+   "cases": 45,
+   "keys": 45,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "secondWn": "8",
+  "second": "完成：新增 8 例。",
+  "final": {
+   "cases": 53,
+   "keys": 53,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.8
+ },
+ "latency": {
+  "planMs": 8950,
+  "writeMs": 12050,
+  "consistency": {
+   "cases": 12,
+   "keys": 12,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "meetLoadMs": 3050,
+  "_wall_s": 1.4
+ },
+ "concurrent_decide": {
+  "doubleClickRecords": 1,
+  "parallel": [
+   "rejected: LOS-2026-10-02 剛剛已由另一台電腦定案，這次不重複寫入。請按「重新",
+   "fulfilled"
+  ],
+  "parallelRecords": 1,
+  "_wall_s": 1.4
+ },
+ "votes": {
+  "live": "40",
+  "result": "投票結果：LOS-2026-10-01共 45 票不可預防13可能可預防7很可能可預防7明確可預防18最多票：明確可預防套用到定案表單關閉",
+  "tagged": 55,
+  "expect": "40 人（改投以最後一票：明確可預防 10＋其他 30），結束後才送出的 5 票可能算進或不算，但標記數應與計票一致",
+  "_wall_s": 1.4
+ },
+ "bad_files": {
+  "files": {
+   "S_EMPTY": "2026年11月empty.docx：不是有效的 Word 檔。請用 Word 開啟後「另存新檔」成 .docx 再試。 | 寫入鈕：無",
+   "S_TEXT": "2026年11月text.docx：不是有效的 Word 檔。請用 Word 開啟後「另存新檔」成 .docx 再試。 | 寫入鈕：無",
+   "S_NOTWORD": "處理失敗：這個檔案不是 Word 文件（找不到文件內容） | 寫入鈕：無",
+   "S_NOTABLE": "處理失敗：文件裡沒有表格 | 寫入鈕：無"
+  },
+  "big": {
+   "planMs": 1350,
+   "rows": 300,
+   "wn": "300",
+   "writeMs": 50,
+   "consistency": {
+    "cases": 300,
+    "keys": 300,
+    "caseOnly": 0,
+    "keyOnly": 0,
+    "dupCodes": 0
+   }
+  },
+  "xssPreviewLiteral": false,
+  "xssExecuted": false,
+  "xssImgInProjection": false,
+  "_wall_s": 2.8
+ }
+}
