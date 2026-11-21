@@ -208,6 +208,10 @@ SCEN = {
   await save(901,'完成 SOP｜初稿','送科會審','2099-03-01'); const L=String(A[0].mmRemarks).split('\n'); OUT.lines=L.length; OUT.keepsLegacy=L[0]==='舊的自由文字備註'; OUT.newLine=L[1].replace(/^\d{4}-\d{2}-\d{2}/,'DATE');
   await save(901,'','只填下一步',''); OUT.lines2=String(A[0].mmRemarks).split('\n').length; OUT.third=String(A[0].mmRemarks).split('\n')[2].replace(/^\d{4}-\d{2}-\d{2}/,'DATE');
   V.querySelector('[data-edit="901"]').click(); await sleep(50); const f=V.querySelector('form.aform'); const b4=A[0].mmRemarks; f.st.value='待辦'; f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmStatus==='待辦'); OUT.noEntryWhenBlank=A[0].mmRemarks===b4;
+  { V.querySelector('[data-edit="902"]').click(); await sleep(50); const g=V.querySelector('form.aform'); OUT.stepOptions=g.ndk.options.length; const R2=()=>A.find(x=>x.Id===902).mmRemarks, b0=R2();
+    g.ndk.value='其他'; g.ndk.dispatchEvent(new Event('change')); OUT.otherPlaceholder=g.nd.placeholder; g.querySelector('button[type=submit]').click(); await sleep(100); OUT.otherNeedsText=g.querySelector('.amsg').textContent; OUT.otherNotSaved=R2()===b0;
+    g.nd.value='自訂內容'; g.nnk.value='教育訓練'; g.nn.value='晨會宣導'; g.querySelector('button[type=submit]').click(); await until(()=>R2()!==b0); OUT.composed=R2().split('\n').pop().replace(/^\d{4}-\d{2}-\d{2}/,'DATE'); await sleep(100);
+    V.querySelector('[data-edit="902"]').click(); await sleep(50); const h=V.querySelector('form.aform'), b1=R2(); h.ndk.value='召開討論會'; h.querySelector('button[type=submit]').click(); await until(()=>R2()!==b1); OUT.optionOnly=R2().split('\n').pop().replace(/^\d{4}-\d{2}-\d{2}/,'DATE'); await sleep(100); OUT.shown=cell('乙').slice(0,40); }
   OUT.afterCell=cell('甲'); OUT.reviewKeptAfterLaterEntry=/下次追蹤 2099-03-01/.test(cell('甲')); await save(902,'已補追蹤','',''); OUT.overdueReviewClearedByNewEntry=!/該追蹤了/.test(cell('乙')); OUT.historyCount=(V.querySelector('.nlog summary')||{}).textContent; OUT.headAfter=V.querySelector('.sec-head .note').textContent;''',
 }
 results = {}
