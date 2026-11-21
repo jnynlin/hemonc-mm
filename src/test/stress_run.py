@@ -168,7 +168,7 @@ SCEN = {
   const V=d.getElementById('v-actions'); const openRows=()=>[...V.querySelectorAll('section:first-child tbody tr:not(.aed)')].map(r=>r.cells[0].textContent.slice(0,7)+'|'+r.cells[1].textContent);
   OUT.order=openRows(); OUT.head=V.querySelector('.sec-head .note').textContent; OUT.doneSummary=V.querySelector('#act-done summary').textContent.replace(/\s+/g,' ').trim();
   V.querySelector('[data-edit="901"]').click(); await sleep(50); let f=V.querySelector('form.aform'); OUT.doneFieldsHiddenAtFirst=f.querySelector('.adone').hidden;
-  f.st.value='進行中'; f.st.dispatchEvent(new Event('change')); f.note.value='已排入科會'; f.ow.value='病房護理'; f.querySelector('button[type=submit]').click(); await until(()=>/已儲存/.test((d.getElementById('act-msg')||{}).textContent||''));
+  f.st.value='進行中'; f.st.dispatchEvent(new Event('change')); f.nd.value='已排入科會'; f.ow.value='病房護理'; f.querySelector('button[type=submit]').click(); await until(()=>/已儲存/.test((d.getElementById('act-msg')||{}).textContent||''));
   const r1=A.find(x=>x.Id===901); OUT.save1={st:r1.mmStatus,note:r1.mmRemarks,ow:r1.mmOwner,due:String(r1.mmDueDate).slice(0,10)};
   V.querySelector('[data-edit="901"]').click(); await sleep(50); f=V.querySelector('form.aform'); f.st.value='完成'; f.st.dispatchEvent(new Event('change')); OUT.doneFieldsShown=!f.querySelector('.adone').hidden;
   f.ef.value='有效'; f.en.value='三個月未再發生'; f.ev.value='javascript:alert(1)'; f.querySelector('button[type=submit]').click(); await sleep(100); OUT.badLinkMsg=f.querySelector('.amsg').textContent; OUT.badLinkNotSaved=r1.mmStatus==='進行中';
@@ -200,6 +200,15 @@ SCEN = {
   f.ev.value=f.ev.value.split(location.origin).join('https://x.sharepoint.com'); /* 測試頁是 file://，實際站台是 https */ f.ef.value='有效'; f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmStatus==='完成'); await sleep(100); OUT.savedLinks=String(A[0].mmEvidence).split('\n').length; OUT.doneLinks=[...V.querySelectorAll('#act-done td a')].map(a=>a.textContent);''',
 'evidence_nolib': r'''seed(2,0,0); MOCK.DB['改善行動'].push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'完成'}); MOCK.noEvidenceLib=true; const sh=await boot(); const {d}=await meet(sh);
   d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#act-done')); d.getElementById('act-done').open=true; d.querySelector('[data-edit="901"]').click(); await sleep(50); const f=d.querySelector('form.aform'); OUT.hasLinkInput=!!f.ev; OUT.hasUpload=!!f.evf;''',
+# 18 v1.25 進度結構化：一筆一筆累加（已做／下一步／追蹤日），舊的自由文字保留，到追蹤日標出，分隔符號不可被使用者文字破壞
+'progress_log': r'''seed(2,0,0); const A=MOCK.DB['改善行動']; A.push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'進行中',mmRemarks:'舊的自由文字備註'},{Id:902,Title:'乙',mmOwner:'本科',mmDueDate:'2099-02-10T00:00:00Z',mmStatus:'進行中',mmRemarks:'2020-01-05｜已做：開過會｜下一步：寫草稿｜追蹤：2020-02-01'});
+  const sh=await boot(); const {d}=await meet(sh); d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#v-actions table')); const V=d.getElementById('v-actions'); const cell=t=>[...V.querySelectorAll('section:first-child tbody tr:not(.aed)')].find(r=>r.cells[0].textContent.startsWith(t)).cells[0].textContent.replace(/\s+/g,' ');
+  OUT.legacyShown=cell('甲'); OUT.dueReview=cell('乙'); OUT.head=V.querySelector('.sec-head .note').textContent;
+  const save=async(id,nd,nn,nr)=>{ V.querySelector('[data-edit="'+id+'"]').click(); await sleep(50); const f=V.querySelector('form.aform'); f.nd.value=nd; f.nn.value=nn; f.nr.value=nr; const before=A.find(x=>x.Id===id).mmRemarks; f.querySelector('button[type=submit]').click(); await until(()=>A.find(x=>x.Id===id).mmRemarks!==before||/存成功/.test(f.querySelector('.amsg').textContent)); await sleep(100); };
+  await save(901,'完成 SOP｜初稿','送科會審','2099-03-01'); const L=String(A[0].mmRemarks).split('\n'); OUT.lines=L.length; OUT.keepsLegacy=L[0]==='舊的自由文字備註'; OUT.newLine=L[1].replace(/^\d{4}-\d{2}-\d{2}/,'DATE');
+  await save(901,'','只填下一步',''); OUT.lines2=String(A[0].mmRemarks).split('\n').length; OUT.third=String(A[0].mmRemarks).split('\n')[2].replace(/^\d{4}-\d{2}-\d{2}/,'DATE');
+  V.querySelector('[data-edit="901"]').click(); await sleep(50); const f=V.querySelector('form.aform'); const b4=A[0].mmRemarks; f.st.value='待辦'; f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmStatus==='待辦'); OUT.noEntryWhenBlank=A[0].mmRemarks===b4;
+  OUT.afterCell=cell('甲'); OUT.reviewKeptAfterLaterEntry=/下次追蹤 2099-03-01/.test(cell('甲')); await save(902,'已補追蹤','',''); OUT.overdueReviewClearedByNewEntry=!/該追蹤了/.test(cell('乙')); OUT.historyCount=(V.querySelector('.nlog summary')||{}).textContent; OUT.headAfter=V.querySelector('.sec-head .note').textContent;''',
 }
 results = {}
 for name, body in SCEN.items():

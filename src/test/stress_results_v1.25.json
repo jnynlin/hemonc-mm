@@ -1,0 +1,362 @@
+{
+ "volume": {
+  "intakeFirstCode": "LOS-2026-10-64",
+  "intakeErr": "",
+  "maxExistingOct": "LOS-2026-10-63",
+  "codeCollision": false,
+  "backfillNotice": "「案例」清單有 6000 例還沒有主治醫師。 依對照表補填",
+  "meetLoadMs": 50,
+  "prepRows": 25,
+  "recordsRenderMs": 0,
+  "decide": "LOS-2026-12-54 已定案，並寫入正式紀錄。",
+  "thresholdHits": 0,
+  "calls": 57,
+  "_wall_s": 3.0
+ },
+ "volume_records": {
+  "decide": "寫入失敗：LOS-2026-12-13 已經定案過。如需修正，請到「正式紀錄」該筆的「修正附註」補充。",
+  "thresholdHits": 0,
+  "_wall_s": 2.6
+ },
+ "throttle": {
+  "planErr": "",
+  "result": "完成：新增 53 例。",
+  "notWritten": 0,
+  "throttled": 43,
+  "consistency": {
+   "cases": 53,
+   "keys": 53,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.6
+ },
+ "faults": {
+  "planErr": "",
+  "result": "完成：新增 45 例，8 例未寫入（原因見上方）。",
+  "failedInjected": 10,
+  "consistency": {
+   "cases": 45,
+   "keys": 45,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.6
+ },
+ "faults_redrop": {
+  "first": "完成：新增 43 例，10 例未寫入（原因見上方）。",
+  "afterFirst": {
+   "cases": 43,
+   "keys": 43,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "secondWn": "10",
+  "second": "完成：新增 10 例。",
+  "final": {
+   "cases": 53,
+   "keys": 53,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "_wall_s": 1.9
+ },
+ "latency": {
+  "planMs": 8150,
+  "writeMs": 12750,
+  "consistency": {
+   "cases": 12,
+   "keys": 12,
+   "caseOnly": 0,
+   "keyOnly": 0,
+   "dupCodes": 0
+  },
+  "meetLoadMs": 4250,
+  "_wall_s": 1.5
+ },
+ "concurrent_decide": {
+  "doubleClickRecords": 1,
+  "parallel": [
+   "rejected: LOS-2026-10-02 剛剛已由另一台電腦定案，這次不重複寫入。請按「重新",
+   "fulfilled"
+  ],
+  "parallelRecords": 1,
+  "_wall_s": 1.5
+ },
+ "votes": {
+  "live": "40",
+  "result": "投票結果：LOS-2026-10-01共 45 票不可預防13可能可預防7很可能可預防7明確可預防18最多票：明確可預防套用到定案表單關閉",
+  "tagged": 55,
+  "expect": "40 人（改投以最後一票：明確可預防 10＋其他 30），結束後才送出的 5 票可能算進或不算，但標記數應與計票一致",
+  "_wall_s": 1.5
+ },
+ "bad_files": {
+  "files": {
+   "S_EMPTY": "2026年11月empty.docx：不是有效的 Word 檔。請用 Word 開啟後「另存新檔」成 .docx 再試。 | 寫入鈕：無",
+   "S_TEXT": "2026年11月text.docx：不是有效的 Word 檔。請用 Word 開啟後「另存新檔」成 .docx 再試。 | 寫入鈕：無",
+   "S_NOTWORD": "處理失敗：這個檔案不是 Word 文件（找不到文件內容） | 寫入鈕：無",
+   "S_NOTABLE": "處理失敗：文件裡沒有表格 | 寫入鈕：無"
+  },
+  "big": {
+   "planMs": 400,
+   "rows": 300,
+   "wn": "300",
+   "writeMs": 50,
+   "consistency": {
+    "cases": 300,
+    "keys": 300,
+    "caseOnly": 0,
+    "keyOnly": 0,
+    "dupCodes": 0
+   }
+  },
+  "xssPreviewLiteral": false,
+  "xssExecuted": false,
+  "xssImgInProjection": false,
+  "_wall_s": 2.2
+ },
+ "meet_v119": {
+  "chartCol": true,
+  "prepRows": 4,
+  "chartAllMatch": true,
+  "repBoxes": 4,
+  "dbFlag": true,
+  "stayedOnPrep": true,
+  "firstIsTarget": true,
+  "onlyRepToggle": true,
+  "presFirstIsTarget": true,
+  "presChart": true,
+  "rail": 4,
+  "railRep": 1,
+  "ruler": true,
+  "railJump": true,
+  "decide": "LOS-2026-10-03 已定案，並寫入正式紀錄。",
+  "recExtraKeys": [],
+  "recHasChart": false,
+  "hideChartWorks": true,
+  "onlyRepRows": 1,
+  "afterLastRep": "中報告的案例已全部定案，接著是其餘 2 例。",
+  "falseAllDone": false,
+  "restShown": 2,
+  "_wall_s": 1.5
+ },
+ "meet_limited": {
+  "prepRows": 6,
+  "chartCol": false,
+  "repCol": false,
+  "showChartToggle": false,
+  "presChart": false,
+  "presOk": true,
+  "ruler": true,
+  "_wall_s": 1.4
+ },
+ "meet_readonly": {
+  "prepRows": 6,
+  "boxes": 0,
+  "ticks": 1,
+  "btnLabel": "討論重點",
+  "drawerOpens": true,
+  "hasForm": false,
+  "notice": true,
+  "_wall_s": 1.4
+ },
+ "rootcause_scope": {
+  "cases": [
+   {
+    "code": "LOS-2019-01-01",
+    "visible": [
+     "工作任務與流程",
+     "超長住院因素"
+    ],
+    "hidden": [
+     "病人因素",
+     "臨床決策"
+    ],
+    "btn": "顯示其他層級（3 項）"
+   },
+   {
+    "code": "LOS-2021-09-01",
+    "visible": [
+     "病人因素",
+     "工作任務與流程",
+     "臨床決策"
+    ],
+    "hidden": [
+     "超長住院因素"
+    ],
+    "btn": "顯示超長住院因素（2 項）"
+   },
+   {
+    "code": "LOS-2024-05-01",
+    "visible": [
+     "病人因素",
+     "工作任務與流程",
+     "超長住院因素",
+     "臨床決策"
+    ],
+    "hidden": [],
+    "btn": ""
+   }
+  ],
+  "revealed": true,
+  "radios": 6,
+  "oneMain": 1,
+  "multiContrib": true,
+  "mainBoxDisabled": true,
+  "savedMain": "值班負荷與疲勞",
+  "savedContrib": 2,
+  "_wall_s": 1.8
+ },
+ "pareto_toggle": {
+  "defaultMode": "main",
+  "main": [
+   "等待檢查／處置：8 件",
+   "感染併發症：4 件"
+  ],
+  "mainCap": "每案只計一項主要根因。右欄為",
+  "all": [
+   "等待檢查／處置：8 件",
+   "檢驗檢查結果延遲或未追蹤：6 件",
+   "感染併發症：4 件"
+  ],
+  "allCap": "主要根因與促成因素都計入，一案可計入多項（12 件共 18 項次）。右欄為項次的累積百分比。",
+  "allPressed": "true",
+  "backSame": true,
+  "_wall_s": 1.5
+ },
+ "confirm_step": {
+  "confirmShown": true,
+  "notWrittenYet": true,
+  "summary": "請確認 LOS-2019-01-01 的定案內容主要根因等待檢查／處置 （超長住院因素）促成因素無可預防性可能可預防決策方式三方一致會議結論結論一行改善行動測試行動 （會後指派，2026-12-21 前）定案後不能撤銷；要修正只能到正式紀錄補寫修正附註。確認定案返回修改",
+  "submitHidden": true,
+  "backHides": true,
+  "editHides": true,
+  "summaryUpdated": true,
+  "written": 1,
+  "concl": "改過的結論",
+  "actions": 1,
+  "flash": "LOS-2019-01-01 已定案，並寫入正式紀錄；已建立改善行動。",
+  "_wall_s": 1.5
+ },
+ "decide_feedback": {
+  "jcBtnEnabled": true,
+  "jcHintBeforeClick": "還不能定案：主要根因在「臨床決策」層，請在其他層級再勾一項促成因素。",
+  "jcNoConfirm": true,
+  "jcWritten": 0,
+  "jcHintAfterFix": "",
+  "jcConfirmAfterFix": true,
+  "case2": "LOS-2021-09-01",
+  "missMsg": "還沒選：主要根因、可預防性。",
+  "missNoConfirm": true,
+  "missMsg2": "還沒選：可預防性。",
+  "written": 1,
+  "novalidate": true,
+  "_wall_s": 1.4
+ },
+ "actions_track": {
+  "prepBtn": "先回顧改善行動（3 項，逾期 1）",
+  "order": [
+   "乙 尚未指派|尚未指派",
+   "丙 已逾期|藥劑部",
+   "甲 已指派近期|本科"
+  ],
+  "head": "3 項，逾期 1 項，尚未指派 1 項",
+  "doneSummary": "已完成或取消 1 項，其中 1 項成效尚未確認",
+  "doneFieldsHiddenAtFirst": true,
+  "save1": {
+   "st": "進行中",
+   "note": "2026-11-21｜已做：已排入科會",
+   "ow": "病房護理",
+   "due": "2099-01-10"
+  },
+  "doneFieldsShown": true,
+  "badLinkMsg": "佐證連結請貼上 https 開頭的網址。",
+  "badLinkNotSaved": true,
+  "save2": {
+   "st": "完成",
+   "eff": "有效",
+   "done": true,
+   "ev": "https://example.org/sop.pdf"
+  },
+  "movedToDone": true,
+  "doneLink": true,
+  "pendingCount": "已完成或取消 2 項，其中 1 項成效尚未確認",
+  "_wall_s": 1.6
+ },
+ "actions_limited": {
+  "noExtraInputs": true,
+  "saved": "完成",
+  "doneCols": "改善行動|負責單位|到期日|狀態|相關案例|",
+  "_wall_s": 1.6
+ },
+ "actions_readonly": {
+  "rows": 1,
+  "editButtons": 0,
+  "_wall_s": 1.4
+ },
+ "export_month": {
+  "btn": "匯出本月存檔",
+  "btnEnabled": true,
+  "title": "血液腫瘤科 M&M 討論會紀錄　2026 年 10 月",
+  "summary": "會議日期：2026-10-20　定案 4 例（超長住院 4、Morbidity 0、Mortality 0）",
+  "recRows": 4,
+  "onlyThisMonth": true,
+  "monthActions": 1,
+  "openActions": 2,
+  "noChartNo": true,
+  "escaped": true,
+  "hasStyle": true,
+  "afterClick": "已下載到這台電腦的「下載",
+  "mail": "mailto:?subject=M&M 改善行動逾期提醒&b",
+  "mailListsOverdueOnly": true,
+  "pwned": false,
+  "_wall_s": 1.5
+ },
+ "evidence_upload": {
+  "hasUpload": true,
+  "failMsg": "沒有上傳成功：上傳失敗（代碼",
+  "failNoLink": true,
+  "file": [
+   {
+    "folder": "/sites/x/mmevidence/A901",
+    "name": "T_修訂 SOP _2_ 草稿_.pdf",
+    "size": 2048
+   }
+  ],
+  "linkShape": "ORIGIN/sites/x/mmevidence/A901/T_%E4%BF%AE%E8%A8%82%20SOP%20_2_%20%E8%8D%89%E7%A8%BF_.pdf",
+  "noSpaceInLink": true,
+  "twoLinks": 2,
+  "savedLinks": 2,
+  "doneLinks": [
+   "修訂 SOP _2_ 草稿_.pdf",
+   "b.docx"
+  ],
+  "_wall_s": 1.5
+ },
+ "evidence_nolib": {
+  "hasLinkInput": true,
+  "hasUpload": false,
+  "_wall_s": 1.3
+ },
+ "progress_log": {
+  "legacyShown": "甲舊的自由文字備註",
+  "dueReview": "乙01/05已做開過會 下一步寫草稿 該追蹤了：2020-02-01",
+  "head": "2 項，該追蹤 1 項",
+  "lines": 2,
+  "keepsLegacy": true,
+  "newLine": "DATE｜已做：完成 SOP／初稿｜下一步：送科會審｜追蹤：2099-03-01",
+  "lines2": 3,
+  "third": "DATE｜下一步：只填下一步",
+  "noEntryWhenBlank": true,
+  "afterCell": "甲11/21下一步只填下一步 下次追蹤 2099-03-01共 3 筆進度11/21下一步只填下一步11/21已做完成 SOP／初稿 下一步送科會審 追蹤 2099-03-01舊的自由文字備註",
+  "reviewKeptAfterLaterEntry": true,
+  "overdueReviewClearedByNewEntry": true,
+  "historyCount": "共 3 筆進度",
+  "headAfter": "2 項",
+  "_wall_s": 1.3
+ }
+}
