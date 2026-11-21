@@ -147,11 +147,59 @@ SCEN = {
 # 12 v1.22 定案確認：按「定案」只顯示確認內容不寫入；返回修改、改表單都會回到上一步；確認後才寫入
 'confirm_step': r'''seed(3,0,0); MOCK.DB['案例'].forEach(ready); const sh=await boot(); const {d}=await meet(sh); d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide')); const cf=()=>d.getElementById('cf');
   f.act.click(); f.atitle.value='測試行動'; f.concl.value='結論一行'; f.querySelector('button[type=submit]').click(); await sleep(150);
-  OUT.confirmShown=!cf().hidden; OUT.notWrittenYet=MOCK.DB['正式紀錄'].length===0&&MOCK.DB['改善行動'].length===0; OUT.summary=cf().textContent.replace(/\\s+/g,' ').slice(0,150); OUT.submitHidden=f.querySelector('.go').hidden;
+  OUT.confirmShown=!cf().hidden; OUT.notWrittenYet=MOCK.DB['正式紀錄'].length===0&&MOCK.DB['改善行動'].length===0; OUT.summary=cf().textContent.replace(/\s+/g,' ').slice(0,150); OUT.submitHidden=f.querySelector('.go').hidden;
   d.getElementById('cfback').click(); await sleep(50); OUT.backHides=cf().hidden&&!f.querySelector('.go').hidden&&MOCK.DB['正式紀錄'].length===0;
   f.querySelector('button[type=submit]').click(); await sleep(100); f.concl.value='改過的結論'; f.concl.dispatchEvent(new Event('input',{bubbles:true})); await sleep(50); OUT.editHides=cf().hidden;
   f.querySelector('button[type=submit]').click(); await sleep(100); OUT.summaryUpdated=cf().textContent.includes('改過的結論'); d.getElementById('cfok').click(); await until(()=>d.querySelector('.flash'),60000);
   OUT.written=MOCK.DB['正式紀錄'].length; OUT.concl=MOCK.DB['正式紀錄'][0].mmConclusion; OUT.actions=MOCK.DB['改善行動'].length; OUT.flash=d.querySelector('.flash').textContent.slice(0,50);''',
+# 13 v1.23 定案按鈕不可無聲無息：臨床決策層缺其他層級因素、漏選項目，都要在按鈕旁說明；補齊後可定案
+'decide_feedback': r'''seed(3,0,0); const C=MOCK.DB['案例']; C.forEach(ready); C[0].mmInitMainFactor={Id:6,Title:'值班負荷與疲勞'}; C[0].mmInitFactors=[]; C[1].mmInitMainFactor=null; C[1].mmInitPrev=null;
+  const sh=await boot(); const {d}=await meet(sh); d.getElementById('go-present').click(); let f=await until(()=>d.getElementById('decide')); const T=id=>d.getElementById(id).textContent; const sb=()=>f.querySelector('button[type=submit]');
+  OUT.jcBtnEnabled=!sb().disabled; OUT.jcHintBeforeClick=T('dneed'); sb().click(); await sleep(100); OUT.jcNoConfirm=d.getElementById('cf').hidden; OUT.jcWritten=MOCK.DB['正式紀錄'].length;
+  const other=[...f.querySelectorAll('input[name=f]')].find(x=>x.value==='等待檢查／處置'); other.click(); await sleep(50); OUT.jcHintAfterFix=T('dneed'); sb().click(); await sleep(100); OUT.jcConfirmAfterFix=!d.getElementById('cf').hidden;
+  d.getElementById('cfback').click(); d.getElementById('dclose').click(); d.getElementById('nx').click(); await sleep(100); f=d.getElementById('decide');
+  OUT.case2=d.querySelector('.drawer .dhead b').textContent.slice(-14); sb().click(); await sleep(100); OUT.missMsg=T('dmsg'); OUT.missNoConfirm=d.getElementById('cf').hidden;
+  f.querySelector('input[name=main][value="感染併發症"]').click(); sb().click(); await sleep(100); OUT.missMsg2=T('dmsg'); f.prev.value='可能可預防'; f.prev.dispatchEvent(new Event('change',{bubbles:true}));
+  await decideNow(d,f); await until(()=>d.querySelector('.flash'),60000); OUT.written=MOCK.DB['正式紀錄'].length; OUT.novalidate=d.getElementById('decide')?d.getElementById('decide').noValidate:'next-case-form';''',
+# 14 v1.24 改善行動追蹤：在頁面更新狀態與進度、完成時填完成日期與成效、已完成區、尚未指派排最前、連結只收 https
+'actions_track': r'''seed(3,3,0); MOCK.DB['案例'].forEach(ready); const A=MOCK.DB['改善行動']; const mk=(i,t,o,due,st,x={})=>A.push(Object.assign({Id:900+i,Title:t,mmOwner:o,mmDueDate:due+'T00:00:00Z',mmStatus:st},x));
+  mk(1,'甲 已指派近期','本科','2099-01-10','待辦'); mk(2,'乙 尚未指派','會後指派','2099-06-01','待辦'); mk(3,'丙 已逾期','藥劑部','2020-01-01','進行中'); mk(4,'丁 已完成未確認','本科','2025-01-01','完成');
+  const sh=await boot(); const {d}=await meet(sh); OUT.prepBtn=(d.getElementById('go-actions')||{}).textContent; d.getElementById('go-actions').click(); await until(()=>d.querySelector('#v-actions table'));
+  const V=d.getElementById('v-actions'); const openRows=()=>[...V.querySelectorAll('section:first-child tbody tr:not(.aed)')].map(r=>r.cells[0].textContent.slice(0,7)+'|'+r.cells[1].textContent);
+  OUT.order=openRows(); OUT.head=V.querySelector('.sec-head .note').textContent; OUT.doneSummary=V.querySelector('#act-done summary').textContent.replace(/\s+/g,' ').trim();
+  V.querySelector('[data-edit="901"]').click(); await sleep(50); let f=V.querySelector('form.aform'); OUT.doneFieldsHiddenAtFirst=f.querySelector('.adone').hidden;
+  f.st.value='進行中'; f.st.dispatchEvent(new Event('change')); f.note.value='已排入科會'; f.ow.value='病房護理'; f.querySelector('button[type=submit]').click(); await until(()=>/已儲存/.test((d.getElementById('act-msg')||{}).textContent||''));
+  const r1=A.find(x=>x.Id===901); OUT.save1={st:r1.mmStatus,note:r1.mmRemarks,ow:r1.mmOwner,due:String(r1.mmDueDate).slice(0,10)};
+  V.querySelector('[data-edit="901"]').click(); await sleep(50); f=V.querySelector('form.aform'); f.st.value='完成'; f.st.dispatchEvent(new Event('change')); OUT.doneFieldsShown=!f.querySelector('.adone').hidden;
+  f.ef.value='有效'; f.en.value='三個月未再發生'; f.ev.value='javascript:alert(1)'; f.querySelector('button[type=submit]').click(); await sleep(100); OUT.badLinkMsg=f.querySelector('.amsg').textContent; OUT.badLinkNotSaved=r1.mmStatus==='進行中';
+  f.ev.value='https://example.org/sop.pdf'; f.querySelector('button[type=submit]').click(); await until(()=>r1.mmStatus==='完成'); await sleep(100);
+  OUT.save2={st:r1.mmStatus,eff:r1.mmEffect,done:String(r1.mmDoneDate).slice(0,4)===String(new Date().getFullYear()),ev:r1.mmEvidence}; OUT.movedToDone=!openRows().some(x=>x.startsWith('甲'))&&V.querySelector('#act-done').open;
+  OUT.doneLink=!!V.querySelector('#act-done a[href="https://example.org/sop.pdf"]'); OUT.pendingCount=V.querySelector('#act-done summary').textContent.replace(/\s+/g,' ').trim();''',
+# 15 改善行動：站台還沒有追蹤欄位（未跑 create_lists v15）仍可改狀態；唯讀帳號沒有「更新」鈕
+'actions_limited': r'''seed(2,0,0); const A=MOCK.DB['改善行動']; A.push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'待辦'}); MOCK.noActionV15=true; const sh=await boot(); const {d}=await meet(sh);
+  d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#v-actions table')); const V=d.getElementById('v-actions'); V.querySelector('[data-edit="901"]').click(); await sleep(50); const f=V.querySelector('form.aform');
+  f.st.value='完成'; f.st.dispatchEvent(new Event('change')); OUT.noExtraInputs=!f.dd&&!f.ef&&!f.ev; f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmStatus==='完成'); OUT.saved=A[0].mmStatus; await sleep(100);
+  OUT.doneCols=[...V.querySelectorAll('#act-done th')].map(t=>t.textContent).join('|');''',
+'actions_readonly': r'''seed(2,0,0); MOCK.DB['改善行動'].push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'待辦'}); MOCK.permLow={'改善行動':1}; const sh=await boot(); const {d}=await meet(sh);
+  d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#v-actions table')); OUT.rows=d.querySelectorAll('#v-actions tbody tr').length; OUT.editButtons=d.querySelectorAll('#v-actions [data-edit]').length;''',
+# 16 v1.24 每月存檔匯出：含當月定案與行動，不含病歷號；逾期提醒信草稿
+'export_month': r'''seed(6,6,0); const R=MOCK.DB['正式紀錄']; const ym='2026-10'; R.forEach((r,i)=>{ r.mmYearMonth=i<4?ym:'2026-09'; r.Title=(i<4?'LOS-2026-10-0':'LOS-2026-09-0')+(i+1); r.mmMeetingDate=(i<4?'2026-10-20':'2026-09-22')+'T00:00:00Z'; r.mmConclusion='結論'+i; r.mmPatientShort='王OO'; });
+  MOCK.DB['改善行動'].push({Id:901,Title:'行動甲',mmOwner:'本科',mmDueDate:'2020-01-01T00:00:00Z',mmStatus:'進行中',mmRelatedRecords:[{Id:1,Title:'LOS-2026-10-01'}]},{Id:902,Title:'行動乙<img src=x onerror=PWNED=1>',mmOwner:'會後指派',mmDueDate:'2099-01-01T00:00:00Z',mmStatus:'待辦',mmRelatedRecords:[{Id:2,Title:'LOS-2026-09-05'}]});
+  const sh=await boot(); const {d,w}=await meet(sh); d.querySelector('#nav button[data-view=records]').click(); await until(()=>d.getElementById('r-export')); OUT.btn=d.getElementById('r-export').textContent; OUT.btnEnabled=!d.getElementById('r-export').disabled;
+  const h=w.MM_SP.dashboard.monthReport(ym); const doc=new DOMParser().parseFromString(h,'text/html'); OUT.title=doc.querySelector('h1').textContent; OUT.summary=doc.querySelector('p').textContent.slice(0,60);
+  const tabs=doc.querySelectorAll('table'); OUT.recRows=tabs[0].querySelectorAll('tr').length-1; OUT.onlyThisMonth=!h.includes('LOS-2026-09-06'); OUT.monthActions=tabs[1].querySelectorAll('tr').length-1; OUT.openActions=tabs[2].querySelectorAll('tr').length-1;
+  OUT.noChartNo=MOCK.DB['對照表'].every(k=>!h.includes(k.mmChartNo)); OUT.escaped=!doc.querySelector('img')&&h.includes('&lt;img'); OUT.hasStyle=!!doc.querySelector('style');
+  d.getElementById('r-export').click(); await sleep(100); OUT.afterClick=d.getElementById('r-export-msg').textContent.slice(0,12);
+  d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.getElementById('act-mail')); const href=decodeURIComponent(d.getElementById('act-mail').getAttribute('href')); OUT.mail=href.slice(0,30); OUT.mailListsOverdueOnly=href.includes('行動甲')&&!href.includes('行動乙'); OUT.pwned=!!(window.PWNED||w.PWNED);''',
+# 17 佐證上傳：檔案進「改善行動佐證」的該行動資料夾，連結填入並可儲存；沒有文件庫時不顯示上傳；上傳失敗有訊息
+'evidence_upload': r'''seed(2,0,0); const A=MOCK.DB['改善行動']; A.push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'進行中'}); const sh=await boot(); const {d}=await meet(sh);
+  d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#v-actions table')); const V=d.getElementById('v-actions'); V.querySelector('[data-edit="901"]').click(); await sleep(50); const f=V.querySelector('form.aform');
+  f.st.value='完成'; f.st.dispatchEvent(new Event('change')); OUT.hasUpload=!!f.evf; const put=async(name,bytes)=>{ const dt=new DataTransfer(); dt.items.add(new File([new Uint8Array(bytes)],name)); const m=f.querySelector('.amsg'); m.textContent=''; f.evf.files=dt.files; f.evf.dispatchEvent(new Event('change')); await until(()=>/已上傳|沒有上傳成功/.test(m.textContent)&&!f.querySelector('button[type=submit]').disabled,30000); };
+  MOCK.uploadFail=true; await put('a.pdf',10); OUT.failMsg=f.querySelector('.amsg').textContent.slice(0,14); OUT.failNoLink=f.ev.value===''; MOCK.uploadFail=false;
+  await put('修訂 SOP #2: 草稿?.pdf',2048); OUT.file=MOCK.files.map(x=>({folder:x.folder,name:x.name.replace(/^\d{8}-\d{6}_/,'T_'),size:x.size})); OUT.linkShape=f.ev.value.replace(location.origin,'ORIGIN').replace(/\d{8}-\d{6}_/,'T_'); OUT.noSpaceInLink=!/\s/.test(f.ev.value); await put('b.docx',100); OUT.twoLinks=f.ev.value.split(/\s+/).length;
+  f.ev.value=f.ev.value.split(location.origin).join('https://x.sharepoint.com'); /* 測試頁是 file://，實際站台是 https */ f.ef.value='有效'; f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmStatus==='完成'); await sleep(100); OUT.savedLinks=String(A[0].mmEvidence).split('\n').length; OUT.doneLinks=[...V.querySelectorAll('#act-done td a')].map(a=>a.textContent);''',
+'evidence_nolib': r'''seed(2,0,0); MOCK.DB['改善行動'].push({Id:901,Title:'甲',mmOwner:'本科',mmDueDate:'2099-01-10T00:00:00Z',mmStatus:'完成'}); MOCK.noEvidenceLib=true; const sh=await boot(); const {d}=await meet(sh);
+  d.querySelector('#nav button[data-view=actions]').click(); await until(()=>d.querySelector('#act-done')); d.getElementById('act-done').open=true; d.querySelector('[data-edit="901"]').click(); await sleep(50); const f=d.querySelector('form.aform'); OUT.hasLinkInput=!!f.ev; OUT.hasUpload=!!f.evf;''',
 }
 results = {}
 for name, body in SCEN.items():

@@ -43,7 +43,7 @@
   const LI = {};
   async function listInfo(title) {
     if (LI[title]) return LI[title];
-    const BYURL = { '投票': '/Lists/mmvote' }; // 用網址找：多語系站台改名後，依名稱可能找不到
+    const BYURL = { '投票': '/Lists/mmvote', '改善行動佐證': '/mmevidence' }; // 用網址找：多語系站台改名後，依名稱可能找不到
     const sel = '$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder';
     const l = BYURL[title] ? await rq(`web/GetList(@u)?${sel}&@u='${encodeURIComponent(base.replace(location.origin, '') + BYURL[title])}'`) : await rq(`web/lists/getbytitle('${q(title)}')?${sel}`);
     const fs = (await rq(`web/lists(guid'${l.Id}')/fields?$filter=Hidden eq false`)).value;
@@ -405,11 +405,30 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
         if (A('狀態')) ab[A('狀態')] = '待辦';
         if (A('針對因素')) ab[A('針對因素') + 'Id'] = mid;
         if (A('關聯紀錄') && recItem && recItem.Id) ab[A('關聯紀錄') + 'Id'] = { __metadata: { type: 'Collection(Edm.Int32)' }, results: [recItem.Id] };
-        await addItem(al, ab);
-        _action = { '標題': p.action.title, '負責人': p.action.owner, '到期日': p.action.due, '狀態': '待辦', '針對因素': p.main, '關聯紀錄': code };
+        const ar = await addItem(al, ab);
+        _action = { _id: ar && ar.Id, '標題': p.action.title, '負責人': p.action.owner, '到期日': p.action.due, '狀態': '待辦', '針對因素': p.main, '關聯紀錄': code };
       } catch (e) { _actionError = e.message; }
     }
     return { _action, _actionError, ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
+  }
+  /* ---------- 改善行動追蹤：在開會頁直接更新狀態、進度、完成與成效 ---------- */
+  async function actionSave(id, row) { // row：顯示名稱 → 字串；空白的欄位不動
+    const al = await listInfo('改善行動'); const { body, warn } = toBody(al, row); if (warn.length) throw new Error(warn.join('；'));
+    await mergeItem(al, id, body); return toDisplay(al, await readOne('改善行動', id));
+  }
+  /* ---------- 改善行動佐證：上傳到站台文件庫「改善行動佐證」，每個行動一個資料夾 ---------- */
+  let evLi = null;
+  async function evidenceUpload(actionId, file) {
+    if (!evLi) throw new Error('站台還沒有佐證文件庫');
+    if (!file || !file.size) throw new Error('檔案是空的'); if (file.size > 50 * 1024 * 1024) throw new Error('檔案超過 50 MB，請先壓縮或分開上傳');
+    const root = evLi.url.replace(location.origin, ''), folder = root + '/A' + actionId;
+    try { await rq('web/folders', { method: 'POST', body: { __metadata: { type: 'SP.Folder' }, ServerRelativeUrl: folder } }); } catch (_) {} // 資料夾已存在時會失敗，略過
+    const d = new Date(), p2 = n => String(n).padStart(2, '0'), stamp = ymd(d).replace(/-/g, '') + '-' + p2(d.getHours()) + p2(d.getMinutes()) + p2(d.getSeconds());
+    const name = stamp + '_' + (String(file.name).replace(/["*:<>?\/\\|#%&~{}]/g, '_').replace(/^[\s.]+|[\s.]+$/g, '').slice(-110) || 'file');
+    const r = await fetch(`${base}/_api/web/GetFolderByServerRelativeUrl('${q(folder)}')/Files/add(url='${q(name)}',overwrite=false)`, { method: 'POST', headers: { Accept: 'application/json;odata=verbose', 'X-RequestDigest': await getDigest() }, body: await file.arrayBuffer() });
+    if (!r.ok) throw new Error('上傳失敗（代碼 ' + r.status + '）');
+    const j = await r.json(), rel = (j.d || j).ServerRelativeUrl; if (!rel) throw new Error('上傳後讀不到檔案位置');
+    return location.origin + encodeURI(rel);
   }
   /* ---------- 會前圈選「會中報告」：只改案例清單的一個欄位 ---------- */
   async function mark(code, on) {
@@ -443,13 +462,14 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
   async function meetInit() {
     meetReady = true; const P = $('#p-meet'); P.innerHTML = '<div class="load">讀取中…</div>';
     try {
-      const [data, can, canMark] = await Promise.all([loadData(), canAdd('正式紀錄'), canEdit('案例')]);
+      const [data, can, canMark, canAct] = await Promise.all([loadData(), canAdd('正式紀錄'), canEdit('案例'), canEdit('改善行動')]);
       const hasReport = !!(await listInfo('案例')).f['會中報告'];
       try { voteLi = await listInfo('投票'); } catch (_) { voteLi = null; }
+      try { evLi = await listInfo('改善行動佐證'); } catch (_) { evLi = null; }
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
       const w = frame.contentWindow, doc = frame.contentDocument;
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
-      w.MM_SP = { data, canDecide: can, decide, hasReport, mark: hasReport && canMark ? mark : null, vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
+      w.MM_SP = { data, canDecide: can, decide, hasReport, mark: hasReport && canMark ? mark : null, actionSave: canAct ? actionSave : null, evidenceUpload: canAct && evLi ? evidenceUpload : null, actionFields: Object.keys((await listInfo('改善行動')).f), vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
       const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
       rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });
