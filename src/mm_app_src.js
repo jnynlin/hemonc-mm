@@ -55,6 +55,10 @@
     try { const li = await listInfo(title); const p = await rq(`web/lists(guid'${li.id}')/EffectiveBasePermissions`); return (Number(p.Low) & 2) !== 0; }
     catch (_) { return false; }
   }
+  async function canEdit(title) { // 能不能修改清單項目（EditListItems）
+    try { const li = await listInfo(title); const p = await rq(`web/lists(guid'${li.id}')/EffectiveBasePermissions`); return (Number(p.Low) & 4) !== 0; }
+    catch (_) { return false; }
+  }
   function selExp(li) { const sel = ['Id'], exp = []; for (const f of li.ours) { if (/^(Lookup|User)/.test(f.TypeAsString)) { sel.push(f.InternalName + '/Title', f.InternalName + '/Id'); exp.push(f.InternalName); } else sel.push(f.EntityPropertyName); } return `$select=${sel.join(',')}${exp.length ? '&$expand=' + exp.join(',') : ''}`; }
   async function readOne(title, id) { const li = await listInfo(title); return rq(`web/lists(guid'${li.id}')/items(${id})?${selExp(li)}`); }
   async function readAll(title) {
@@ -352,7 +356,13 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     caseRaw = {}; caseDisp = {}; facIds = {};
     const drafts = cs.map(it => { const o = toDisplay(cl, it); caseRaw[o['標題']] = it; caseDisp[o['標題']] = o; return o; });
     for (const it of fs) facIds[(it.Title || '').trim()] = it.Id;
-    return { drafts, records: rs.map(it => toDisplay(rl, it)), factors: fs.map(it => toDisplay(fl, it)), actions: as.map(it => toDisplay(al, it)) };
+    // 病歷號：只有讀得到「對照表」的帳號才有；另外放，不併入案例資料（定案寫回時不會帶到正式紀錄）
+    let charts = null;
+    try {
+      const kl = await listInfo('對照表'), cf = kl.f['病歷號'].EntityPropertyName; charts = {};
+      for (const k of await getAll(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${cf}`)) { const v = String(k[cf] || '').trim(); if (k.Title && v) charts[k.Title] = v; }
+    } catch (_) { charts = null; }
+    return { charts, drafts, records: rs.map(it => toDisplay(rl, it)), factors: fs.map(it => toDisplay(fl, it)), actions: as.map(it => toDisplay(al, it)) };
   }
   async function decide(code, p) {
     const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'); if (!caseRaw[code]) throw new Error('找不到案例 ' + code);
@@ -401,6 +411,14 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     }
     return { _action, _actionError, ...caseDisp[code], '共識主要根因': p.main, '共識促成因素': p.factors.join(';'), '共識可預防性': p.prev, '決策方式': p.mode, '會議結論': p.conclusion, '長官意見': p.chief, '會議日期': today, '出席人數': p.attendees ?? '', '票數': p.votes ?? '', '投票分布': p.dist, '初評一致': initMain === p.main ? '是' : '否', '狀態': '已定案' };
   }
+  /* ---------- 會前圈選「會中報告」：只改案例清單的一個欄位 ---------- */
+  async function mark(code, on) {
+    const cl = await listInfo('案例'), f = cl.f['會中報告']; if (!f) throw new Error('站台還沒有「會中報告」欄位');
+    if (!caseRaw[code]) throw new Error('找不到案例 ' + code);
+    await mergeItem(cl, caseRaw[code].Id, { __metadata: { type: cl.type }, [f.EntityPropertyName]: !!on });
+    caseRaw[code][f.EntityPropertyName] = !!on; if (caseDisp[code]) caseDisp[code]['會中報告'] = on ? '是' : '否';
+    return !!on;
+  }
   /* ---------- 會中匿名投票：手機掃 QR 開「投票」清單的表單；每人以最後一票為準 ---------- */
   let voteLi = null;
   const vote = {
@@ -425,12 +443,13 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
   async function meetInit() {
     meetReady = true; const P = $('#p-meet'); P.innerHTML = '<div class="load">讀取中…</div>';
     try {
-      const [data, can] = await Promise.all([loadData(), canAdd('正式紀錄')]);
+      const [data, can, canMark] = await Promise.all([loadData(), canAdd('正式紀錄'), canEdit('案例')]);
+      const hasReport = !!(await listInfo('案例')).f['會中報告'];
       try { voteLi = await listInfo('投票'); } catch (_) { voteLi = null; }
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
       const w = frame.contentWindow, doc = frame.contentDocument;
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
-      w.MM_SP = { data, canDecide: can, decide, vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
+      w.MM_SP = { data, canDecide: can, decide, hasReport, mark: hasReport && canMark ? mark : null, vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
       const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
       rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });

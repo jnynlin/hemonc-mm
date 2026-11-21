@@ -97,6 +97,35 @@ SCEN = {
   MOCK.DB['案例'].length=0; MOCK.DB['對照表'].length=0; await sleep(100); sh.querySelector('#res').innerHTML=''; await intake(sh,[F('S_XSS','血液腫瘤科2026年10月份超長住院討論會.docx')]); await write(sh);
   ready(MOCK.DB['案例'][0]); const {d}=await meet(sh); d.getElementById('go-present').click(); await until(()=>d.getElementById('decide')); await sleep(500);
   OUT.xssExecuted=!!(window.PWNED||(d.defaultView&&d.defaultView.PWNED)); OUT.xssImgInProjection=!!d.querySelector('.pres img');''',
+# 8 v1.19 開會頁：病歷號（取自對照表）、會前勾選會中報告、住院天數尺；定案寫回不得帶出病歷號
+'meet_v119': r'''const sh=await boot(); await intake(sh,[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx')]); await write(sh);
+  MOCK.DB['案例'].slice(0,4).forEach(ready); const {d}=await meet(sh); const key=t=>(MOCK.DB['對照表'].find(k=>k.Title===t)||{}).mmChartNo;
+  OUT.chartCol=[...d.querySelectorAll('#v-prep th')].some(th=>th.textContent==='病歷號');
+  const rows=()=>[...d.querySelectorAll('#v-prep tr.click')]; OUT.prepRows=rows().length;
+  OUT.chartAllMatch=rows().every(tr=>tr.querySelector('td.chartno').textContent===key(tr.querySelector('td.nw b').textContent));
+  OUT.repBoxes=d.querySelectorAll('input[data-rep]').length; const target=rows()[2].querySelector('td.nw b').textContent, tch=key(target);
+  d.querySelector('input[data-rep="'+target+'"]').click(); await until(()=>/會中報告/.test((d.querySelector('#v-prep h3')||{}).textContent||''));
+  OUT.dbFlag=MOCK.DB['案例'].find(c=>c.Title===target).mmReport===true; OUT.stayedOnPrep=!d.getElementById('v-prep').hidden;
+  OUT.firstIsTarget=rows()[0].querySelector('td.nw b').textContent===target; OUT.onlyRepToggle=!!d.getElementById('only-rep');
+  d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2'));
+  OUT.presFirstIsTarget=d.querySelector('.pres .meta.above').textContent.includes(target); OUT.presChart=d.querySelector('.pres h2 .chartno').textContent==='病歷號 '+tch;
+  OUT.rail=d.querySelectorAll('.rail button').length; OUT.railRep=d.querySelectorAll('.rail button.rep').length; OUT.ruler=!!d.querySelector('.stay svg');
+  d.querySelectorAll('.rail button')[1].click(); await sleep(100); OUT.railJump=d.querySelector('.rail button.cur').dataset.j==='1'; d.querySelectorAll('.rail button')[0].click(); await sleep(100);
+  const f=await until(()=>d.getElementById('decide')); f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
+  OUT.decide=(d.querySelector('.flash')||d.getElementById('dmsg')).textContent.slice(0,60); const rec=MOCK.DB['正式紀錄'].find(r=>r.Title===target)||{};
+  OUT.recExtraKeys=Object.keys(rec).filter(k=>/Chart|Report|PatientName|Bed/.test(k)); OUT.recHasChart=JSON.stringify(rec).includes(tch);
+  d.getElementById('ex').click(); await sleep(100); d.getElementById('show-chart').click(); await sleep(100); OUT.hideChartWorks=!d.querySelector('#v-prep td.chartno');
+  const t2=rows()[0].querySelector('td.nw b').textContent; d.querySelector('input[data-rep="'+t2+'"]').click(); await until(()=>d.getElementById('only-rep')); d.getElementById('only-rep').click(); await sleep(100); OUT.onlyRepRows=rows().length;
+  d.getElementById('go-present').click(); const f2=await until(()=>d.getElementById('decide')); f2.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash'),60000); await sleep(100);
+  OUT.afterLastRep=d.querySelector('.flash').textContent.slice(-22); OUT.falseAllDone=/已全部定案$/.test((d.querySelector('.pres .wait')||{}).textContent||''); OUT.restShown=d.querySelectorAll('.rail button').length;''',
+# 9 沒有對照表權限、站台還沒有「會中報告」欄位、案例唯讀：開會頁照常可用，只是不顯示對應功能
+'meet_limited': r'''seed(6,0,0); MOCK.DB['案例'].forEach(ready); MOCK.perms['對照表']=false; MOCK.noReportField=true; const sh=await boot();
+  const {d}=await meet(sh); OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length; OUT.chartCol=!!d.querySelector('#v-prep td.chartno'); OUT.repCol=[...d.querySelectorAll('#v-prep th')].some(th=>th.textContent==='報告'); OUT.showChartToggle=!!d.getElementById('show-chart');
+  d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.presChart=!!d.querySelector('.pres .chartno'); OUT.presOk=d.querySelector('.pres h2').textContent.length>0; OUT.ruler=!!d.querySelector('.stay svg');''',
+'meet_readonly': r'''seed(6,0,0); MOCK.DB['案例'].forEach(ready); MOCK.DB['案例'][1].mmReport=true; MOCK.permLow={'案例':1,'正式紀錄':1}; const sh=await boot();
+  const {d}=await meet(sh); OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length; OUT.boxes=d.querySelectorAll('input[data-rep]').length; OUT.ticks=[...d.querySelectorAll('#v-prep td.rep')].filter(t=>t.textContent==='✓').length;
+  d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.btnLabel=d.getElementById('dopen').textContent.replace('D',''); d.getElementById('dopen').click(); await sleep(100);
+  OUT.drawerOpens=!d.getElementById('drawer').hidden; OUT.hasForm=!!d.getElementById('decide'); OUT.notice=d.getElementById('drawer').textContent.includes('定案由主任執行');''',
 }
 results = {}
 for name, body in SCEN.items():
