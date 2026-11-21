@@ -17,6 +17,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const until=async(fn,ms=60000)=>{const t=Date.now();while(Date.now()-t<ms){try{const v=fn();if(v)return v;}catch(e){}await sleep(50);}throw new Error('timeout');};
 const F=(k,n)=>new File([Uint8Array.from(atob(FILES[k]),c=>c.charCodeAt(0))],n);
 const OUT={};
+const decideNow=async(d,f)=>{ f.querySelector('button[type=submit]').click(); const ok=await until(()=>{ const b=d.getElementById('cfok'), c=d.getElementById('cf'); return ((b&&c&&!c.hidden)||/失敗|請/.test(d.getElementById('dmsg').textContent))&&(b||true); }); if(ok&&ok.click) ok.click(); return ok; };
 async function boot(){ try{localStorage.removeItem('mm-app-tab')}catch(e){} MOCK.users=UJ.users; (0,eval)(APP); const sh=document.getElementById('mm-app-host').shadowRoot; await until(()=>sh.querySelector('#file')||sh.querySelector('.banner')); return sh; }
 async function intake(sh,fs){ const dt=new DataTransfer(); fs.forEach(f=>dt.items.add(f)); const i=sh.querySelector('#file'); i.files=dt.files; i.dispatchEvent(new Event('change')); await until(()=>{const r=sh.querySelector('#res'); return sh.querySelector('#write')||(r&&/失敗|不會寫入|請選擇|不是有效|不是 Word/.test(r.textContent))||/請選擇/.test(sh.querySelector('#ds').textContent);},180000); }
 async function write(sh){ const t=performance.now(); sh.querySelector('#write').click(); await until(()=>/完成：新增/.test((sh.querySelector('#log')||{}).textContent||''),600000); return {ms:Math.round(performance.now()-t), log:sh.querySelector('#log').textContent}; }
@@ -44,13 +45,13 @@ SCEN = {
   OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length;
   t=performance.now(); d.querySelector('#nav button[data-view=records]').click(); await until(()=>d.getElementById('v-records').textContent.length>50); OUT.recordsRenderMs=Math.round(performance.now()-t);
   d.querySelector('#nav button[data-view=prep]').click(); d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide'));
-  f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
+  await decideNow(d,f); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
   OUT.decide=(d.querySelector('.flash')||d.getElementById('dmsg')).textContent.slice(0,120);
   OUT.thresholdHits=STRESS.thresholdHits; OUT.calls=STRESS.calls;''',
 # 1b 正式紀錄也超過 5000：定案時查重複會碰門檻
 'volume_records': r'''seed(6000,6000,10); MOCK.DB['案例'].slice(-3).forEach(ready); const sh=await boot();
   const {d}=await meet(sh); d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide'));
-  f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
+  await decideNow(d,f); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
   OUT.decide=(d.querySelector('.flash')||d.getElementById('dmsg')).textContent.slice(0,140); OUT.thresholdHits=STRESS.thresholdHits;''',
 # 2 流量限制：每 4 個請求就回 429
 'throttle': r'''const sh=await boot(); STRESS.throttleEvery=4;
@@ -73,7 +74,7 @@ SCEN = {
 # 5 重複按定案、兩台電腦同時定案同一案
 'concurrent_decide': r'''const sh=await boot(); await intake(sh,[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx')]); await write(sh);
   MOCK.DB['案例'].slice(0,2).forEach(ready); STRESS.latency=200; const {d,w}=await meet(sh);
-  d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide')); const b=f.querySelector('button[type=submit]'); b.click(); b.click(); b.click();
+  d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide')); const b=await decideNow(d,f); b.click(); b.click();
   await until(()=>d.querySelector('.flash'),60000); await sleep(1500); const c1=MOCK.DB['案例'][0].Title; OUT.doubleClickRecords=MOCK.DB['正式紀錄'].filter(r=>r.Title===c1).length;
   const c2=MOCK.DB['案例'][1].Title; const p={main:'等待檢查／處置',factors:[],prev:'可能可預防',mode:'三方一致',attendees:null,votes:null,dist:'',conclusion:'',chief:'',action:null};
   const rs=await Promise.allSettled([w.MM_SP.decide(c2,p),w.MM_SP.decide(c2,p)]); OUT.parallel=rs.map(r=>r.status+(r.reason?': '+r.reason.message.slice(0,40):'')); OUT.parallelRecords=MOCK.DB['正式紀錄'].filter(r=>r.Title===c2).length;''',
@@ -111,12 +112,12 @@ SCEN = {
   OUT.presFirstIsTarget=d.querySelector('.pres .meta.above').textContent.includes(target); OUT.presChart=d.querySelector('.pres h2 .chartno').textContent==='病歷號 '+tch;
   OUT.rail=d.querySelectorAll('.rail button').length; OUT.railRep=d.querySelectorAll('.rail button.rep').length; OUT.ruler=!!d.querySelector('.stay svg');
   d.querySelectorAll('.rail button')[1].click(); await sleep(100); OUT.railJump=d.querySelector('.rail button.cur').dataset.j==='1'; d.querySelectorAll('.rail button')[0].click(); await sleep(100);
-  const f=await until(()=>d.getElementById('decide')); f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
+  const f=await until(()=>d.getElementById('decide')); await decideNow(d,f); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000);
   OUT.decide=(d.querySelector('.flash')||d.getElementById('dmsg')).textContent.slice(0,60); const rec=MOCK.DB['正式紀錄'].find(r=>r.Title===target)||{};
   OUT.recExtraKeys=Object.keys(rec).filter(k=>/Chart|Report|PatientName|Bed/.test(k)); OUT.recHasChart=JSON.stringify(rec).includes(tch);
   d.getElementById('ex').click(); await sleep(100); d.getElementById('show-chart').click(); await sleep(100); OUT.hideChartWorks=!d.querySelector('#v-prep td.chartno');
   const t2=rows()[0].querySelector('td.nw b').textContent; d.querySelector('input[data-rep="'+t2+'"]').click(); await until(()=>d.getElementById('only-rep')); d.getElementById('only-rep').click(); await sleep(100); OUT.onlyRepRows=rows().length;
-  d.getElementById('go-present').click(); const f2=await until(()=>d.getElementById('decide')); f2.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash'),60000); await sleep(100);
+  d.getElementById('go-present').click(); const f2=await until(()=>d.getElementById('decide')); await decideNow(d,f2); await until(()=>d.querySelector('.flash'),60000); await sleep(100);
   OUT.afterLastRep=d.querySelector('.flash').textContent.slice(-22); OUT.falseAllDone=/已全部定案$/.test((d.querySelector('.pres .wait')||{}).textContent||''); OUT.restShown=d.querySelectorAll('.rail button').length;''',
 # 9 沒有對照表權限、站台還沒有「會中報告」欄位、案例唯讀：開會頁照常可用，只是不顯示對應功能
 'meet_limited': r'''seed(6,0,0); MOCK.DB['案例'].forEach(ready); MOCK.perms['對照表']=false; MOCK.noReportField=true; const sh=await boot();
@@ -134,7 +135,7 @@ SCEN = {
   d.getElementById('pv').click(); await sleep(50); d.getElementById('pv').click(); await sleep(100); const f=d.getElementById('decide');
   d.getElementById('rmore-btn').click(); OUT.revealed=!d.getElementById('rmore').hidden; const r=[...f.querySelectorAll('input[name=main]')]; OUT.radios=r.length; r[r.length-1].click(); OUT.oneMain=f.querySelectorAll('input[name=main]:checked').length;
   const cb=[...f.querySelectorAll('input[name=f]')].filter(x=>!x.disabled); cb[0].checked=true; cb[1].checked=true; f.dispatchEvent(new Event('change')); OUT.multiContrib=f.querySelectorAll('input[name=f]:checked').length>=2; OUT.mainBoxDisabled=f.querySelector('input[name=f][value="'+f.main.value+'"]').disabled;
-  f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000); const rec=MOCK.DB['正式紀錄'][0]||{}; OUT.savedMain=(rec.mmConsMainFactor||{}).Title; OUT.savedContrib=(rec.mmConsFactors||[]).length;''',
+  await decideNow(d,f); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000); const rec=MOCK.DB['正式紀錄'][0]||{}; OUT.savedMain=(rec.mmConsMainFactor||{}).Title; OUT.savedContrib=(rec.mmConsFactors||[]).length;''',
 # 11 v1.21 柏拉圖切換：只算主要根因（每案一項）／所有因素（主要＋促成，同一案同一因素不重複計）
 'pareto_toggle': r'''seed(12,12,0); const R=MOCK.DB['正式紀錄']; const now=new Date(), ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
   R.forEach((r,i)=>{ r.mmYearMonth=ym; r.mmMeetingDate=ym+'-15T00:00:00Z'; r.mmConsMainFactor=i<8?{Id:3,Title:'等待檢查／處置'}:{Id:4,Title:'感染併發症'}; r.mmConsFactors=i<6?[{Id:2,Title:'檢驗檢查結果延遲或未追蹤'},{Id:3,Title:'等待檢查／處置'}]:[]; });
@@ -143,6 +144,14 @@ SCEN = {
   OUT.defaultMode=d.querySelector('[data-pm][aria-pressed=true]').dataset.pm; OUT.main=read(); OUT.mainCap=d.getElementById('pareto-cap').textContent.slice(0,14);
   d.querySelector('[data-pm=all]').click(); await sleep(100); OUT.all=read(); OUT.allCap=d.getElementById('pareto-cap').textContent; OUT.allPressed=d.querySelector('[data-pm=all]').getAttribute('aria-pressed');
   d.querySelector('[data-pm=main]').click(); await sleep(100); OUT.backSame=JSON.stringify(read())===JSON.stringify(OUT.main);''',
+# 12 v1.22 定案確認：按「定案」只顯示確認內容不寫入；返回修改、改表單都會回到上一步；確認後才寫入
+'confirm_step': r'''seed(3,0,0); MOCK.DB['案例'].forEach(ready); const sh=await boot(); const {d}=await meet(sh); d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide')); const cf=()=>d.getElementById('cf');
+  f.act.click(); f.atitle.value='測試行動'; f.concl.value='結論一行'; f.querySelector('button[type=submit]').click(); await sleep(150);
+  OUT.confirmShown=!cf().hidden; OUT.notWrittenYet=MOCK.DB['正式紀錄'].length===0&&MOCK.DB['改善行動'].length===0; OUT.summary=cf().textContent.replace(/\\s+/g,' ').slice(0,150); OUT.submitHidden=f.querySelector('.go').hidden;
+  d.getElementById('cfback').click(); await sleep(50); OUT.backHides=cf().hidden&&!f.querySelector('.go').hidden&&MOCK.DB['正式紀錄'].length===0;
+  f.querySelector('button[type=submit]').click(); await sleep(100); f.concl.value='改過的結論'; f.concl.dispatchEvent(new Event('input',{bubbles:true})); await sleep(50); OUT.editHides=cf().hidden;
+  f.querySelector('button[type=submit]').click(); await sleep(100); OUT.summaryUpdated=cf().textContent.includes('改過的結論'); d.getElementById('cfok').click(); await until(()=>d.querySelector('.flash'),60000);
+  OUT.written=MOCK.DB['正式紀錄'].length; OUT.concl=MOCK.DB['正式紀錄'][0].mmConclusion; OUT.actions=MOCK.DB['改善行動'].length; OUT.flash=d.querySelector('.flash').textContent.slice(0,50);''',
 }
 results = {}
 for name, body in SCEN.items():
