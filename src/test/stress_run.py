@@ -126,6 +126,15 @@ SCEN = {
   const {d}=await meet(sh); OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length; OUT.boxes=d.querySelectorAll('input[data-rep]').length; OUT.ticks=[...d.querySelectorAll('#v-prep td.rep')].filter(t=>t.textContent==='✓').length;
   d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.btnLabel=d.getElementById('dopen').textContent.replace('D',''); d.getElementById('dopen').click(); await sleep(100);
   OUT.drawerOpens=!d.getElementById('drawer').hidden; OUT.hasForm=!!d.getElementById('decide'); OUT.notice=d.getElementById('drawer').textContent.includes('定案由主任執行');''',
+# 10 v1.20 根因選單：依案例類型只列對應層級，其餘收在「顯示…」裡；初評或主治已選的層級一律顯示；主要單選、促成複選
+'rootcause_scope': r'''seed(3,0,0); const C=MOCK.DB['案例']; C.forEach(ready); C[1].mmCaseType=['Mortality']; C[1].mmInitMainFactor={Id:1,Title:'疾病嚴重度／多重共病'}; C[2].mmCaseType=['超長住院','Morbidity'];
+  C[0].mmInitFactors=[{Id:2,Title:'檢驗檢查結果延遲或未追蹤'}]; const sh=await boot(); const {d}=await meet(sh); d.getElementById('go-present').click(); await until(()=>d.getElementById('decide'));
+  const snap=()=>{ const f=d.getElementById('decide'), m=d.getElementById('rmore'); const vis=[...f.querySelectorAll('.rc:not([hidden]) details.rg summary')].map(s=>s.firstChild.textContent); return {code:d.querySelector('.drawer .dhead b').textContent.slice(-14), visible:vis, hidden:m?[...m.querySelectorAll('summary')].map(s=>s.firstChild.textContent):[], btn:(d.getElementById('rmore-btn')||{}).textContent||''}; };
+  const out=[]; for(let k=0;k<3;k++){ out.push(snap()); if(k<2){ d.getElementById('nx').click(); await sleep(100); } } OUT.cases=out;
+  d.getElementById('pv').click(); await sleep(50); d.getElementById('pv').click(); await sleep(100); const f=d.getElementById('decide');
+  d.getElementById('rmore-btn').click(); OUT.revealed=!d.getElementById('rmore').hidden; const r=[...f.querySelectorAll('input[name=main]')]; OUT.radios=r.length; r[r.length-1].click(); OUT.oneMain=f.querySelectorAll('input[name=main]:checked').length;
+  const cb=[...f.querySelectorAll('input[name=f]')].filter(x=>!x.disabled); cb[0].checked=true; cb[1].checked=true; f.dispatchEvent(new Event('change')); OUT.multiContrib=f.querySelectorAll('input[name=f]:checked').length>=2; OUT.mainBoxDisabled=f.querySelector('input[name=f][value="'+f.main.value+'"]').disabled;
+  f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000); const rec=MOCK.DB['正式紀錄'][0]||{}; OUT.savedMain=(rec.mmConsMainFactor||{}).Title; OUT.savedContrib=(rec.mmConsFactors||[]).length;''',
 }
 results = {}
 for name, body in SCEN.items():
