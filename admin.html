@@ -22,7 +22,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
-<p>目前最新：<b>v1.20</b>（2026-11-21）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：定案表單的根因改成依層級分組的選單，主要根因選一項、促成因素可複選，並依案例類型只列對應的層級。不需重跑 create_lists（v1.19 的「報告」勾選功能仍需 v14）。<a href="#changelog">全部版本紀錄</a></p>
+<p>目前最新：<b>v1.21</b>（2026-11-21）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：「紀錄與分析」的根因柏拉圖可切換「只算主要根因」與「所有因素」（主要與促成都計入）。不需重跑 create_lists（v1.19 的「報告」勾選功能仍需 v14）。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
@@ -33,8 +33,9 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
 <p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
-<details><summary>展開全部（21 版）</summary>
+<details><summary>展開全部（22 版）</summary>
 <table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.21</b><br><span class="muted">2026-11-21</span></td><td>「紀錄與分析」的根因柏拉圖加切換：「只算主要根因」（每案一項，原本的算法）與「所有因素」（主要根因與促成因素都計入，一案可計入多項，百分比以項次計）。預設仍是只算主要根因。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.20</b><br><span class="muted">2026-11-21</span></td><td>定案表單的根因選單改版：主要根因與促成因素合成一張依層級分組的表，每個因素一列，「主要」選一項、「促成」可複選，上方即時顯示目前選了什麼；初評與主治選的因素有標記。依案例類型只列對應的層級：超長住院案列「超長住院因素」，Morbidity／Mortality 案列其他層級，其餘收在「顯示…」按鈕裡，仍可選；初評或主治已選的層級一律顯示。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.19</b><br><span class="muted">2026-11-21</span></td><td>開會頁與投影頁顯示病歷號：開啟時從對照表讀取，只有看得到對照表的帳號會顯示，不寫入案例與正式紀錄，可用「顯示病歷號」關閉。待討論案例加「報告」欄：會前勾選要在會中報告的案例，勾選的排在最前面，可選「只投影會中報告」。投影頁：超長住院案加住院天數尺（30 天記號、30 天之後的天數、初評估可避免天數，本次各案同一比例）；上方加案例進度列，可點選跳到該案；案例類型標籤加形狀記號，不只靠顏色區分。</td><td class="nw">勾選功能需重跑 create_lists v14</td></tr>
 <tr><td class="nw"><b>v1.18</b><br><span class="muted">2026-11-15</span></td><td>投影頁改版：案例資訊一行摘要、初評與主治意見一行；定案表單收進右側抽屜（右下「定案」或 D 開啟、Esc 關閉，開啟時案例內容左移不被遮住）；修正未勾「需要改善行動」時欄位仍顯示。</td><td class="nw">—</td></tr>

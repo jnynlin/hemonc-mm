@@ -135,6 +135,14 @@ SCEN = {
   d.getElementById('rmore-btn').click(); OUT.revealed=!d.getElementById('rmore').hidden; const r=[...f.querySelectorAll('input[name=main]')]; OUT.radios=r.length; r[r.length-1].click(); OUT.oneMain=f.querySelectorAll('input[name=main]:checked').length;
   const cb=[...f.querySelectorAll('input[name=f]')].filter(x=>!x.disabled); cb[0].checked=true; cb[1].checked=true; f.dispatchEvent(new Event('change')); OUT.multiContrib=f.querySelectorAll('input[name=f]:checked').length>=2; OUT.mainBoxDisabled=f.querySelector('input[name=f][value="'+f.main.value+'"]').disabled;
   f.querySelector('button[type=submit]').click(); await until(()=>d.querySelector('.flash')||/失敗/.test(d.getElementById('dmsg').textContent),60000); const rec=MOCK.DB['正式紀錄'][0]||{}; OUT.savedMain=(rec.mmConsMainFactor||{}).Title; OUT.savedContrib=(rec.mmConsFactors||[]).length;''',
+# 11 v1.21 柏拉圖切換：只算主要根因（每案一項）／所有因素（主要＋促成，同一案同一因素不重複計）
+'pareto_toggle': r'''seed(12,12,0); const R=MOCK.DB['正式紀錄']; const now=new Date(), ym=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  R.forEach((r,i)=>{ r.mmYearMonth=ym; r.mmMeetingDate=ym+'-15T00:00:00Z'; r.mmConsMainFactor=i<8?{Id:3,Title:'等待檢查／處置'}:{Id:4,Title:'感染併發症'}; r.mmConsFactors=i<6?[{Id:2,Title:'檢驗檢查結果延遲或未追蹤'},{Id:3,Title:'等待檢查／處置'}]:[]; });
+  const sh=await boot(); const {d}=await meet(sh); d.querySelector('#nav button[data-view=records]').click(); await until(()=>d.getElementById('pareto'));
+  const read=()=>[...d.querySelectorAll('#pareto svg rect')].map(x=>x.dataset.tip.replace(/（.*?）/,'').replace(/，累積.*$/,''));
+  OUT.defaultMode=d.querySelector('[data-pm][aria-pressed=true]').dataset.pm; OUT.main=read(); OUT.mainCap=d.getElementById('pareto-cap').textContent.slice(0,14);
+  d.querySelector('[data-pm=all]').click(); await sleep(100); OUT.all=read(); OUT.allCap=d.getElementById('pareto-cap').textContent; OUT.allPressed=d.querySelector('[data-pm=all]').getAttribute('aria-pressed');
+  d.querySelector('[data-pm=main]').click(); await sleep(100); OUT.backSame=JSON.stringify(read())===JSON.stringify(OUT.main);''',
 }
 results = {}
 for name, body in SCEN.items():
