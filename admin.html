@@ -22,7 +22,7 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 <header><h1>M&M 主任維護</h1><p>只給主任看。同仁請看 <a href="bookmarks.html">使用說明</a>，研究醫師請看 <a href="handbook.html">研究醫師手冊</a>。</p></header>
 
 <section><h2>更新程式 <small>收到新版時</small></h2>
-<p>目前最新：<b>v1.26</b>（2026-11-21）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：改善行動進度的「這次已做」與「下一步」改成從選單選，另有「其他」可自行填寫，右邊可補充說明。不需重跑 create_lists。另含 v1.23 的修正（「定案」按了沒反應）。不需重跑 create_lists（v1.19 的「報告」勾選功能仍需 v14）。<a href="#changelog">全部版本紀錄</a></p>
+<p>目前最新：<b>v1.27</b>（2026-11-21）。站台上的版本看「M&amp;M」工具列右上角。<br>本版更新：改善行動頁改版，把逾期、該追蹤、尚未指派的項目集中在最上面的「需要處理」，其餘列在「照進度進行」；字級放大。不需重跑 create_lists。另含 v1.23 的修正（「定案」按了沒反應）。不需重跑 create_lists（v1.19 的「報告」勾選功能仍需 v14）。<a href="#changelog">全部版本紀錄</a></p>
 <ol><li>下載 <a href="mm_app.js" download>mm_app.js</a>。</li>
 <li>站台「網站內容」→「網站資產」，把檔案拖進最上層，同名檔選「取代」。</li>
 <li>重新整理頁面，按書籤「M&M」，右上角版本號應為新版。</li></ol>
@@ -33,8 +33,9 @@ td.nw{white-space:nowrap} details summary{cursor:pointer;color:var(--accent);mar
 
 <section id="changelog"><h2>版本紀錄 <small>mm_app.js</small></h2>
 <p class="muted">「需重跑」欄：上傳該版之前，先在站台主控台重跑那一版以上的 create_lists.js。跳版更新時，以最新一版為準跑一次即可。</p>
-<details><summary>展開全部（27 版）</summary>
+<details><summary>展開全部（28 版）</summary>
 <table><tr><th>版本</th><th>改了什麼</th><th>清單</th></tr>
+<tr><td class="nw"><b>v1.27</b><br><span class="muted">2026-11-21</span></td><td>改善行動頁改版：進行中的項目分成「需要處理」（逾期、該追蹤、尚未指派，依急迫程度排序）與「照進度進行」兩組；每一項改為標題一行、負責單位與到期日等資訊一行、最新進度一行，右側寫出需要處理的原因（逾期幾天、該追蹤、尚未指派）或還有幾天到期，原因同時用記號與文字標示；本頁字級放大。功能與資料不變。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.26</b><br><span class="muted">2026-11-21</span></td><td>改善行動進度的「這次已做」與「下一步」改成選單：回顧病歷與蒐集資料、召開討論會、擬定或修訂 SOP／流程、送審或公告、教育訓練、資訊系統或表單調整、與其他單位協調、試行、稽核與追蹤成效，以及「其他」（須自行填寫）。選單右邊可補充說明，存成「選項－補充」。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.25</b><br><span class="muted">2026-11-21</span></td><td>改善行動的進度備註改成結構化：每次更新加一筆「這次已做、下一步、下次追蹤日」，自動帶日期，先前各筆保留並可展開；表格顯示最新一筆，到了追蹤日標「該追蹤了」並在標題旁計數。資料仍存在「備註」欄（一行一筆），原有的自由文字照樣顯示。每月存檔一併列出各筆進度。</td><td class="nw">—</td></tr>
 <tr><td class="nw"><b>v1.24</b><br><span class="muted">2026-11-21</span></td><td>改善行動追蹤：每一列加「更新」，可直接改狀態、負責單位、到期日與進度備註；狀態改為「完成」時填完成日期、成效確認（有效／部分有效／無效）、成效說明與佐證連結。尚未指派負責單位的排在最前面。新增「已完成或取消」區，標出成效尚未確認的項目。「待討論案例」加「先回顧改善行動」按鈕。改善行動清單開啟版本紀錄。佐證檔可直接上傳到站台文件庫「改善行動佐證」，每個行動一個資料夾，連結自動填入。「紀錄與分析」加「匯出本月存檔」：下載當月定案紀錄與改善行動的單一檔案，不含病歷號，可列印存成 PDF。有逾期行動時可按「草擬逾期提醒信」，用自己的郵件程式開一封列好逾期項目的信。</td><td class="nw">追蹤欄位需重跑 create_lists v15</td></tr>
