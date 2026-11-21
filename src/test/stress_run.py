@@ -213,6 +213,15 @@ SCEN = {
     g.nd.value='自訂內容'; g.nnk.value='教育訓練'; g.nn.value='晨會宣導'; g.querySelector('button[type=submit]').click(); await until(()=>R2()!==b0); OUT.composed=R2().split('\n').pop().replace(/^\d{4}-\d{2}-\d{2}/,'DATE'); await sleep(100);
     V.querySelector('[data-edit="902"]').click(); await sleep(50); const h=V.querySelector('form.aform'), b1=R2(); h.ndk.value='召開討論會'; h.querySelector('button[type=submit]').click(); await until(()=>R2()!==b1); OUT.optionOnly=R2().split('\n').pop().replace(/^\d{4}-\d{2}-\d{2}/,'DATE'); await sleep(100); OUT.shown=cell('乙').slice(0,40); }
   OUT.afterCell=cell('甲'); OUT.reviewKeptAfterLaterEntry=/下次追蹤 2099-03-01/.test(cell('甲')); await save(902,'已補追蹤','',''); OUT.overdueReviewClearedByNewEntry=!/該追蹤了/.test(cell('乙')); OUT.historyCount=(V.querySelector('.nlog summary')||{}).textContent; OUT.headAfter=V.querySelector('.sec-head .note').textContent;''',
+# 19 v1.28 主持投票不需定案權限：沒有定案權限但讀得到全部選票的帳號可開始與結束投票，結果留在畫面；讀不到全部選票的帳號不給投票鈕
+'vote_host': r'''seed(2,0,0); MOCK.DB['案例'].forEach(ready); MOCK.permLow={'正式紀錄':1}; const sh=await boot(); const {d,w}=await meet(sh); OUT.voteState=w.MM_SP.voteState; OUT.canDecide=w.MM_SP.canDecide;
+  d.getElementById('go-present').click(); await until(()=>d.getElementById('dopen')); d.getElementById('dopen').click(); await sleep(50); OUT.noForm=!d.getElementById('decide'); OUT.hasStart=!!d.getElementById('vstart');
+  d.getElementById('vstart').click(); await until(()=>d.querySelector('.vote-ov .vqr svg')); const P=['不可預防','可能可預防','很可能可預防','明確可預防']; let vid=20000; for(let a=1;a<=9;a++) MOCK.DB['投票'].push({Id:vid++,AuthorId:a,mmVotePrev:P[a<=5?1:2]});
+  await until(()=>d.getElementById('vn').textContent==='9',30000); d.getElementById('vend').click(); await until(()=>d.getElementById('vx2'),30000); OUT.noApplyButton=!d.getElementById('vapply'); OUT.result=d.querySelector('.vote-ov').textContent.replace(/\s+/g,' ').slice(0,60);
+  d.getElementById('vx2').click(); await sleep(50); OUT.vres=d.getElementById('vres').textContent; OUT.tagged=MOCK.DB['投票'].filter(v=>v.mmVoteCase).length; OUT.records=MOCK.DB['正式紀錄'].length;
+  d.getElementById('dclose').click(); d.getElementById('nx').click(); await sleep(50); d.getElementById('pv').click(); await sleep(50); d.getElementById('dopen').click(); await sleep(50); OUT.resultKept=d.getElementById('vres').textContent.includes('共 9 票');''',
+'vote_noperm': r'''seed(2,0,0); MOCK.DB['案例'].forEach(ready); MOCK.permLow={'投票':3}; const sh=await boot(); const {d,w}=await meet(sh); OUT.voteState=w.MM_SP.voteState; OUT.canDecide=w.MM_SP.canDecide;
+  d.getElementById('go-present').click(); const f=await until(()=>d.getElementById('decide')); OUT.hasStart=!!d.getElementById('vstart'); OUT.msg=[...f.querySelectorAll('p.small.muted')].map(p=>p.textContent).filter(t=>/投票/.test(t))[0]; OUT.canStillDecide=!!f.querySelector('button[type=submit]');''',
 }
 results = {}
 for name, body in SCEN.items():

@@ -147,7 +147,7 @@ button.p{background:var(--accent);border-color:var(--accent);color:#fff}button:d
 iframe{border:0;width:100%;height:100%;display:block;background:var(--bg)}
 .w{max-width:1000px;margin:0 auto;padding:18px 20px 60px}
 h2{font-size:20px;margin:0 0 4px}h3{font-size:16px;margin:22px 0 6px}
-.note{color:var(--muted);font-size:13.5px}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.note{color:var(--muted);font-size:13.5px}.note.hint{font-size:12.5px}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
 .banner{padding:10px 14px;border-left:3px solid var(--bad);background:var(--soft);margin:12px 0}
 .drop{border:2px dashed var(--line);padding:26px;text-align:center;cursor:pointer;margin:14px 0 8px;border-radius:8px}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}.drop.has{border-style:solid;border-color:var(--ok);text-align:left;padding:12px 16px}
@@ -190,7 +190,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       return;
     }
     P.innerHTML = `<div class="w"><h2>收案</h2>
-      <p class="note">把討論會的 Word 檔拖進來，確認內容後寫入「案例」清單。「案例」只顯示姓氏與年齡；病歷號、姓名、床號另存於「對照表」，僅主任與研究醫師可查。Word 檔不會上傳。</p>
+      <p class="note hint">拖入 Word 檔，確認後寫入。病歷號與全名另存，Word 檔不會上傳。</p>
       <div class="drop" id="drop" tabindex="0"><b id="dt">拖曳 Word 檔到這裡，或點選檔案</b><div class="note" id="ds">可一次選多個檔；超長住院、Morbidity、Mortality 均可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
       <div class="row"><span id="ymw" style="display:none">討論年月 <input type="text" id="ym" placeholder="例：2026-10"> <span class="note" id="ymh">檔名中找不到月份，請填寫。</span></span>
 </div>
@@ -237,7 +237,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           : `<h3>${esc(g.ctype)} ${g.n} 例，可識別資料已隱去${g.dup ? `　<span class="warn">其中 ${g.dup} 例之前已收過，會略過</span>` : ''}<br><span class="note">${esc(g.name)}</span></h3>`).join('')}
         ${unG ? `<p class="note warn">${unG} 例無法自動判斷診斷群，寫入後請在清單補選。</p>` : ''}
         ${(() => { const n = d.filter(x => x.ok && x.att && !x.att.id).length; return n ? `<p class="note warn">${n} 例沒有自動帶入主治醫師，寫入後請在清單的「主治醫師」欄選取。</p>` : ''; })()}
-        <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note">每一例會同時寫入「案例」與「對照表」；任一邊沒寫成功，該例會整筆取消。</span></div>
+        <div class="row"><button class="b p" id="write" ${n ? '' : 'disabled'}>寫入勾選的 <span id="wn">${n}</span> 例</button><span class="note hint">寫入失敗的例子會整筆取消。</span></div>
         <div class="tw"><table><tr><th></th><th>代碼</th><th>病人</th><th>主治</th><th>診斷群</th><th>天數</th><th>主診斷<small>→ 詳細診斷</small></th><th>診療史<small>→ 治療內容</small></th><th>其他診斷・併發症<small>→ 臨床經過</small></th></tr>
         ${R.groups.map(g => `<tr><td colspan="9" style="background:var(--soft);font-weight:600">${esc(g.ctype)}　<span class="note">${esc(g.name)}</span></td></tr>` + d.map((x, i) => [x, i]).filter(([x]) => x.g === g).map(([x, i]) => `<tr class="${x.ok ? '' : 'dup'}"><td><input type="checkbox" data-i="${i}" ${x.ok ? 'checked' : 'disabled title="不寫入"'}></td><td class="c">${esc(x.code)}${x.dup ? `<br><span class="warn">已收過：${esc(x.dup)}</span>` : ''}${x.noDate ? '<br><span class="warn">找不到日期，不寫入</span>' : ''}</td><td>${esc(x.draft.nameShort)} ${esc(x.draft.age ?? '?')}${esc(x.draft.sex)}</td><td>${!x.att ? '—' : x.att.id ? esc(String(x.att.name).split(' ')[0]) : `<span class="warn">${esc(x.att.why)}</span>`}</td><td>${esc(x.draft.dxGroup) || '<span class="warn">未歸類</span>'}</td><td>${esc(x.draft.los ?? '')}</td><td class="x">${clip(x.draft.dxDetail, 46)}</td><td class="x">${x.draft.treatment ? clip(x.draft.treatment, 38) : '—'}</td><td class="x">${x.draft.course ? clip(x.draft.course.replace(/｜/g, ' ｜ '), 38) : '—'}</td></tr>`).join('')).join('')}</table></div>
         <pre class="log" id="log" hidden></pre>
@@ -466,10 +466,12 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       const hasReport = !!(await listInfo('案例')).f['會中報告'];
       try { voteLi = await listInfo('投票'); } catch (_) { voteLi = null; }
       try { evLi = await listInfo('改善行動佐證'); } catch (_) { evLi = null; }
+      // 主持投票要能讀到全部選票：「投票」清單每人只看得到自己的票，只有具備管理清單權限（ManageLists）的帳號讀得到全部
+      let canTally = false; if (voteLi) { try { const vp = await rq(`web/lists(guid'${voteLi.id}')/EffectiveBasePermissions`); canTally = (Number(vp.Low) & 2048) !== 0; } catch (_) { canTally = false; } }
       P.innerHTML = '<iframe title="M&M 會議儀表板"></iframe>'; frame = P.querySelector('iframe');
       const w = frame.contentWindow, doc = frame.contentDocument;
       doc.open(); doc.write(`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><style>${DASH_CSS}</style></head><body>${DASH_BODY}</body></html>`); doc.close();
-      w.MM_SP = { data, canDecide: can, decide, hasReport, mark: hasReport && canMark ? mark : null, actionSave: canAct ? actionSave : null, evidenceUpload: canAct && evLi ? evidenceUpload : null, actionFields: Object.keys((await listInfo('改善行動')).f), vote: can && voteLi ? vote : null, actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
+      w.MM_SP = { data, canDecide: can, decide, hasReport, mark: hasReport && canMark ? mark : null, actionSave: canAct ? actionSave : null, evidenceUpload: canAct && evLi ? evidenceUpload : null, actionFields: Object.keys((await listInfo('改善行動')).f), vote: voteLi && canTally ? vote : null, voteState: !voteLi ? 'none' : canTally ? 'ok' : 'noperm', actionsUrl: (await listInfo('改善行動')).url, onView: v => { $('#bar').style.display = v === 'present' ? 'none' : ''; } };
       w.eval(DASH_JS);
       const rb = doc.createElement('button'); rb.textContent = '重新讀取'; rb.className = 'btn sm'; rb.style.marginLeft = '10px'; rb.title = '讀取清單的最新內容';
       rb.addEventListener('click', async () => { rb.disabled = true; rb.textContent = '讀取中…'; try { w.MM_SP.dashboard.reload(await loadData()); } catch (e) { alert('讀取失敗，請稍後再試：' + e.message); } rb.disabled = false; rb.textContent = '重新讀取'; });
