@@ -101,9 +101,9 @@ SCEN = {
 # 8 v1.19 開會頁：病歷號（取自對照表）、會前勾選會中報告、住院天數尺；定案寫回不得帶出病歷號
 'meet_v119': r'''const sh=await boot(); await intake(sh,[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx')]); await write(sh);
   MOCK.DB['案例'].slice(0,4).forEach(ready); const {d}=await meet(sh); const key=t=>(MOCK.DB['對照表'].find(k=>k.Title===t)||{}).mmChartNo;
-  OUT.chartCol=[...d.querySelectorAll('#v-prep th')].some(th=>th.textContent==='病歷號');
+  OUT.chartCol=[...d.querySelectorAll('#v-prep th')].some(th=>th.textContent==='病歷號／主治');
   const rows=()=>[...d.querySelectorAll('#v-prep tr.click')]; OUT.prepRows=rows().length;
-  OUT.chartAllMatch=rows().every(tr=>tr.querySelector('td.chartno').textContent===key(tr.querySelector('td.nw b').textContent));
+  OUT.chartAllMatch=rows().every(tr=>tr.querySelector('td.chartno').firstChild.textContent===key(tr.querySelector('td.nw b').textContent)); OUT.attAllMatch=rows().every(tr=>{ const k=MOCK.DB['對照表'].find(x=>x.Title===tr.querySelector('td.nw b').textContent), t=tr.querySelector('td.chartno'); return k&&k.mmAttending?t.lastChild.textContent===k.mmAttending:!t.querySelector('br'); }); OUT.attSample=(MOCK.DB['對照表'][0].mmAttending||'').length>0;
   OUT.repBoxes=d.querySelectorAll('input[data-rep]').length; const target=rows()[2].querySelector('td.nw b').textContent, tch=key(target);
   d.querySelector('input[data-rep="'+target+'"]').click(); await until(()=>/會中報告/.test((d.querySelector('#v-prep h3')||{}).textContent||''));
   OUT.dbFlag=MOCK.DB['案例'].find(c=>c.Title===target).mmReport===true; OUT.stayedOnPrep=!d.getElementById('v-prep').hidden;
@@ -122,7 +122,7 @@ SCEN = {
 # 9 沒有對照表權限、站台還沒有「會中報告」欄位、案例唯讀：開會頁照常可用，只是不顯示對應功能
 'meet_limited': r'''seed(6,0,0); MOCK.DB['案例'].forEach(ready); MOCK.perms['對照表']=false; MOCK.noReportField=true; const sh=await boot();
   const {d}=await meet(sh); OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length; OUT.chartCol=!!d.querySelector('#v-prep td.chartno'); OUT.repCol=[...d.querySelectorAll('#v-prep th')].some(th=>th.textContent==='報告'); OUT.showChartToggle=!!d.getElementById('show-chart');
-  d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.presChart=!!d.querySelector('.pres .chartno'); OUT.presOk=d.querySelector('.pres h2').textContent.length>0; OUT.ruler=!!d.querySelector('.stay svg');''',
+  d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.presChart=!!d.querySelector('.pres .chartno'); OUT.presAtt=!!d.querySelector('.pres .attname'); OUT.presOk=d.querySelector('.pres h2').textContent.length>0; OUT.ruler=!!d.querySelector('.stay svg');''',
 'meet_readonly': r'''seed(6,0,0); MOCK.DB['案例'].forEach(ready); MOCK.DB['案例'][1].mmReport=true; MOCK.permLow={'案例':1,'正式紀錄':1}; const sh=await boot();
   const {d}=await meet(sh); OUT.prepRows=d.querySelectorAll('#v-prep tr.click').length; OUT.boxes=d.querySelectorAll('input[data-rep]').length; OUT.ticks=[...d.querySelectorAll('#v-prep td.rep')].filter(t=>t.textContent==='✓').length;
   d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.btnLabel=d.getElementById('dopen').textContent.replace('D',''); d.getElementById('dopen').click(); await sleep(100);
@@ -233,6 +233,30 @@ SCEN = {
   const dt=new DataTransfer(); dt.items.add(new File([new Uint8Array(500)],'SOP 草稿.docx')); const m=f.querySelector('.amsg'); f.evf.files=dt.files; f.evf.dispatchEvent(new Event('change')); await until(()=>/已上傳|沒有上傳成功/.test(m.textContent)&&!f.querySelector('button[type=submit]').disabled,30000); OUT.upMsg=m.textContent; OUT.listedAfterUpload=[...f.querySelectorAll('.aevl a')].map(a=>a.textContent); f.evn.value='https://x.sharepoint.com/Shared/x.pdf';
   f.ev.value=f.ev.value.split(location.origin).join('https://x.sharepoint.com'); f.querySelector('button[type=submit]').click(); await until(()=>A[0].mmEvidence); await sleep(100); OUT.savedWhileOpen={status:A[0].mmStatus,links:String(A[0].mmEvidence).split('\n').length,done:A[0].mmDoneDate||null}; OUT.rowAfter=[...row('回顧並更新 SOP').querySelectorAll('.a-ev a')].map(a=>a.textContent);
   V.querySelector('[data-edit="901"]').click(); await sleep(50); f=V.querySelector('form.aform'); f.evn.value='not-a-link'; f.querySelector('button[type=submit]').click(); await sleep(100); OUT.badLink=f.querySelector('.amsg').textContent; f.evn.value=''; f.querySelector('.aevl [data-rm="0"]').click(); OUT.afterRemove=[...f.querySelectorAll('.aevl a')].map(a=>a.textContent); f.querySelector('button[type=submit]').click(); await until(()=>String(A[0].mmEvidence).split('\n').length===1); OUT.removedSaved=A[0].mmEvidence;''',
+# 27 v1.34 詞彙表：採用的字樣補強斷行／加粗／淡化；不採用與不合規的字樣（正則符號、太短、HTML、太長）一律不生效；文字不增不減
+'vocab_rules': r'''seed(1,0,0); const c=MOCK.DB['案例'][0]; ready(c); const TX='alpha beta gamma, paclitaxel weekly, zzword daily, then jaundice noted (a, paclitaxel b), x.y'; c.mmTreatment=TX; c.mmCourse='Condition stable｜Other problem';
+  const V=MOCK.DB['詞彙表']; let n=1; const add=(t,k,st)=>V.push({Id:9000+(n++),Title:t,mmVocabKind:k,mmVocabStatus:st}); add('Paclitaxel','斷行','採用'); add('zzword','斷行','不採用'); add('jaundice','加粗','採用'); add('stable','淡化','採用');
+  for(const bad of ['.*','(','a','ab','','<img src=x onerror=PWNED=1>','x'.repeat(40),'a|b','gam+a','\\w+']) add(bad,'斷行','採用');
+  const sh=await boot(); const {d}=await meet(sh); d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); const P=d.querySelector('.pbody');
+  const li=[...P.querySelectorAll('.kv')[0].querySelectorAll('li')].map(x=>x.textContent); OUT.clauses=li; OUT.textKept=li.join('').replace(/[,\s]/g,'')===TX.replace(/[,\s]/g,''); OUT.bold=[...P.querySelectorAll('b')].map(b=>b.textContent); OUT.faded=[...P.querySelectorAll('li.past')].map(x=>x.textContent); OUT.noScript=typeof PWNED==='undefined'&&!P.querySelector('img');''',
+# 28 沒有詞彙表（站台還沒跑 create_lists v17）：投影頁照內建規則，收案照常完成、不記統計也不報錯
+'vocab_missing': r'''MOCK.noVocab=true; const sh=await boot(); OUT.noPanel=!sh.querySelector('#vocbox .voc'); await intake(sh,[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx')]); const w=await write(sh); OUT.done=/完成：新增 12 例/.test(w.log); OUT.noFeedbackLine=!/轉換統計/.test(w.log); OUT.fbRows=MOCK.DB['轉換回饋'].length;
+  MOCK.DB['案例'].forEach(c=>{ ready(c); c.mmTreatment='alpha beta gamma, paclitaxel weekly, then stop'; }); const {d}=await meet(sh); d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.clauses=[...d.querySelector('.pbody .kv').querySelectorAll('li')].map(x=>x.textContent);''',
+# 29 收案後自動記一筆統計：每種類型一筆，只有數量與純英文字樣；重拖同一份檔不重複記；統計寫不進去不影響收案。輸出只含數量與布林值（測試檔是真實病歷）
+'feedback_intake': r'''const sh=await boot(); const fs=()=>[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx'),F('MORT','血液腫瘤科2026年9&10月份Mortality討論會.docx')]; await intake(sh,fs()); const w=await write(sh); const FB=MOCK.DB['轉換回饋'];
+  OUT.done=/完成：新增 53 例/.test(w.log); OUT.said=/已記錄這次的轉換統計/.test(w.log); OUT.rows=FB.length; OUT.titles=FB.map(r=>r.Title); OUT.cases=FB.map(r=>r.mmFbCases); OUT.numbersOk=FB.every(r=>[r.mmFbClauses,r.mmFbLong,r.mmFbMax].every(Number.isFinite)&&r.mmFbClauses>=r.mmFbLong); OUT.version=FB.every(r=>/^v\d/.test(r.mmFbVersion));
+  const toks=FB.flatMap(r=>String(r.mmFbTokens||'').split('、').filter(Boolean)); OUT.tokenCount=toks.length; OUT.tokensWellFormed=toks.every(t=>/^[a-z]{3,20}:\d+$/.test(t)); OUT.tokensAtLeast2=toks.every(t=>Number(t.split(':')[1])>=2); OUT.maxTokensPerRow=Math.max(0,...FB.map(r=>String(r.mmFbTokens||'').split('、').filter(Boolean).length));
+  const keys=new Set(FB.flatMap(r=>Object.keys(r))); OUT.onlyStatFields=[...keys].every(k=>/^(Id|Title|mmFb(Cases|Clauses|Long|Max|Tokens|Version))$/.test(k)); OUT.noCjkInTokens=!/[一-鿿]/.test(toks.join(''));
+  sh.querySelector('#res').innerHTML=''; await intake(sh,fs()); await until(()=>sh.querySelector('#wn')||/不會寫入|已收過/.test(sh.querySelector('#res').textContent)); OUT.redropWritable=Number((sh.querySelector('#wn')||{textContent:'0'}).textContent); if(OUT.redropWritable>0){ await write(sh); } OUT.rowsAfterRedrop=FB.length; OUT.casesAfterRedrop=MOCK.DB['案例'].length;''',
+'feedback_fail': r'''MOCK.fbFail=true; const sh=await boot(); await intake(sh,[F('OCT','血液腫瘤科2026年10月份超長住院討論會.docx')]); const w=await write(sh); OUT.done=/完成：新增 12 例/.test(w.log); OUT.noFeedbackLine=!/轉換統計/.test(w.log); OUT.cases=MOCK.DB['案例'].length; OUT.fbRows=MOCK.DB['轉換回饋'].length; OUT.nextStepShown=/接下來請到/.test(w.log);''',
+# 31 核可介面：只有能編輯詞彙表的帳號看得到；候選字樣來自回饋清單，已在詞彙表的不再列；採用／不採用各寫一筆；回饋清單裡的怪字串不會被列出
+'vocab_approve': r'''MOCK.DB['轉換回饋'].push({Id:8001,Title:'超長住院 2026-10',mmFbTokens:'paclitaxel:3、shift:2、known:9、bad token:1、<b>:2、ab:5'},{Id:8002,Title:'Mortality 2026-09',mmFbTokens:'paclitaxel:2、onerror=x:4'}); MOCK.DB['詞彙表'].push({Id:9001,Title:'known',mmVocabKind:'斷行',mmVocabStatus:'不採用'});
+  const sh=await boot(); await sleep(300); const box=sh.querySelector('#vocbox'); OUT.panel=!!box.querySelector('.voc'); if(!OUT.panel) return;
+  OUT.words=[...box.querySelectorAll('tr')].map(r=>r.cells[0].textContent+'|'+r.cells[1].textContent); const V=MOCK.DB['詞彙表'];
+  box.querySelector('button[data-w="paclitaxel"][data-s="採用"]').click(); await until(()=>V.length===2); box.querySelector('button[data-w="shift"][data-s="不採用"]').click(); await until(()=>V.length===3); await sleep(50);
+  OUT.saved=V.slice(1).map(r=>[r.Title,r.mmVocabKind,r.mmVocabStatus].join('|')); OUT.cells=[...box.querySelectorAll('tr')].map(r=>r.cells[2].textContent.trim()); OUT.msg=box.querySelector('#vocmsg').textContent;
+  MOCK.DB['案例'].length=0; seed(1,0,0); const c=MOCK.DB['案例'][0]; ready(c); c.mmTreatment='alpha beta gamma, paclitaxel weekly, shift later'; const {d}=await meet(sh); d.getElementById('go-present').click(); await until(()=>d.querySelector('.pres h2')); OUT.appliedInMeeting=[...d.querySelector('.pbody .kv').querySelectorAll('li')].map(x=>x.textContent);''',
+'vocab_approve_readonly': r'''MOCK.DB['轉換回饋'].push({Id:8001,Title:'超長住院 2026-10',mmFbTokens:'paclitaxel:3'}); MOCK.permLow={'詞彙表':1}; const sh=await boot(); await sleep(300); OUT.panel=!!sh.querySelector('#vocbox .voc');''',
 }
 results = {}
 for name, body in SCEN.items():

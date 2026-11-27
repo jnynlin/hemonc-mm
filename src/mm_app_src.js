@@ -43,7 +43,7 @@
   const LI = {};
   async function listInfo(title) {
     if (LI[title]) return LI[title];
-    const BYURL = { '投票': '/Lists/mmvote', '改善行動佐證': '/mmevidence' }; // 用網址找：多語系站台改名後，依名稱可能找不到
+    const BYURL = { '投票': '/Lists/mmvote', '改善行動佐證': '/mmevidence', '詞彙表': '/Lists/mmvocab', '轉換回饋': '/Lists/mmfeedback' }; // 用網址找：多語系站台改名後，依名稱可能找不到
     const sel = '$select=Id,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder';
     const l = BYURL[title] ? await rq(`web/GetList(@u)?${sel}&@u='${encodeURIComponent(base.replace(location.origin, '') + BYURL[title])}'`) : await rq(`web/lists/getbytitle('${q(title)}')?${sel}`);
     const fs = (await rq(`web/lists(guid'${l.Id}')/fields?$filter=Hidden eq false`)).value;
@@ -127,6 +127,9 @@
   /* ================= QR code（投票用） ================= */
   __QR__
 
+  /* ================= 病歷文字的斷行與標示規則（取自 mm_dashboard.html，與投影頁同一份） ================= */
+  __TXRULES__
+
   /* ================= 外框 ================= */
   const host = document.createElement('div'); host.id = 'mm-app-host';
   host.style.cssText = 'position:fixed;inset:0;z-index:2147483000;';
@@ -157,6 +160,7 @@ label.ck{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
 .tw{overflow-x:auto;margin-top:8px}table{border-collapse:collapse;width:100%;font-size:13.5px}
 th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}th{color:var(--muted);font-weight:500;font-size:12px;white-space:nowrap}th small{display:block;font-weight:400}
 td.c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}td.x{max-width:240px}tr.dup td{color:var(--muted)}
+#vocbox .voc{margin:14px 0;padding:10px 0;border-top:1px solid var(--line)} #vocbox table{margin-top:6px;border-collapse:collapse} #vocbox td{padding:4px 14px 4px 0;vertical-align:middle}
 pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;background:var(--soft);padding:10px 12px;border-radius:6px;max-height:40vh;overflow:auto}
 .load{padding:60px;text-align:center;color:var(--muted)}
 </style>
@@ -194,7 +198,7 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       <div class="drop" id="drop" tabindex="0"><b id="dt">拖曳 Word 檔到這裡，或點選檔案</b><div class="note" id="ds">可一次選多個檔；超長住院、Morbidity、Mortality 均可</div><input type="file" id="file" accept=".docx" multiple hidden></div>
       <div class="row"><span id="ymw" style="display:none">討論年月 <input type="text" id="ym" placeholder="例：2026-10"> <span class="note" id="ymh">檔名中找不到月份，請填寫。</span></span>
 </div>
-      <div id="testbox"></div><div id="attbox"></div>
+      <div id="testbox"></div><div id="attbox"></div><div id="vocbox"></div>
       <div id="res"></div></div>`;
     let files = [], R = null;
     const drop = $('#drop'), fileIn = $('#file'), ymIn = $('#ym');
@@ -246,10 +250,38 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
       res.querySelectorAll('input[data-i]').forEach(c => c.addEventListener('change', cnt));
       $('#write').addEventListener('click', () => write([...res.querySelectorAll('input[data-i]:checked')].map(c => R.items[+c.dataset.i])));
     }
+    // 收案後記一筆轉換統計到「轉換回饋」（v17 起才有這張清單）：只記數量與常見英文字樣，不記句子。只算這次新寫入的案例，重拖同一份檔不會重複計數。
+    async function feedback(done, say) {
+      const fl = await listInfo('轉換回饋'); await loadVocab(); const by = {};
+      for (const x of done) { const k = String(x.caseRow['案例類型'] || '').split(/;/)[0].trim() || '案例'; (by[k] = by[k] || []).push(x); }
+      for (const [k, L] of Object.entries(by)) {
+        const st = txStats(L.map(x => ({ tx: x.caseRow['治療內容'], course: x.caseRow['臨床經過'] }))), yms = [...new Set(L.map(x => x.caseRow['年月']).filter(Boolean))].sort();
+        await addItem(fl, toBody(fl, { '標題': `${k} ${yms[0] || ''}${yms.length > 1 ? '～' + yms[yms.length - 1] : ''}`.trim(), '例數': st.cases, '診療史條數': st.nClause, '過長條數': st.nLong, '最長字數': st.maxLen, '候選字樣': st.tokens.map(([w, n]) => `${w}:${n}`).join('、'), '程式版本': VERSION }).body);
+      }
+      say('已記錄這次的轉換統計（只記數量與常見字樣，不含病歷內容）。');
+    }
+    // 待核可字樣：只有能編輯「詞彙表」的帳號（主任）看得到
+    (async () => {
+      try {
+        if (!(await canAdd('詞彙表'))) return; const v = await loadVocab(); if (!v) return;
+        const fl = await listInfo('轉換回饋'), vl = await listInfo('詞彙表'), cnt = {};
+        for (const it of await readAll('轉換回饋')) for (const p of String(toDisplay(fl, it)['候選字樣'] || '').split('、')) { const m = /^([a-z]{3,20}):(\d{1,4})$/.exec(p.trim()); if (m && !(m[1] in v.all)) cnt[m[1]] = (cnt[m[1]] || 0) + Number(m[2]); }
+        const L = Object.entries(cnt).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 12); if (!L.length) return;
+        const box = $('#vocbox');
+        box.innerHTML = `<div class="voc"><b>待核可的斷行字樣</b>　<span class="note">收案的病歷文字裡，逗號後常出現、但投影頁還不會在那裡斷行的字。採用後，投影頁會在這個字前面另起一行；不採用就不再列出。</span>
+          <table>${L.map(([w, n]) => `<tr><td class="c">${esc(w)}</td><td class="note">累計 ${n} 例</td><td><button class="b" data-w="${esc(w)}" data-s="採用">採用</button> <button class="b" data-w="${esc(w)}" data-s="不採用">不採用</button></td></tr>`).join('')}</table><span class="note" id="vocmsg"></span></div>`;
+        box.addEventListener('click', async e => {
+          const b = e.target.closest('button[data-w]'); if (!b || b.disabled) return; const w = txWord(b.dataset.w), s = b.dataset.s, td = b.parentNode; if (!w) return;
+          td.querySelectorAll('button').forEach(x => { x.disabled = true; });
+          try { await addItem(vl, toBody(vl, { '標題': w, '類別': '斷行', '狀態': s }).body); v.all[w] = s; if (s === '採用') { v.split.push(w); setVocab(v); } td.textContent = s === '採用' ? '已採用' : '已設為不採用'; $('#vocmsg').textContent = s === '採用' ? '開會頁按「重新讀取」後生效。' : ''; }
+          catch (err) { td.querySelectorAll('button').forEach(x => { x.disabled = false; }); $('#vocmsg').textContent = '沒有存成功：' + err.message; }
+        });
+      } catch (_) { /* 沒有這兩張清單：不顯示 */ }
+    })();
     async function write(sel) {
       const log = $('#log'), btn = $('#write'); log.hidden = false; log.textContent = ''; btn.disabled = true;
       const say = s => { log.textContent += s + '\n'; log.scrollTop = log.scrollHeight; };
-      const cl = await listInfo('案例'), kl = await listInfo('對照表'); let ok = 0, fail = 0; const orphan = [];
+      const cl = await listInfo('案例'), kl = await listInfo('對照表'); let ok = 0, fail = 0; const orphan = [], done = [];
       for (const x of sel) {
         let caseId = null;
         try {
@@ -257,10 +289,11 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
           const cr = await addItem(cl, c.body); caseId = cr.Id;
           try { await addItem(kl, k.body); }
           catch (e) { let undone = true; await delItem(cl, caseId).catch(() => { undone = false; }); if (!undone) orphan.push(x.code); throw new Error((undone ? '對照表沒寫成功，這一例已整筆取消：' : '對照表沒寫成功，而且案例沒能自動取消，請到「案例」清單刪除這一例：') + e.message); }
-          ok++; say(`${x.code} 已寫入${c.warn.length ? '（未填：' + c.warn.join('；') + '）' : ''}`);
+          ok++; done.push(x); say(`${x.code} 已寫入${c.warn.length ? '（未填：' + c.warn.join('；') + '）' : ''}`);
         } catch (e) { fail++; say(`${x.code} 未寫入：${e.message}`); }
       }
       say(`完成：新增 ${ok} 例${fail ? `，${fail} 例未寫入（原因見上方）` : ''}。`);
+      if (ok) await feedback(done, say).catch(() => {}); // 統計寫不進去不影響收案
       if (orphan.length) say(`請注意：${orphan.join('、')} 只寫入了案例、沒有對照表，請到「案例」清單刪除後重新收案。`);
       if (fail) say('未寫入的例子可以直接再拖一次同一個 Word 檔：已寫入的會標「已收過」略過，只補寫未寫入的。');
       if (ok) say(`接下來請到「案例」清單逐案填寫初評、徵詢主治，完成後把狀態改成「待討論」。\n${cl.url}`);
@@ -350,6 +383,17 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
   /* ================= 開會（儀表板＋定案寫回） ================= */
   let meetReady = false, frame = null, caseRaw = {}, caseDisp = {}, facIds = {};
   const DASH_CSS = __DASH_CSS__, DASH_BODY = __DASH_BODY__, DASH_JS = __DASH_JS__;
+  // 詞彙表（v17 起）：主任核可的字樣，用來補強斷行與標示。清單不存在或讀不到時回 null，行為與沒有詞彙表時相同。
+  let VOCAB; // undefined＝還沒讀
+  async function loadVocab() {
+    if (VOCAB !== undefined) return VOCAB;
+    try {
+      const li = await listInfo('詞彙表'); const v = { split: [], bold: [], fade: [], all: {} };
+      for (const it of await readAll('詞彙表')) { const r = toDisplay(li, it), w = txWord(r['標題']), st = r['狀態'] || '採用'; if (!w) continue; v.all[w] = st; if (st === '採用') (({ '加粗': v.bold, '淡化': v.fade })[r['類別']] || v.split).push(w); }
+      VOCAB = v;
+    } catch (_) { VOCAB = null; }
+    setVocab(VOCAB); return VOCAB;
+  }
   async function loadData() {
     const [cl, rl, fl, al] = await Promise.all(['案例', '正式紀錄', '根因分類', '改善行動'].map(listInfo));
     const [cs, rs, fs, as] = await Promise.all([readAll('案例'), readAll('正式紀錄'), readAll('根因分類'), readAll('改善行動')]);
@@ -357,12 +401,13 @@ pre.log{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,Consolas,monospace;bac
     const drafts = cs.map(it => { const o = toDisplay(cl, it); caseRaw[o['標題']] = it; caseDisp[o['標題']] = o; return o; });
     for (const it of fs) facIds[(it.Title || '').trim()] = it.Id;
     // 病歷號：只有讀得到「對照表」的帳號才有；另外放，不併入案例資料（定案寫回時不會帶到正式紀錄）
-    let charts = null;
+    let charts = null, atts = null;
     try {
-      const kl = await listInfo('對照表'), cf = kl.f['病歷號'].EntityPropertyName; charts = {};
-      for (const k of await getAll(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${cf}`)) { const v = String(k[cf] || '').trim(); if (k.Title && v) charts[k.Title] = v; }
-    } catch (_) { charts = null; }
-    return { charts, drafts, records: rs.map(it => toDisplay(rl, it)), factors: fs.map(it => toDisplay(fl, it)), actions: as.map(it => toDisplay(al, it)) };
+      const kl = await listInfo('對照表'), cf = kl.f['病歷號'].EntityPropertyName, af = kl.f['主治醫師'] ? kl.f['主治醫師'].EntityPropertyName : null; charts = {}; atts = {};
+      for (const k of await getAll(`web/lists(guid'${kl.id}')/items?$top=5000&$select=Title,${cf}${af ? ',' + af : ''}`)) { const v = String(k[cf] || '').trim(); if (k.Title && v) charts[k.Title] = v; const t = af ? String(k[af] || '').trim() : ''; if (k.Title && t) atts[k.Title] = t; }
+    } catch (_) { charts = null; atts = null; }
+    const vocab = await loadVocab();
+    return { vocab: vocab && { split: vocab.split, bold: vocab.bold, fade: vocab.fade }, charts, atts, drafts, records: rs.map(it => toDisplay(rl, it)), factors: fs.map(it => toDisplay(fl, it)), actions: as.map(it => toDisplay(al, it)) };
   }
   async function decide(code, p) {
     const cl = await listInfo('案例'), rl = await listInfo('正式紀錄'); if (!caseRaw[code]) throw new Error('找不到案例 ' + code);

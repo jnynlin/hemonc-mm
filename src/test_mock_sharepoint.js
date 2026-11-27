@@ -10,10 +10,12 @@
     '改善行動': [T('標題', 'Title', 'Text'), T('負責人', 'mmOwner', 'Text'), T('到期日', 'mmDueDate', 'DateTime'), T('狀態', 'mmStatus', 'Choice', { Choices: ['待辦', '進行中', '完成', '取消'] }), T('備註', 'mmRemarks', 'Note'), T('針對因素', 'mmTargetFactor', 'Lookup'), T('關聯紀錄', 'mmRelatedRecords', 'LookupMulti'), T('完成日期', 'mmDoneDate', 'DateTime'), T('成效確認', 'mmEffect', 'Choice', { Choices: ['尚未確認', '有效', '部分有效', '無效'] }), T('成效說明', 'mmEffectNote', 'Note'), T('佐證連結', 'mmEvidence', 'Note')],
     '投票': [T('標題', 'Title', 'Text'), T('可預防性', 'mmVotePrev', 'Choice', { Choices: PREV }), T('案例代碼', 'mmVoteCase', 'Text'), T('場次', 'mmVoteSession', 'Text')],
     '改善行動佐證': [T('標題', 'Title', 'Text')],
+    '詞彙表': [T('標題', 'Title', 'Text'), T('類別', 'mmVocabKind', 'Choice', { Choices: ['斷行', '加粗', '淡化'] }), T('狀態', 'mmVocabStatus', 'Choice', { Choices: ['採用', '不採用'] }), T('備註', 'mmVocabNote', 'Note')],
+    '轉換回饋': [T('標題', 'Title', 'Text'), T('例數', 'mmFbCases', 'Number'), T('診療史條數', 'mmFbClauses', 'Number'), T('過長條數', 'mmFbLong', 'Number'), T('最長字數', 'mmFbMax', 'Number'), T('候選字樣', 'mmFbTokens', 'Note'), T('程式版本', 'mmFbVersion', 'Text')],
     '對照表': [T('標題', 'Title', 'Text'), T('病歷號', 'mmChartNo', 'Text'), T('姓名', 'mmPatientName', 'Text'), T('床號', 'mmBed', 'Text'), T('主治醫師', 'mmAttending', 'Text'), T('原主治', 'mmPrevAttending', 'Text'), T('住院日期', 'mmAdmissionDate', 'Text'), T('死亡日期', 'mmDeathDate', 'Text'), T('住院日數原文', 'mmLOSRaw', 'Text')],
   };
   const ids = {}, names = {}; Object.keys(L).forEach((t, i) => { ids[t] = 'g' + i; names['g' + i] = t; });
-  const DB = { '案例': [], '正式紀錄': [], '根因分類': [], '改善行動': [], '對照表': [], '投票': [], '改善行動佐證': [] }; let seq = 1;
+  const DB = { '案例': [], '正式紀錄': [], '根因分類': [], '改善行動': [], '對照表': [], '投票': [], '改善行動佐證': [], '詞彙表': [], '轉換回饋': [] }; let seq = 1;
   [['病人因素', '疾病嚴重度／多重共病'], ['工作任務與流程', '檢驗檢查結果延遲或未追蹤'], ['超長住院因素', '等待檢查／處置'], ['超長住院因素', '感染併發症'], ['臨床決策', '診斷假設未及時修正（定錨／過早結案）'], ['臨床決策', '值班負荷與疲勞']].forEach(([g, n], i) => DB['根因分類'].push({ Id: seq++, Title: n, mmLevel: g, mmSortOrder: i }));
   // 先放一筆「已收過」：讓 10 月第 3 例的病歷號被視為重複
   window.MOCK = { DB, L, log: [], files: [], perms: { '對照表': true } };
@@ -31,13 +33,13 @@
     let mt = path.match(/^web\/lists\/getbytitle\('(.+?)'\)/);
     if (mt) { const t = mt[1].replace(/''/g, "'"); if (!L[t] || (t === '對照表' && !MOCK.perms['對照表'])) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404); return J({ Id: ids[t], ListItemEntityTypeFullName: 'SP.Data.' + ids[t], RootFolder: { ServerRelativeUrl: '/sites/x/Lists/' + (t === '投票' ? 'mmvote' : t) } }); }
     let gl = path.match(/^web\/GetList\(@u\)\?.*@u='([^']*)'/);
-    if (gl) { const u = gl[1]; const tt = /\/Lists\/mmvote$/.test(u) ? '投票' : (/\/mmevidence$/.test(u) && !MOCK.noEvidenceLib ? '改善行動佐證' : null); if (!tt) return J({ 'odata.error': { message: { value: 'not found' } } }, 404); return J({ Id: ids[tt], ListItemEntityTypeFullName: 'SP.Data.' + ids[tt], RootFolder: { ServerRelativeUrl: tt === '投票' ? '/sites/x/Lists/mmvote' : '/sites/x/mmevidence' } }); }
+    if (gl) { const u = gl[1]; const tt = /\/Lists\/mmvote$/.test(u) ? '投票' : /\/Lists\/mmvocab$/.test(u) && !MOCK.noVocab ? '詞彙表' : /\/Lists\/mmfeedback$/.test(u) && !MOCK.noVocab ? '轉換回饋' : (/\/mmevidence$/.test(u) && !MOCK.noEvidenceLib ? '改善行動佐證' : null); if (!tt) return J({ 'odata.error': { message: { value: 'not found' } } }, 404); return J({ Id: ids[tt], ListItemEntityTypeFullName: 'SP.Data.' + ids[tt], RootFolder: { ServerRelativeUrl: tt === '投票' ? '/sites/x/Lists/mmvote' : tt === '詞彙表' ? '/sites/x/Lists/mmvocab' : tt === '轉換回饋' ? '/sites/x/Lists/mmfeedback' : '/sites/x/mmevidence' } }); }
     if (path === 'web/folders' && m === 'POST') { const b = JSON.parse(opt.body); if (MOCK.files.some(f => f.folder === b.ServerRelativeUrl)) return J({ 'odata.error': { message: { value: 'folder exists' } } }, 400); return J({ d: { ServerRelativeUrl: b.ServerRelativeUrl } }, 201); }
     const up = path.match(/^web\/GetFolderByServerRelativeUrl\('(.+?)'\)\/Files\/add\(url='(.+?)',overwrite=false\)$/);
     if (up && m === 'POST') { if (MOCK.uploadFail) return J({ 'odata.error': { message: { value: 'denied' } } }, 403); MOCK.files.push({ folder: up[1], name: up[2], size: opt.body ? opt.body.byteLength : 0 }); return J({ d: { ServerRelativeUrl: up[1] + '/' + up[2] } }, 200); }
     // 模擬多語系：依名稱「投票」找不到
     if (/^web\/lists\/getbytitle\('投票'\)/.test(path) && MOCK.voteTitleBroken) return J({ 'odata.error': { message: { value: 'List does not exist' } } }, 404);
-    mt = path.match(/^web\/lists\(guid'(g\d)'\)\/(.*)$/); if (!mt) return J({ error: 'unknown ' + path }, 400);
+    mt = path.match(/^web\/lists\(guid'(g\d+)'\)\/(.*)$/); if (!mt) return J({ error: 'unknown ' + path }, 400);
     const t = names[mt[1]], rest = mt[2], F = L[t];
     if (rest.startsWith('fields')) return J({ value: (MOCK.noReportField ? F.filter(x => x.InternalName !== 'mmReport') : F).filter(x => !(MOCK.noActionV15 && /^mm(DoneDate|Effect|EffectNote|Evidence)$/.test(x.InternalName))) }); // noActionV15：改善行動還沒有追蹤欄位 // noReportField：站台還沒重跑 create_lists
     if (rest === 'EffectiveBasePermissions') return J({ Low: String((MOCK.permLow && MOCK.permLow[t]) || '4294967295'), High: '2147483647' }); // permLow：模擬唯讀成員（1＝只有檢視）
@@ -50,6 +52,7 @@
       return J({ value: rows.map(r => ({ ...r })) });
     }
     if (rest === 'items' && m === 'POST') {
+      if (MOCK.fbFail && t === '轉換回饋') return J({ 'odata.error': { message: { value: 'denied' } } }, 403); // fbFail：統計寫不進去
       const b = JSON.parse(opt.body); delete b.__metadata; const it = { Id: seq++ };
       for (const [k, v] of Object.entries(b)) {
         if (k === 'mmAttendingId' && F.find(x => x.InternalName === 'mmAttending')) { const u = (MOCK.users || []).find(x => x.Id === v); it.mmAttendingId = v; it.mmAttending = u ? { Id: u.Id, Title: u.DisplayText } : null; continue; }
